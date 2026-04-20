@@ -23,7 +23,9 @@
     "db:watch": "turbo -F @deck-pack/db db:watch",
     "db:stop": "turbo -F @deck-pack/db db:stop",
     "db:down": "turbo -F @deck-pack/db db:down",
-    "check": "oxlint && oxfmt --write"
+    "check": "oxlint && oxfmt --write",
+    "steno:ingest": "steno ingest",
+    "steno:dev": "steno dev"
   },
   "dependencies": {
     "@deck-pack/env": "workspace:*",
@@ -32,6 +34,7 @@
   },
   "devDependencies": {
     "@deck-pack/config": "workspace:*",
+    "@joostwmd/steno": "^0.1.2",
     "@types/node": "catalog:",
     "lefthook": "^2.0.13",
     "oxfmt": "^0.26.0",

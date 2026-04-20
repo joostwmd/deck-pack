@@ -2,14 +2,19 @@ packages:
   - apps/*
   - apps/addins/*
   - packages/*
+allowBuilds:
+  better-sqlite3: true
+  esbuild: true
+  lefthook: true
+  msw: true
 catalog:
-  dotenv: ^17.2.2
-  zod: ^4.1.13
-  typescript: ^6
-  "@types/node": ^22.13.14
-  hono: ^4.8.2
-  "@trpc/server": ^11.16.0
-  better-auth: 1.5.5
-  next-themes: ^0.4.6
   "@trpc/client": ^11.16.0
+  "@trpc/server": ^11.16.0
+  "@types/node": ^22.13.14
   "@types/react-dom": ^19.2.3
+  better-auth: 1.5.5
+  dotenv: ^17.2.2
+  hono: ^4.8.2
+  next-themes: ^0.4.6
+  typescript: ^6
+  zod: ^4.1.13
