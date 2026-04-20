@@ -11,6 +11,16 @@ on:
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
       - ".github/workflows/build-and-push.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/api/**"
+      - "apps/ops/**"
+      - "packages/**"
+      - "docker/**"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - ".github/workflows/build-and-push.yml"
   workflow_dispatch:
 
 concurrency:
@@ -60,11 +70,23 @@ jobs:
       - name: Compute image tags
         id: tags
         run: |
-          SHA_TAG="${{ vars.ACR_LOGIN_SERVER }}/${IMAGE_REPO}:${GITHUB_SHA::7}"
-          LATEST_TAG="${{ vars.ACR_LOGIN_SERVER }}/${IMAGE_REPO}:latest"
+          REGISTRY="${{ vars.ACR_LOGIN_SERVER }}"
+          SHA_TAG="${REGISTRY}/${IMAGE_REPO}:${GITHUB_SHA::7}"
+          TAGS="${SHA_TAG}"
+          if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
+            PR_TAG="${REGISTRY}/${IMAGE_REPO}:pr-${{ github.event.pull_request.number }}"
+            TAGS="${TAGS}"$'\n'"${PR_TAG}"
+            echo "extra_tag=${PR_TAG}" >> "$GITHUB_OUTPUT"
+          else
+            LATEST_TAG="${REGISTRY}/${IMAGE_REPO}:latest"
+            TAGS="${TAGS}"$'\n'"${LATEST_TAG}"
+            echo "extra_tag=${LATEST_TAG}" >> "$GITHUB_OUTPUT"
+          fi
+          echo "sha_tag=${SHA_TAG}" >> "$GITHUB_OUTPUT"
           {
-            echo "sha_tag=${SHA_TAG}"
-            echo "latest_tag=${LATEST_TAG}"
+            echo "tags<<EOF"
+            echo "${TAGS}"
+            echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
       - name: Build and push ${{ matrix.app }} image
@@ -73,9 +95,7 @@ jobs:
           context: .
           file: ${{ matrix.dockerfile }}
           push: true
-          tags: |
-            ${{ steps.tags.outputs.sha_tag }}
-            ${{ steps.tags.outputs.latest_tag }}
+          tags: ${{ steps.tags.outputs.tags }}
           build-args: ${{ matrix.build_args }}
           cache-from: type=gha,scope=${{ matrix.app }}
           cache-to: type=gha,mode=max,scope=${{ matrix.app }}
@@ -86,5 +106,5 @@ jobs:
             echo "### Pushed ${IMAGE_REPO}"
             echo ""
             echo "- \`${{ steps.tags.outputs.sha_tag }}\`"
-            echo "- \`${{ steps.tags.outputs.latest_tag }}\`"
+            echo "- \`${{ steps.tags.outputs.extra_tag }}\`"
           } >> "$GITHUB_STEP_SUMMARY"

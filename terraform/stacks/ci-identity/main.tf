@@ -15,6 +15,15 @@ resource "azuread_application_federated_identity_credential" "github_main_branch
   subject        = "repo:${var.github_owner}/${var.github_repo}:ref:refs/heads/${var.github_branch}"
 }
 
+resource "azuread_application_federated_identity_credential" "github_pull_request" {
+  application_id = azuread_application.github_ci.id
+  display_name   = "github-${var.github_owner}-${var.github_repo}-pull-request"
+  description    = "OIDC trust for GitHub Actions pull_request events (CI iteration)"
+  audiences      = ["api://AzureADTokenExchange"]
+  issuer         = "https://token.actions.githubusercontent.com"
+  subject        = "repo:${var.github_owner}/${var.github_repo}:pull_request"
+}
+
 resource "azurerm_role_assignment" "acr_push" {
   scope                = var.acr_id
   role_definition_name = "AcrPush"
