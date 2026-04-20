@@ -1,0 +1,20 @@
+# Copy to terraform.tfvars and fill with real values.
+subscription_id = "00000000-0000-0000-0000-000000000000"
+
+# Pull from the foundation stack:
+#   terraform -chdir=../foundation output -raw acr_id
+#   terraform -chdir=../foundation output -raw acr_login_server
+acr_id           = "/subscriptions/.../providers/Microsoft.ContainerRegistry/registries/<name>"
+acr_login_server = "<name>.azurecr.io"
+
+# Must be globally unique; becomes https://<name>.azurewebsites.net
+ops_app_name = "deck-pack-ops-<your-initials-or-suffix>"
+
+# Optional overrides
+# location             = "westeurope"
+# resource_group_name  = "rg-deck-pack-cloud"
+# plan_name            = "asp-deck-pack"
+# plan_sku             = "B1"
+# ops_image_tag        = "latest"
+# ops_image_repository = "deck-pack-ops"
+# ops_container_port   = 8080
