@@ -9,7 +9,9 @@ export const { queryClient, trpcClient, trpc } = createTrpcBrowserBundle<AppRout
     toast.error(error.message, {
       action: {
         label: "retry",
-        onClick: query.invalidate,
+        onClick: () => {
+          query.invalidate();
+        },
       },
     });
   },

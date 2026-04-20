@@ -23,7 +23,8 @@
     "db:watch": "turbo -F @deck-pack/db db:watch",
     "db:stop": "turbo -F @deck-pack/db db:stop",
     "db:down": "turbo -F @deck-pack/db db:down",
-    "check": "oxlint && oxfmt --write",
+    "oxlint:strict": "oxlint --type-aware --type-check",
+    "check": "pnpm oxlint:strict && oxfmt --write",
     "agent:install": "bash external/agent-stack/scripts/install-plugin.sh",
     "steno:ingest": "steno ingest",
     "steno:dev": "steno dev"
@@ -38,9 +39,11 @@
     "@deck-pack/config": "workspace:*",
     "@joostwmd/steno": "^0.1.2",
     "@types/node": "catalog:",
+    "eslint-plugin-react-you-might-not-need-an-effect": "^0.9.3",
     "lefthook": "^2.0.13",
     "oxfmt": "^0.26.0",
     "oxlint": "^1.41.0",
+    "oxlint-tsgolint": "^0.21.1",
     "turbo": "^2.8.12",
     "typescript": "catalog:"
   },
