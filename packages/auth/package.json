@@ -1,0 +1,24 @@
+{
+  "name": "@deck-pack/auth",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@deck-pack/db": "workspace:*",
+    "@deck-pack/env": "workspace:*",
+    "better-auth": "catalog:",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@deck-pack/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

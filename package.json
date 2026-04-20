@@ -1,0 +1,43 @@
+{
+  "name": "deck-pack",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "apps/addins/*",
+    "packages/*"
+  ],
+  "type": "module",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "check-types": "turbo check-types",
+    "dev:api": "turbo -F @deck-pack/api dev",
+    "dev:ops": "turbo -F ops dev",
+    "dev:portal": "turbo -F portal dev",
+    "dev:addin-one": "turbo -F addin-one dev",
+    "db:push": "turbo -F @deck-pack/db db:push",
+    "db:studio": "turbo -F @deck-pack/db db:studio",
+    "db:generate": "turbo -F @deck-pack/db db:generate",
+    "db:migrate": "turbo -F @deck-pack/db db:migrate",
+    "db:start": "turbo -F @deck-pack/db db:start",
+    "db:watch": "turbo -F @deck-pack/db db:watch",
+    "db:stop": "turbo -F @deck-pack/db db:stop",
+    "db:down": "turbo -F @deck-pack/db db:down",
+    "check": "oxlint && oxfmt --write"
+  },
+  "dependencies": {
+    "@deck-pack/env": "workspace:*",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@deck-pack/config": "workspace:*",
+    "@types/node": "catalog:",
+    "lefthook": "^2.0.13",
+    "oxfmt": "^0.26.0",
+    "oxlint": "^1.41.0",
+    "turbo": "^2.8.12",
+    "typescript": "catalog:"
+  },
+  "packageManager": "pnpm@10.33.0"
+}

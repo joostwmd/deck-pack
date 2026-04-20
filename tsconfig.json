@@ -1,0 +1,3 @@
+{
+  "extends": "@deck-pack/config/tsconfig.base.json"
+}
