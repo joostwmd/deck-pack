@@ -25,7 +25,7 @@ packages/
 - pnpm 10 ([Corepack](https://nodejs.org/api/corepack.html) or `npm i -g pnpm`)
 - Docker (for local Postgres via `packages/db/docker-compose.yml`)
 
-TanStack Router generates `src/routeTree.gen.ts` during `vite build` / dev; committed copies keep `pnpm check-types` working without a prior dev session.
+TanStack Router generates `src/routeTree.gen.ts` during `vite build` / dev; the file is gitignored—run `pnpm dev` or a Vite build (e.g. `pnpm check-types` in an app) before `tsc` alone if the file is missing.
 
 ## Setup
 

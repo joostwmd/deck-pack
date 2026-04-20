@@ -53,3 +53,7 @@ coverage
 tmp
 temp
 assesment/
+
+
+# Generated files (TanStack Router; matches any path)
+**/routeTree.gen.ts
