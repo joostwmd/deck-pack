@@ -59,9 +59,19 @@ resource "azurerm_role_assignment" "ops_acr_pull" {
 # Generated once, persists in Terraform state. Move to Key Vault in the next
 # hardening pass; the Better Auth docs explicitly call this secret a long-lived
 # signing key so it should NOT rotate casually.
+#
+# prevent_destroy: Terraform refuses to destroy this resource. Rotating the
+# secret invalidates every existing session cookie, so we want it to require
+# an explicit human action (remove the lifecycle block, run apply) rather than
+# happen as a side effect of `terraform destroy` or accidental resource
+# re-creation.
 resource "random_password" "better_auth_secret" {
   length  = 48
   special = false
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "azurerm_linux_web_app" "api" {

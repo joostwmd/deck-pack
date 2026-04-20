@@ -10,6 +10,15 @@ resource "random_password" "admin" {
   min_upper        = 1
   min_lower        = 1
   min_numeric      = 1
+
+  # prevent_destroy: the Postgres admin password is the only credential the API
+  # has for the database. Terraform refuses to destroy this resource, so a
+  # rotation requires an explicit human action (remove the block, apply). This
+  # protects against `terraform destroy`, taint-induced replacement, and
+  # drift-remediation from silently severing the app from its database.
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "azurerm_postgresql_flexible_server" "main" {
