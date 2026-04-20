@@ -87,6 +87,9 @@ importers:
       '@deck-pack/env':
         specifier: workspace:*
         version: link:../../../packages/env
+      '@deck-pack/trpc-client':
+        specifier: workspace:*
+        version: link:../../../packages/trpc-client
       '@deck-pack/ui':
         specifier: workspace:*
         version: link:../../../packages/ui
@@ -236,6 +239,9 @@ importers:
       '@deck-pack/env':
         specifier: workspace:*
         version: link:../../packages/env
+      '@deck-pack/trpc-client':
+        specifier: workspace:*
+        version: link:../../packages/trpc-client
       '@deck-pack/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -336,6 +342,9 @@ importers:
       '@deck-pack/env':
         specifier: workspace:*
         version: link:../../packages/env
+      '@deck-pack/trpc-client':
+        specifier: workspace:*
+        version: link:../../packages/trpc-client
       '@deck-pack/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -501,6 +510,28 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 22.19.17
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+
+  packages/trpc-client:
+    dependencies:
+      '@tanstack/react-query':
+        specifier: ^5.90.12
+        version: 5.99.2(react@19.2.5)
+      '@trpc/client':
+        specifier: 'catalog:'
+        version: 11.16.0(@trpc/server@11.16.0(typescript@6.0.3))(typescript@6.0.3)
+      '@trpc/server':
+        specifier: 'catalog:'
+        version: 11.16.0(typescript@6.0.3)
+      '@trpc/tanstack-react-query':
+        specifier: ^11.16.0
+        version: 11.16.0(@tanstack/react-query@5.99.2(react@19.2.5))(@trpc/client@11.16.0(@trpc/server@11.16.0(typescript@6.0.3))(typescript@6.0.3))(@trpc/server@11.16.0(typescript@6.0.3))(react@19.2.5)(typescript@6.0.3)
+    devDependencies:
+      '@deck-pack/config':
+        specifier: workspace:*
+        version: link:../config
       typescript:
         specifier: 'catalog:'
         version: 6.0.3

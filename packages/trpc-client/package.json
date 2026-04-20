@@ -1,0 +1,21 @@
+{
+  "name": "@deck-pack/trpc-client",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    }
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.90.12",
+    "@trpc/client": "catalog:",
+    "@trpc/server": "catalog:",
+    "@trpc/tanstack-react-query": "^11.16.0"
+  },
+  "devDependencies": {
+    "@deck-pack/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}
