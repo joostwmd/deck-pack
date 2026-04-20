@@ -3,6 +3,7 @@ import { QueryCache, QueryClient } from "@tanstack/react-query";
 import { createTRPCClient, httpBatchLink, type HTTPBatchLinkOptions } from "@trpc/client";
 import { createTRPCOptionsProxy } from "@trpc/tanstack-react-query";
 import type { AnyRouter } from "@trpc/server";
+import superjson from "superjson";
 
 export type TrpcQueryCacheErrorHandler = (
   error: Error,
@@ -33,6 +34,7 @@ export function createTrpcBrowserBundle<TRouter extends AnyRouter>(
     links: [
       httpBatchLink({
         url: trpcUrl,
+        transformer: superjson,
         fetch(url: string, opts: RequestInit) {
           return fetch(url, {
             ...opts,

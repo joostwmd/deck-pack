@@ -6,8 +6,8 @@
   "main": "src/index.ts",
   "exports": {
     ".": "./src/index.ts",
-    "./context": "./src/context.ts",
-    "./routers/index": "./src/routers/index.ts",
+    "./context": "./src/api/context.ts",
+    "./routers/index": "./src/api/router.ts",
     "./*": "./src/*.ts"
   },
   "scripts": {
@@ -23,10 +23,17 @@
     "@deck-pack/env": "workspace:*",
     "@hono/node-server": "^1.14.4",
     "@hono/trpc-server": "^0.4.0",
+    "@logtape/drizzle-orm": "^2.0.5",
+    "@logtape/file": "^2.0.5",
+    "@logtape/hono": "^2.0.5",
+    "@logtape/logtape": "^2.0.5",
+    "@logtape/sentry": "^2.0.5",
     "@trpc/server": "catalog:",
     "better-auth": "catalog:",
     "dotenv": "catalog:",
+    "drizzle-orm": "^0.45.1",
     "hono": "catalog:",
+    "superjson": "^2.2.2",
     "zod": "catalog:"
   },
   "devDependencies": {

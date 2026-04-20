@@ -6,7 +6,7 @@ Monorepo layout:
 
 ```
 apps/
-  api/              # Hono server + tRPC routers (@deck-pack/api)
+  api/              # Hono + tRPC + LogTape; `src/transport/`, `src/api/`, `src/domains/`
   ops/              # Internal operations dashboard
   portal/           # Organization admin dashboard
   addins/
