@@ -1,4 +1,4 @@
-import { Button } from "@deck-pack/ui/components/button";
+import { Button } from "@deck-pack/ui/components/system/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,8 +7,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@deck-pack/ui/components/dropdown-menu";
-import { Skeleton } from "@deck-pack/ui/components/skeleton";
+} from "@deck-pack/ui/components/system/dropdown-menu";
+import { Skeleton } from "@deck-pack/ui/components/system/skeleton";
 import { Link, useNavigate } from "@tanstack/react-router";
 
 import { authClient } from "@/lib/auth-client";

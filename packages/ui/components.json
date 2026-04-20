@@ -12,11 +12,11 @@
   },
   "iconLibrary": "lucide",
   "aliases": {
-    "components": "@deck-pack/ui/components",
+    "components": "@deck-pack/ui/components/system",
     "utils": "@deck-pack/ui/lib/utils",
     "hooks": "@deck-pack/ui/hooks",
     "lib": "@deck-pack/ui/lib",
-    "ui": "@deck-pack/ui/components"
+    "ui": "@deck-pack/ui/components/system"
   },
   "menuColor": "default",
   "menuAccent": "subtle",

@@ -1,10 +1,10 @@
-import { Button } from "@deck-pack/ui/components/button";
+import { Button } from "@deck-pack/ui/components/system/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@deck-pack/ui/components/dropdown-menu";
+} from "@deck-pack/ui/components/system/dropdown-menu";
 import { Moon, Sun } from "lucide-react";
 
 import { useTheme } from "@/components/theme-provider";

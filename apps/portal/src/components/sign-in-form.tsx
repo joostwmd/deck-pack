@@ -1,6 +1,6 @@
-import { Button } from "@deck-pack/ui/components/button";
-import { Input } from "@deck-pack/ui/components/input";
-import { Label } from "@deck-pack/ui/components/label";
+import { Button } from "@deck-pack/ui/components/system/button";
+import { Input } from "@deck-pack/ui/components/system/input";
+import { Label } from "@deck-pack/ui/components/system/label";
 import { useForm } from "@tanstack/react-form";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
