@@ -55,5 +55,7 @@ temp
 assesment/
 
 
-# Generated files (TanStack Router; matches any path)
-**/routeTree.gen.ts
+# TanStack Router
+apps/portal/src/routeTree.gen.ts
+apps/ops/src/routeTree.gen.ts
+apps/addins/assets/src/routeTree.gen.ts
