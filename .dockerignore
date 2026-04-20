@@ -1,0 +1,35 @@
+# Dependencies & caches
+node_modules
+.pnpm-store
+.turbo
+.nx
+.cache
+
+# Git & IDE
+.git
+.idea
+.vscode
+
+# Env & secrets (inject at runtime / build-arg instead)
+.env
+.env.*
+!.env.example
+
+# Build outputs from host (we build inside the image)
+**/dist
+*.tsbuildinfo
+
+# Large / unrelated trees
+external
+steno
+coverage
+tmp
+temp
+assesment
+
+# Logs
+*.log
+pnpm-debug.log*
+
+# OS
+.DS_Store
