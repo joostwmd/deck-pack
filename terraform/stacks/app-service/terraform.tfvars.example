@@ -9,6 +9,14 @@ acr_login_server = "<name>.azurecr.io"
 
 # Must be globally unique; becomes https://<name>.azurewebsites.net
 ops_app_name = "deck-pack-ops-<your-initials-or-suffix>"
+api_app_name = "deck-pack-api-<your-initials-or-suffix>"
+
+# `database_url` is sensitive and intentionally NOT listed here.
+# Inject it via an environment variable at apply time so the secret never
+# lands in a file on disk:
+#
+#   export TF_VAR_database_url="$(terraform -chdir=../database output -raw database_url)"
+#   pnpm tf:apply:app-service
 
 # Optional overrides
 # location             = "westeurope"
@@ -18,3 +26,6 @@ ops_app_name = "deck-pack-ops-<your-initials-or-suffix>"
 # ops_image_tag        = "latest"
 # ops_image_repository = "deck-pack-ops"
 # ops_container_port   = 8080
+# api_image_tag        = "latest"
+# api_image_repository = "deck-pack-api"
+# api_container_port   = 3000

@@ -27,3 +27,29 @@ output "ops_principal_id" {
   description = "System-assigned managed identity principal ID for the OPS web app."
   value       = azurerm_linux_web_app.ops.identity[0].principal_id
 }
+
+output "api_app_name" {
+  description = "Name of the API Linux Web App."
+  value       = azurerm_linux_web_app.api.name
+}
+
+output "api_default_hostname" {
+  description = "Public hostname of the API web app."
+  value       = azurerm_linux_web_app.api.default_hostname
+}
+
+output "api_url" {
+  description = "Public URL of the API web app."
+  value       = "https://${azurerm_linux_web_app.api.default_hostname}"
+}
+
+output "api_principal_id" {
+  description = "System-assigned managed identity principal ID for the API web app."
+  value       = azurerm_linux_web_app.api.identity[0].principal_id
+}
+
+output "better_auth_secret" {
+  description = "Generated Better Auth signing secret. Handled via Key Vault in the next hardening pass."
+  value       = random_password.better_auth_secret.result
+  sensitive   = true
+}

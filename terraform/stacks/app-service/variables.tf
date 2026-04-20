@@ -71,6 +71,40 @@ variable "ops_container_port" {
   default     = 8080
 }
 
+variable "api_app_name" {
+  description = "Globally unique Linux Web App name for the API backend. Becomes https://<name>.azurewebsites.net."
+  type        = string
+
+  validation {
+    condition     = can(regex("^[a-z0-9][a-z0-9-]{1,58}[a-z0-9]$", var.api_app_name))
+    error_message = "api_app_name must be 2-60 chars, lowercase letters, digits, or hyphens, and cannot start/end with a hyphen."
+  }
+}
+
+variable "api_image_repository" {
+  description = "Image repository name in ACR for the API app."
+  type        = string
+  default     = "deck-pack-api"
+}
+
+variable "api_image_tag" {
+  description = "Image tag to deploy (e.g. `latest` or a git SHA)."
+  type        = string
+  default     = "latest"
+}
+
+variable "api_container_port" {
+  description = "Port the API container listens on (matches Dockerfile EXPOSE)."
+  type        = number
+  default     = 3000
+}
+
+variable "database_url" {
+  description = "Postgres connection string for the API. Inject with TF_VAR_database_url to keep it out of tfvars files."
+  type        = string
+  sensitive   = true
+}
+
 variable "tags" {
   description = "Tags applied to all resources."
   type        = map(string)

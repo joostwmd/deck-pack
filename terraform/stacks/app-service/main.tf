@@ -55,3 +55,62 @@ resource "azurerm_role_assignment" "ops_acr_pull" {
   role_definition_name = "AcrPull"
   principal_id         = azurerm_linux_web_app.ops.identity[0].principal_id
 }
+
+# Generated once, persists in Terraform state. Move to Key Vault in the next
+# hardening pass; the Better Auth docs explicitly call this secret a long-lived
+# signing key so it should NOT rotate casually.
+resource "random_password" "better_auth_secret" {
+  length  = 48
+  special = false
+}
+
+resource "azurerm_linux_web_app" "api" {
+  name                = var.api_app_name
+  resource_group_name = var.resource_group_name
+  location            = var.location
+  service_plan_id     = azurerm_service_plan.main.id
+  https_only          = true
+  tags                = var.tags
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  site_config {
+    always_on                               = var.plan_always_on
+    container_registry_use_managed_identity = true
+    ftps_state                              = "Disabled"
+    http2_enabled                           = true
+    minimum_tls_version                     = "1.2"
+
+    application_stack {
+      docker_image_name   = "${var.api_image_repository}:${var.api_image_tag}"
+      docker_registry_url = "https://${var.acr_login_server}"
+    }
+  }
+
+  app_settings = {
+    WEBSITES_PORT                       = tostring(var.api_container_port)
+    WEBSITES_ENABLE_APP_SERVICE_STORAGE = "false"
+    PORT                                = tostring(var.api_container_port)
+    NODE_ENV                            = "production"
+    DATABASE_URL                        = var.database_url
+    BETTER_AUTH_SECRET                  = random_password.better_auth_secret.result
+    BETTER_AUTH_URL                     = "https://${var.api_app_name}.azurewebsites.net"
+    CORS_ORIGIN                         = "https://${azurerm_linux_web_app.ops.default_hostname}"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      app_settings["DOCKER_REGISTRY_SERVER_URL"],
+      app_settings["DOCKER_REGISTRY_SERVER_USERNAME"],
+      app_settings["DOCKER_REGISTRY_SERVER_PASSWORD"],
+    ]
+  }
+}
+
+resource "azurerm_role_assignment" "api_acr_pull" {
+  scope                = var.acr_id
+  role_definition_name = "AcrPull"
+  principal_id         = azurerm_linux_web_app.api.identity[0].principal_id
+}
