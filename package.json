@@ -24,6 +24,7 @@
     "db:stop": "turbo -F @deck-pack/db db:stop",
     "db:down": "turbo -F @deck-pack/db db:down",
     "check": "oxlint && oxfmt --write",
+    "agent:install": "bash external/agent-stack/scripts/install-plugin.sh",
     "steno:ingest": "steno ingest",
     "steno:dev": "steno dev"
   },
