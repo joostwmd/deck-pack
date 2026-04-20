@@ -55,6 +55,13 @@ tmp
 temp
 assesment/
 
+# Terraform (local state and machine-specific files)
+terraform/**/.terraform/
+terraform/**/*.tfstate
+terraform/**/*.tfstate.*
+terraform/**/*.tfvars
+!terraform/**/*.tfvars.example
+
 
 # TanStack Router
 apps/portal/src/routeTree.gen.ts

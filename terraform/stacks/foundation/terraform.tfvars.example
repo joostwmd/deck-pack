@@ -1,0 +1,12 @@
+# Copy this file to terraform.tfvars and set your real values.
+subscription_id     = "00000000-0000-0000-0000-000000000000"
+location            = "westeurope"
+resource_group_name = "rg-deck-pack-cloud"
+acr_name            = "deckpackacr12345"
+acr_sku             = "Basic"
+
+tags = {
+  project = "deck-pack"
+  env     = "dev"
+  managed = "terraform"
+}
