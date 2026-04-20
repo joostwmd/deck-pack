@@ -1,15 +1,76 @@
 # Terraform
 
-Azure infrastructure for deck-pack, organised as **stacks per capability**:
+Azure infrastructure for deck-pack, organised as **reusable modules + per-environment roots**.
 
-| Stack         | What it owns                                                            |
-| ------------- | ----------------------------------------------------------------------- |
-| `foundation`  | Resource group, Azure Container Registry                                |
-| `ci-identity` | Entra ID app + OIDC federated credentials for GitHub Actions            |
-| `database`    | Postgres Flexible Server, firewall rules, generated admin password      |
-| `app-service` | App Service Plan + Linux Web Apps (OPS frontend, API backend) + AcrPull |
+```
+terraform/
+  modules/          Reusable HCL bodies — no backend, no provider config
+    foundation/       RG + ACR
+    ci-identity/      Entra app + OIDC federated credentials for GitHub Actions
+    database/         Postgres Flexible Server + firewall + generated admin password
+    app-service/      App Service Plan + OPS Web App + API Web App + AcrPull role assignments
+  envs/             Per-environment roots — each has its own state file
+    shared/           Cross-environment resources (one copy, both envs use)
+      foundation/       → foundation.tfstate
+      ci-identity/      → ci-identity.tfstate
+    prod/             Production environment
+      database/         → database.tfstate
+      app-service/      → app-service.tfstate
+    staging/          Staging environment (same shape as prod)
+      database/         → staging-database.tfstate
+      app-service/      → staging-app-service.tfstate
+```
 
-Each stack has its own state file and is applied independently.
+Each env root is a thin wrapper that instantiates a module with env-specific
+inputs — roughly 100 lines of boilerplate per stack that contains no logic.
+All real HCL lives in `modules/`, so code changes propagate to every env at
+once.
+
+## How environments relate
+
+```
+                 ┌─────────────────┐
+                 │ envs/shared/    │
+                 │   foundation    │  RG, ACR        (single copy, both envs)
+                 │   ci-identity   │  OIDC app       (single copy, both envs)
+                 └────────┬────────┘
+                          │ remote_state reads (acr_id, acr_login_server)
+            ┌─────────────┴─────────────┐
+            │                           │
+  ┌─────────▼─────────┐      ┌──────────▼────────┐
+  │ envs/prod/        │      │ envs/staging/     │
+  │   database        │      │   database        │
+  │   app-service ◄───┘      │   app-service ◄───┘
+  │                  (reads DATABASE_URL         │
+  │                   via remote_state)          │
+  └───────────────────┘      └───────────────────┘
+```
+
+Cross-stack data passes via `terraform_remote_state` data sources, not hand-copied
+tfvars. Each env's `app-service/main.tf` reads:
+
+- ACR info from `shared/foundation`
+- `DATABASE_URL` from its own env's `database` state
+
+That means `staging/app-service` _cannot_ accidentally read prod's database —
+the backend key is the contract.
+
+## GitHub Actions OIDC
+
+The `ci-identity` module creates federated credentials in a `for_each` loop
+driven by the `github_environments` tfvar. Adding a new environment (e.g.
+`uat`) is a one-line change in `envs/shared/ci-identity/terraform.tfvars`:
+
+```hcl
+github_environments = ["staging", "prod", "uat"]
+```
+
+Apply and you get a new OIDC trust for `environment:uat` that a workflow can
+claim with `environment: uat` in its job config.
+
+Today the workflow `.github/workflows/build-and-push.yml` still uses the
+branch/PR federated credentials (not env-scoped). Env-scoped CI is the next
+step once we have `terraform apply` wired up in CI.
 
 ## Remote state
 
@@ -36,7 +97,7 @@ Bootstrap:
 ./scripts/bootstrap-tfstate.sh
 ```
 
-Each stack's `versions.tf` has the backend config. Authentication is via
+Each env's `versions.tf` has its own backend key. Authentication is via
 `az login` — no storage account keys in env vars, no keys on disk.
 
 ### When a new developer joins
@@ -52,16 +113,17 @@ az role assignment create \
   --scope "$(az storage account show -n stdeckpacktfstatejw -g rg-deck-pack-tfstate --query id -o tsv)"
 ```
 
-Then `terraform -chdir=terraform/stacks/<stack> init` and they're in.
+Then `terraform -chdir=terraform/envs/<env>/<stack> init` and they're in.
 
 ## Lifecycle protection on sensitive secrets
 
-Two `random_password` resources have `lifecycle { prevent_destroy = true }`:
+Two `random_password` resources (defined inside modules, one instance per env)
+have `lifecycle { prevent_destroy = true }`:
 
-- `app-service/main.tf :: random_password.better_auth_secret` — rotating this
-  invalidates every session cookie.
-- `database/main.tf :: random_password.admin` — this is the only credential
-  the API has for the database.
+- `modules/app-service/main.tf :: random_password.better_auth_secret` —
+  rotating this invalidates every session cookie.
+- `modules/database/main.tf :: random_password.admin` — this is the only
+  credential the API has for the database.
 
 Terraform refuses to destroy these; rotation requires removing the
 `lifecycle` block, applying, then putting it back.
@@ -72,21 +134,48 @@ Terraform refuses to destroy these; rotation requires removing the
 # once
 ./scripts/bootstrap-tfstate.sh
 
-# per stack
-terraform -chdir=terraform/stacks/foundation init
-terraform -chdir=terraform/stacks/foundation apply
+# shared first — prod/staging read foundation outputs
+terraform -chdir=terraform/envs/shared/foundation init
+terraform -chdir=terraform/envs/shared/foundation apply
 
-terraform -chdir=terraform/stacks/ci-identity init
-terraform -chdir=terraform/stacks/ci-identity apply
+terraform -chdir=terraform/envs/shared/ci-identity init
+terraform -chdir=terraform/envs/shared/ci-identity apply
 
-terraform -chdir=terraform/stacks/database init
-terraform -chdir=terraform/stacks/database apply
+# then an env — database before app-service (app-service reads database_url)
+terraform -chdir=terraform/envs/prod/database init
+terraform -chdir=terraform/envs/prod/database apply
 
-# app-service consumes database output:
-export TF_VAR_database_url="$(terraform -chdir=terraform/stacks/database output -raw database_url)"
-terraform -chdir=terraform/stacks/app-service init
-terraform -chdir=terraform/stacks/app-service apply
+terraform -chdir=terraform/envs/prod/app-service init
+terraform -chdir=terraform/envs/prod/app-service apply
 ```
+
+For staging, swap `prod` → `staging` in the last four commands.
+
+## Adding a new environment
+
+Only three things change per environment:
+
+1. **A new directory** `envs/<newenv>/database/` + `envs/<newenv>/app-service/`
+   (copy from `envs/staging/`, update tfvars)
+2. **New backend keys** in each `versions.tf` (e.g. `qa-database.tfstate`)
+3. **A new entry** in `envs/shared/ci-identity/terraform.tfvars` →
+   `github_environments = ["staging", "prod", "qa"]`, then re-apply to
+   provision the OIDC federated credential.
+
+Module HCL is untouched.
+
+## pnpm scripts
+
+Every (env, stack) combination has `init`, `plan`, `apply` scripts:
+
+```sh
+pnpm tf:init:shared:foundation
+pnpm tf:plan:prod:database
+pnpm tf:apply:staging:app-service
+# …etc
+```
+
+See `package.json` for the full list.
 
 ## Common issues
 
@@ -108,3 +197,13 @@ points at the right subscription, then re-run Terraform.
 their global DNS name for up to 24h after a failed create. If you see
 `InvalidResourceLocation`, change the `*_name` in tfvars to something
 unique (e.g. add a regional suffix).
+
+**Stale state lock after an interrupted apply** — if a `terraform apply`
+dies mid-flight (shell killed, network drop, CI timeout), the blob lock
+stays held. Read the lock ID from the error message and release it:
+
+```sh
+terraform -chdir=terraform/envs/<env>/<stack> force-unlock -force <lock-id>
+```
+
+Only do this when you're certain no other apply is actually running.
