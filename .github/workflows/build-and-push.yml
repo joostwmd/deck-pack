@@ -1,17 +1,10 @@
 name: Build and push API image
 
 on:
+  # Push to any branch builds/pushes an API image. `main` also gets :latest and
+  # restarts prod. Any other branch also gets :staging and restarts staging.
   push:
-    branches: [main]
-    paths:
-      - "apps/api/**"
-      - "packages/**"
-      - "docker/api.Dockerfile"
-      - "pnpm-lock.yaml"
-      - "pnpm-workspace.yaml"
-      - ".github/workflows/build-and-push.yml"
-  pull_request:
-    branches: [main]
+    branches: ["**"]
     paths:
       - "apps/api/**"
       - "packages/**"
@@ -59,15 +52,14 @@ jobs:
           REGISTRY="${{ vars.ACR_LOGIN_SERVER }}"
           SHA_TAG="${REGISTRY}/${IMAGE_REPO}:${GITHUB_SHA::7}"
           TAGS="${SHA_TAG}"
-          if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
-            PR_TAG="${REGISTRY}/${IMAGE_REPO}:pr-${{ github.event.pull_request.number }}"
-            STAGING_TAG="${REGISTRY}/${IMAGE_REPO}:staging"
-            TAGS="${TAGS}"$'\n'"${PR_TAG}"$'\n'"${STAGING_TAG}"
-            echo "extra_tag=${PR_TAG}" >> "$GITHUB_OUTPUT"
-          else
+          if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
             LATEST_TAG="${REGISTRY}/${IMAGE_REPO}:latest"
             TAGS="${TAGS}"$'\n'"${LATEST_TAG}"
             echo "extra_tag=${LATEST_TAG}" >> "$GITHUB_OUTPUT"
+          else
+            STAGING_TAG="${REGISTRY}/${IMAGE_REPO}:staging"
+            TAGS="${TAGS}"$'\n'"${STAGING_TAG}"
+            echo "extra_tag=${STAGING_TAG}" >> "$GITHUB_OUTPUT"
           fi
           echo "sha_tag=${SHA_TAG}" >> "$GITHUB_OUTPUT"
           {
@@ -90,14 +82,14 @@ jobs:
       # restarts (the image reference string doesn't change), so we force a
       # restart after every push here. Prod on main, staging on PR.
       - name: Restart prod API Web App (after :latest push)
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        if: github.ref == 'refs/heads/main'
         run: >-
           az webapp restart
           --name "${{ vars.PROD_API_WEBAPP_NAME || 'deck-pack-api-jw' }}"
           --resource-group "${{ vars.PROD_API_RESOURCE_GROUP || 'rg-deck-pack-cloud' }}"
 
       - name: Restart staging API Web App (after :staging push)
-        if: github.event_name == 'pull_request'
+        if: github.ref != 'refs/heads/main'
         run: >-
           az webapp restart
           --name "${{ vars.STAGING_API_WEBAPP_NAME || 'deck-pack-api-staging-jw' }}"

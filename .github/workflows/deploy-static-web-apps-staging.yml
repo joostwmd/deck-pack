@@ -1,8 +1,11 @@
 name: Deploy Static Web Apps (staging)
 
 on:
-  pull_request:
-    branches: [main]
+  # Deploy to staging on every push to any non-main branch. This avoids the SWA
+  # action's pull_request preview behavior and always publishes to the main
+  # *.azurestaticapps.net URL of the STAGING SWA resource.
+  push:
+    branches-ignore: [main]
     paths:
       - "apps/ops/**"
       - "apps/portal/**"
@@ -53,10 +56,9 @@ jobs:
           action: upload
           app_location: apps/ops/dist
           skip_app_build: true
-          # Treat staging SWA's default env as the production target so PRs
-          # publish to the main *.azurestaticapps.net URL, not a preview.
-          production_branch: ${{ github.head_ref || github.ref_name }}
-          deployment_environment: production
+          # Make the currently pushed branch the "production" branch of the
+          # staging SWA resource so uploads land on its main URL (no -1 preview).
+          production_branch: ${{ github.ref_name }}
 
   deploy-portal:
     name: Deploy portal to staging SWA
@@ -89,8 +91,7 @@ jobs:
           action: upload
           app_location: apps/portal/dist
           skip_app_build: true
-          production_branch: ${{ github.head_ref || github.ref_name }}
-          deployment_environment: production
+          production_branch: ${{ github.ref_name }}
 
   deploy-assets:
     name: Deploy add-in assets to staging SWA
@@ -123,5 +124,4 @@ jobs:
           action: upload
           app_location: apps/addins/assets/dist
           skip_app_build: true
-          production_branch: ${{ github.head_ref || github.ref_name }}
-          deployment_environment: production
+          production_branch: ${{ github.ref_name }}
