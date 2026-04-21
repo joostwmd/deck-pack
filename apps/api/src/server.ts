@@ -3,6 +3,7 @@ import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 
 import { auth } from "@deck-pack/auth";
+import { env } from "@deck-pack/env/server";
 
 import { createContext } from "./api/context";
 import { appRouter } from "./api/router";
@@ -47,7 +48,7 @@ export function startServer() {
   serve(
     {
       fetch: app.fetch,
-      port: 3000,
+      port: env.PORT,
     },
     (info) => {
       console.log(`Server is running on http://localhost:${info.port}`);

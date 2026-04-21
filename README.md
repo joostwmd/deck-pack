@@ -66,7 +66,20 @@ API: `http://localhost:3000` · tRPC: `http://localhost:3000/trpc`
 
 ### Multi-app CORS / auth
 
-The server env uses a single `CORS_ORIGIN`. For local multi-app testing, point all frontends at the same API URL (`VITE_SERVER_URL`) and expand `CORS_ORIGIN` / Better Auth `trustedOrigins` when you need multiple browser origins in parallel.
+The server env uses `CORS_ORIGINS`: a **comma-separated** list of allowed browser origins (same values are used for CORS and Better Auth `trustedOrigins`). Example for two local Vite apps:
+
+`CORS_ORIGINS=http://localhost:3001,http://localhost:3002`
+
+## Cloud deployment
+
+Terraform lives under `terraform/envs/` (see `terraform/README.md`).
+
+**Architecture**
+
+- **Frontends** (`apps/ops`, `apps/portal`, `apps/addins/assets`) → **Azure Static Web Apps** (`terraform/envs/<env>/static-web-apps/`). Vite `dist/` is deployed by `.github/workflows/deploy-static-web-apps.yml` using each SWA’s deployment token (GitHub Actions secrets).
+- **Backend** (`apps/api`) → **Azure App Service (Linux, custom container from ACR)** (`terraform/envs/<env>/app-service/`). Built and pushed by `.github/workflows/build-and-push.yml` (API image only).
+
+After `terraform apply` on `static-web-apps`, copy each sensitive `*_deployment_token` output into GitHub secrets: `SWA_TOKEN_OPS_PROD`, `SWA_TOKEN_PORTAL_PROD`, `SWA_TOKEN_ASSETS_PROD` (and staging equivalents when you bring staging up).
 
 ## Tooling
 

@@ -2,6 +2,7 @@
 node_modules
 .pnp
 .pnp.js
+.pnpm-store
 
 # Build outputs
 dist
@@ -53,6 +54,13 @@ coverage
 tmp
 temp
 assesment/
+
+# Terraform (local state and machine-specific files)
+terraform/**/.terraform/
+terraform/**/*.tfstate
+terraform/**/*.tfstate.*
+terraform/**/*.tfvars
+!terraform/**/*.tfvars.example
 
 
 # TanStack Router
