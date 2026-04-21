@@ -1,7 +1,7 @@
-name: Deploy Static Web Apps (prod)
+name: Deploy Static Web Apps (staging)
 
 on:
-  push:
+  pull_request:
     branches: [main]
     paths:
       - "apps/ops/**"
@@ -10,19 +10,20 @@ on:
       - "packages/**"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
-      - ".github/workflows/deploy-static-web-apps.yml"
+      - ".github/workflows/deploy-static-web-apps-staging.yml"
   workflow_dispatch:
 
 concurrency:
-  group: swa-prod-${{ github.ref }}
+  group: swa-staging-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   deploy-ops:
-    name: Deploy OPS to Azure Static Web Apps
+    name: Deploy OPS to staging SWA
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -42,19 +43,19 @@ jobs:
       - name: Build
         run: pnpm exec turbo build --filter=@deck-pack/ops
         env:
-          VITE_SERVER_URL: ${{ vars.VITE_SERVER_URL_PROD || vars.VITE_SERVER_URL || 'http://localhost:3000' }}
+          VITE_SERVER_URL: ${{ vars.VITE_SERVER_URL_STAGING || 'http://localhost:3000' }}
 
-      - name: Upload to Azure Static Web Apps
+      - name: Upload to Azure Static Web Apps (staging)
         uses: Azure/static-web-apps-deploy@v1
         with:
-          azure_static_web_apps_api_token: ${{ secrets.SWA_TOKEN_OPS_PROD }}
+          azure_static_web_apps_api_token: ${{ secrets.SWA_TOKEN_OPS_STAGING }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: upload
           app_location: apps/ops/dist
           skip_app_build: true
 
   deploy-portal:
-    name: Deploy portal to Azure Static Web Apps
+    name: Deploy portal to staging SWA
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -74,19 +75,19 @@ jobs:
       - name: Build
         run: pnpm exec turbo build --filter=@deck-pack/portal
         env:
-          VITE_SERVER_URL: ${{ vars.VITE_SERVER_URL_PROD || vars.VITE_SERVER_URL || 'http://localhost:3000' }}
+          VITE_SERVER_URL: ${{ vars.VITE_SERVER_URL_STAGING || 'http://localhost:3000' }}
 
-      - name: Upload to Azure Static Web Apps
+      - name: Upload to Azure Static Web Apps (staging)
         uses: Azure/static-web-apps-deploy@v1
         with:
-          azure_static_web_apps_api_token: ${{ secrets.SWA_TOKEN_PORTAL_PROD }}
+          azure_static_web_apps_api_token: ${{ secrets.SWA_TOKEN_PORTAL_STAGING }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: upload
           app_location: apps/portal/dist
           skip_app_build: true
 
   deploy-assets:
-    name: Deploy add-in assets to Azure Static Web Apps
+    name: Deploy add-in assets to staging SWA
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -106,12 +107,12 @@ jobs:
       - name: Build
         run: pnpm exec turbo build --filter=@deck-pack/assets
         env:
-          VITE_SERVER_URL: ${{ vars.VITE_SERVER_URL_PROD || vars.VITE_SERVER_URL || 'http://localhost:3000' }}
+          VITE_SERVER_URL: ${{ vars.VITE_SERVER_URL_STAGING || 'http://localhost:3000' }}
 
-      - name: Upload to Azure Static Web Apps
+      - name: Upload to Azure Static Web Apps (staging)
         uses: Azure/static-web-apps-deploy@v1
         with:
-          azure_static_web_apps_api_token: ${{ secrets.SWA_TOKEN_ASSETS_PROD }}
+          azure_static_web_apps_api_token: ${{ secrets.SWA_TOKEN_ASSETS_STAGING }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: upload
           app_location: apps/addins/assets/dist

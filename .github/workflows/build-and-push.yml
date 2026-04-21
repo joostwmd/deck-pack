@@ -61,7 +61,8 @@ jobs:
           TAGS="${SHA_TAG}"
           if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
             PR_TAG="${REGISTRY}/${IMAGE_REPO}:pr-${{ github.event.pull_request.number }}"
-            TAGS="${TAGS}"$'\n'"${PR_TAG}"
+            STAGING_TAG="${REGISTRY}/${IMAGE_REPO}:staging"
+            TAGS="${TAGS}"$'\n'"${PR_TAG}"$'\n'"${STAGING_TAG}"
             echo "extra_tag=${PR_TAG}" >> "$GITHUB_OUTPUT"
           else
             LATEST_TAG="${REGISTRY}/${IMAGE_REPO}:latest"
@@ -85,14 +86,22 @@ jobs:
           cache-from: type=gha,scope=api
           cache-to: type=gha,mode=max,scope=api
 
-      # App Service keeps the old :latest digest until the site restarts; the
-      # image reference string does not change, so Terraform alone won't repull.
-      - name: Restart prod API Web App (pick up new latest)
+      # App Service keeps the old digest under a moving tag until the site
+      # restarts (the image reference string doesn't change), so we force a
+      # restart after every push here. Prod on main, staging on PR.
+      - name: Restart prod API Web App (after :latest push)
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         run: >-
           az webapp restart
           --name "${{ vars.PROD_API_WEBAPP_NAME || 'deck-pack-api-jw' }}"
           --resource-group "${{ vars.PROD_API_RESOURCE_GROUP || 'rg-deck-pack-cloud' }}"
+
+      - name: Restart staging API Web App (after :staging push)
+        if: github.event_name == 'pull_request'
+        run: >-
+          az webapp restart
+          --name "${{ vars.STAGING_API_WEBAPP_NAME || 'deck-pack-api-staging-jw' }}"
+          --resource-group "${{ vars.STAGING_API_RESOURCE_GROUP || 'rg-deck-pack-cloud' }}"
 
       - name: Summary
         run: |
