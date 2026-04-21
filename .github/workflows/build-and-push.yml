@@ -85,6 +85,15 @@ jobs:
           cache-from: type=gha,scope=api
           cache-to: type=gha,mode=max,scope=api
 
+      # App Service keeps the old :latest digest until the site restarts; the
+      # image reference string does not change, so Terraform alone won't repull.
+      - name: Restart prod API Web App (pick up new latest)
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        run: >-
+          az webapp restart
+          --name "${{ vars.PROD_API_WEBAPP_NAME || 'deck-pack-api-jw' }}"
+          --resource-group "${{ vars.PROD_API_RESOURCE_GROUP || 'rg-deck-pack-cloud' }}"
+
       - name: Summary
         run: |
           {
