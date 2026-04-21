@@ -9,6 +9,7 @@ terraform/
     ci-identity/      Entra app + OIDC federated credentials for GitHub Actions
     database/         Postgres Flexible Server + firewall + generated admin password
     app-service/      App Service Plan + OPS Web App + API Web App + AcrPull role assignments
+    front-door/       AFD profile + endpoints + origin groups + routes + WAF
   envs/             Per-environment roots — each has its own state file
     shared/           Cross-environment resources (one copy, both envs use)
       foundation/       → foundation.tfstate
@@ -16,6 +17,7 @@ terraform/
     prod/             Production environment
       database/         → database.tfstate
       app-service/      → app-service.tfstate
+      front-door/       → prod-front-door.tfstate
     staging/          Staging environment (same shape as prod)
       database/         → staging-database.tfstate
       app-service/      → staging-app-service.tfstate
@@ -52,8 +54,70 @@ tfvars. Each env's `app-service/main.tf` reads:
 - ACR info from `shared/foundation`
 - `DATABASE_URL` from its own env's `database` state
 
+And `prod/front-door/main.tf` reads:
+
+- OPS + API hostnames from `prod/app-service` state (to configure origins)
+
 That means `staging/app-service` _cannot_ accidentally read prod's database —
 the backend key is the contract.
+
+## Azure Front Door (edge + WAF + multi-region readiness)
+
+`modules/front-door` defines one AFD Standard profile with two endpoints
+(OPS + API), each pointing at its App Service origin, plus a WAF policy with
+rate-limiting and scanner-path blocking custom rules. `envs/prod/front-door`
+instantiates it for prod.
+
+Why split-host (two endpoints) instead of same-origin (path routing)?
+`packages/env/src/web.ts` validates `VITE_SERVER_URL` with `z.url()`, so the
+bundle can't call the API via relative paths without a schema change. Two
+endpoints sidestep the issue: the OPS bundle keeps calling
+`${VITE_SERVER_URL}/trpc` and `${VITE_SERVER_URL}/api/auth/*`, just with
+`VITE_SERVER_URL` pointing at the API endpoint hostname instead of the
+App Service hostname. Origin swap, no code change.
+
+Multi-region is now a single-resource addition: add an `azurerm_cdn_frontdoor_origin`
+with `priority = 2` to either origin group (e.g. a second App Service in
+North Europe) and AFD handles failover. No changes to routes or endpoints.
+
+### Subscription restriction
+
+**Azure for Students and Free Trial subscriptions block AFD entirely.**
+`terraform apply` fails with:
+
+```
+BadRequest: Free Trial and Student account is forbidden for Azure Frontdoor resources.
+```
+
+To deploy:
+
+1. Upgrade the subscription to Pay-As-You-Go (Azure Portal → Subscriptions →
+   select "Azure for Students" → **Upgrade**). Any remaining credit survives
+   the upgrade.
+2. Re-run `terraform apply` in `envs/prod/front-door/`.
+
+Until then, the AFD stack exists as code only — plans cleanly, doesn't apply.
+
+### After the first apply
+
+Outputs include `api_endpoint_hostname` and `ops_endpoint_hostname`. To route
+the OPS frontend through AFD:
+
+1. Rebuild the OPS image with `VITE_SERVER_URL=https://<api_endpoint_hostname>`
+   (either set it locally and rebuild, or update `VITE_SERVER_URL` in
+   GitHub Actions repository variables so CI picks it up).
+2. Push the new image to ACR, update `ops_image_tag` in
+   `envs/prod/app-service/terraform.tfvars`, re-apply.
+
+To lock App Service origins down so _only_ AFD can reach them (recommended
+hardening; follow-up after the first apply):
+
+1. Copy `profile_resource_guid` from this stack's outputs.
+2. Add an `ip_restriction` block to `modules/app-service/main.tf` that
+   matches `x_azure_fdid` header against that GUID.
+3. Apply `envs/prod/app-service`.
+
+This is a second-pass change to avoid a circular data dependency at bootstrap.
 
 ## GitHub Actions OIDC
 
@@ -147,6 +211,10 @@ terraform -chdir=terraform/envs/prod/database apply
 
 terraform -chdir=terraform/envs/prod/app-service init
 terraform -chdir=terraform/envs/prod/app-service apply
+
+# optional: Front Door in front of prod (requires non-Student subscription)
+terraform -chdir=terraform/envs/prod/front-door init
+terraform -chdir=terraform/envs/prod/front-door apply
 ```
 
 For staging, swap `prod` → `staging` in the last four commands.
