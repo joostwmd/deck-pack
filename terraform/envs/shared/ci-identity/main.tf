@@ -7,4 +7,5 @@ module "this" {
   github_branch       = var.github_branch
   github_environments = var.github_environments
   identity_name       = var.identity_name
+  webapp_scopes       = var.webapp_scopes
 }

@@ -53,6 +53,10 @@ jobs:
           action: upload
           app_location: apps/ops/dist
           skip_app_build: true
+          # Treat staging SWA's default env as the production target so PRs
+          # publish to the main *.azurestaticapps.net URL, not a preview.
+          production_branch: ${{ github.head_ref || github.ref_name }}
+          deployment_environment: production
 
   deploy-portal:
     name: Deploy portal to staging SWA
@@ -85,6 +89,8 @@ jobs:
           action: upload
           app_location: apps/portal/dist
           skip_app_build: true
+          production_branch: ${{ github.head_ref || github.ref_name }}
+          deployment_environment: production
 
   deploy-assets:
     name: Deploy add-in assets to staging SWA
@@ -117,3 +123,5 @@ jobs:
           action: upload
           app_location: apps/addins/assets/dist
           skip_app_build: true
+          production_branch: ${{ github.head_ref || github.ref_name }}
+          deployment_environment: production

@@ -50,3 +50,9 @@ variable "identity_name" {
   type        = string
   default     = "deck-pack-github-ci"
 }
+
+variable "webapp_scopes" {
+  description = "Resource group / site IDs where CI may restart App Service Linux Web Apps (gives Website Contributor)."
+  type        = list(string)
+  default     = []
+}

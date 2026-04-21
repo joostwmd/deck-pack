@@ -46,3 +46,10 @@ resource "azurerm_role_assignment" "acr_push" {
   role_definition_name = "AcrPush"
   principal_id         = azuread_service_principal.github_ci.object_id
 }
+
+resource "azurerm_role_assignment" "webapp_contributor" {
+  for_each             = toset(var.webapp_scopes)
+  scope                = each.value
+  role_definition_name = "Website Contributor"
+  principal_id         = azuread_service_principal.github_ci.object_id
+}
