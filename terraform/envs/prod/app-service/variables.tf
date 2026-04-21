@@ -32,23 +32,6 @@ variable "plan_always_on" {
   default     = true
 }
 
-variable "ops_app_name" {
-  description = "Globally unique Linux Web App name for the OPS frontend."
-  type        = string
-}
-
-variable "ops_image_repository" {
-  description = "Image repository name in ACR for the OPS app."
-  type        = string
-  default     = "deck-pack-ops"
-}
-
-variable "ops_image_tag" {
-  description = "Image tag to deploy."
-  type        = string
-  default     = "latest"
-}
-
 variable "api_app_name" {
   description = "Globally unique Linux Web App name for the API backend."
   type        = string
@@ -64,6 +47,12 @@ variable "api_image_tag" {
   description = "Image tag to deploy."
   type        = string
   default     = "latest"
+}
+
+variable "cors_origins_extra" {
+  description = "Optional extra origins (e.g. http://localhost:3001 during tunnel testing). Appended after Static Web App URLs from prod/static-web-apps state."
+  type        = list(string)
+  default     = []
 }
 
 variable "tags" {

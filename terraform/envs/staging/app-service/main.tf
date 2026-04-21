@@ -9,8 +9,6 @@ data "terraform_remote_state" "shared_foundation" {
   }
 }
 
-# Reads STAGING key-vault state (not prod). App Service receives only secret
-# URIs, never plaintext values.
 data "terraform_remote_state" "key_vault" {
   backend = "azurerm"
   config = {
@@ -18,6 +16,17 @@ data "terraform_remote_state" "key_vault" {
     storage_account_name = "stdeckpacktfstatejw"
     container_name       = "tfstate"
     key                  = "staging-key-vault.tfstate"
+    use_azuread_auth     = true
+  }
+}
+
+data "terraform_remote_state" "static_web_apps" {
+  backend = "azurerm"
+  config = {
+    resource_group_name  = "rg-deck-pack-tfstate"
+    storage_account_name = "stdeckpacktfstatejw"
+    container_name       = "tfstate"
+    key                  = "staging-static-web-apps.tfstate"
     use_azuread_auth     = true
   }
 }
@@ -35,13 +44,14 @@ module "this" {
   acr_id           = data.terraform_remote_state.shared_foundation.outputs.acr_id
   acr_login_server = data.terraform_remote_state.shared_foundation.outputs.acr_login_server
 
-  ops_app_name         = var.ops_app_name
-  ops_image_repository = var.ops_image_repository
-  ops_image_tag        = var.ops_image_tag
-
   api_app_name         = var.api_app_name
   api_image_repository = var.api_image_repository
   api_image_tag        = var.api_image_tag
+
+  cors_origins = concat(
+    data.terraform_remote_state.static_web_apps.outputs.cors_origin_urls,
+    var.cors_origins_extra,
+  )
 
   database_url_secret_uri = data.terraform_remote_state.key_vault.outputs.database_url_secret_uri
   better_auth_secret_uri  = data.terraform_remote_state.key_vault.outputs.better_auth_secret_uri

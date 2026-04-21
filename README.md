@@ -66,29 +66,20 @@ API: `http://localhost:3000` · tRPC: `http://localhost:3000/trpc`
 
 ### Multi-app CORS / auth
 
-The server env uses a single `CORS_ORIGIN`. For local multi-app testing, point all frontends at the same API URL (`VITE_SERVER_URL`) and expand `CORS_ORIGIN` / Better Auth `trustedOrigins` when you need multiple browser origins in parallel.
+The server env uses `CORS_ORIGINS`: a **comma-separated** list of allowed browser origins (same values are used for CORS and Better Auth `trustedOrigins`). Example for two local Vite apps:
+
+`CORS_ORIGINS=http://localhost:3001,http://localhost:3002`
 
 ## Cloud deployment
 
-The current Terraform stacks (`terraform/stacks/*`) deploy the API via a Docker container on **Azure App Service (Linux, B1)** and were originally set up to also run the OPS frontend the same way. That is **not** the intended production target — it's a stepping-stone used to prove out the ACR + OIDC + container pull pipeline end-to-end.
+Terraform lives under `terraform/envs/` (see `terraform/README.md`).
 
-**Intended target architecture** (do not regress from this):
+**Architecture**
 
-- **Frontends (`apps/ops`, `apps/portal`, `apps/addins/*`) → Azure Static Web Apps.** Static Vite builds ship straight to SWA's global CDN. No Docker image, no container registry path, no App Service plan charge. Free tier covers 100GB bandwidth/month and includes TLS + custom domains. Geo-distribution happens automatically at the edge; public static assets are not a personal-data path, so residency concerns stay with the API and DB tier.
-- **Backend (`apps/api`) → Azure App Service B1 (Linux, custom container).** Hono isn't supported by SWA's managed API slot, so the container path stays. B1 is the cheapest SKU that supports custom Linux containers. Can be swapped for Azure Container Apps later for scale-to-zero economics without changing the Docker image.
+- **Frontends** (`apps/ops`, `apps/portal`, `apps/addins/assets`) → **Azure Static Web Apps** (`terraform/envs/<env>/static-web-apps/`). Vite `dist/` is deployed by `.github/workflows/deploy-static-web-apps.yml` using each SWA’s deployment token (GitHub Actions secrets).
+- **Backend** (`apps/api`) → **Azure App Service (Linux, custom container from ACR)** (`terraform/envs/<env>/app-service/`). Built and pushed by `.github/workflows/build-and-push.yml` (API image only).
 
-**Why this split matters:**
-
-- **Cost**: B1 for OPS is ~€13/month flat; SWA Free is €0.
-- **Scaling**: SWA autoscales and edge-caches automatically; App Service Basic doesn't autoscale at all (needs Standard+).
-- **Geo**: SWA distributes assets globally out of the box; multi-region API deployment still requires Front Door in front of regional App Service/Container Apps instances, and that's where residency controls belong.
-
-When moving frontends to SWA:
-
-1. Drop them from `terraform/stacks/app-service` (the OPS web app + AcrPull role).
-2. Add a new stack (`terraform/stacks/static-web-apps/` or similar) with `azurerm_static_web_app` per frontend.
-3. Replace the OPS build-and-push job in `.github/workflows/build-and-push.yml` with `Azure/static-web-apps-deploy@v1` pointing at each frontend's `dist/` folder.
-4. Keep the API container pipeline exactly as it is — the split is clean.
+After `terraform apply` on `static-web-apps`, copy each sensitive `*_deployment_token` output into GitHub secrets: `SWA_TOKEN_OPS_PROD`, `SWA_TOKEN_PORTAL_PROD`, `SWA_TOKEN_ASSETS_PROD` (and staging equivalents when you bring staging up).
 
 ## Tooling
 

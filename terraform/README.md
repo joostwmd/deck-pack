@@ -9,7 +9,8 @@ terraform/
     ci-identity/      Entra app + OIDC federated credentials for GitHub Actions
     database/         Postgres Flexible Server + firewall + generated admin password
     key-vault/        Key Vault + DATABASE_URL/BETTER_AUTH_SECRET secrets
-    app-service/      App Service Plan + OPS Web App + API Web App + AcrPull + Key Vault role assignments
+    static-web-app/   One Azure Static Web App (Vite frontends)
+    app-service/      App Service Plan + API Linux Web App + AcrPull + Key Vault role assignments
     front-door/       AFD profile + endpoints + origin groups + routes + WAF
   envs/             Per-environment roots — each has its own state file
     shared/           Cross-environment resources (one copy, both envs use)
@@ -18,11 +19,13 @@ terraform/
     prod/             Production environment
       database/         → database.tfstate
       key-vault/        → prod-key-vault.tfstate
+      static-web-apps/  → prod-static-web-apps.tfstate
       app-service/      → app-service.tfstate
       front-door/       → prod-front-door.tfstate
     staging/          Staging environment (same shape as prod)
       database/         → staging-database.tfstate
       key-vault/        → staging-key-vault.tfstate
+      static-web-apps/  → staging-static-web-apps.tfstate
       app-service/      → staging-app-service.tfstate
 ```
 
@@ -45,9 +48,11 @@ once.
   ┌─────────▼─────────┐      ┌──────────▼────────┐
   │ envs/prod/        │      │ envs/staging/     │
   │   database ───► key-vault│   database ───► key-vault
+  │        │               │        │               │
+  │        └──► static-web-apps     └──► static-web-apps
   │                    │      │                    │
   │                    └───► app-service ◄────────┘
-  │                  (reads secret URIs, not values)
+  │                  (SWA URLs → CORS; KV → secrets)
   └───────────────────┘      └───────────────────┘
 ```
 
@@ -56,6 +61,8 @@ tfvars. Each env's `app-service/main.tf` reads:
 
 - ACR info from `shared/foundation`
 - secret URIs + vault ID from its own env's `key-vault` state
+- Static Web App HTTPS URLs from its own env's `static-web-apps` state (feeds
+  `CORS_ORIGINS` on the API)
 
 Each env's `key-vault/main.tf` reads:
 
@@ -64,7 +71,8 @@ Each env's `key-vault/main.tf` reads:
 
 And `prod/front-door/main.tf` reads:
 
-- OPS + API hostnames from `prod/app-service` state (to configure origins)
+- OPS hostname from `prod/static-web-apps` state (Static Web App origin)
+- API hostname from `prod/app-service` state
 
 That means `staging/app-service` _cannot_ accidentally read prod's database —
 the backend key is the contract.
@@ -109,13 +117,12 @@ Until then, the AFD stack exists as code only — plans cleanly, doesn't apply.
 ### After the first apply
 
 Outputs include `api_endpoint_hostname` and `ops_endpoint_hostname`. To route
-the OPS frontend through AFD:
+the OPS **Static Web App** through AFD:
 
-1. Rebuild the OPS image with `VITE_SERVER_URL=https://<api_endpoint_hostname>`
-   (either set it locally and rebuild, or update `VITE_SERVER_URL` in
-   GitHub Actions repository variables so CI picks it up).
-2. Push the new image to ACR, update `ops_image_tag` in
-   `envs/prod/app-service/terraform.tfvars`, re-apply.
+1. Set the repository variable `VITE_SERVER_URL` to `https://<api_endpoint_hostname>`
+   (or the API’s direct App Service URL if you are not using the API AFD endpoint).
+2. Re-run `.github/workflows/deploy-static-web-apps.yml` (or push to `main` so
+   it runs) so the OPS bundle is rebuilt with the new API origin.
 
 To lock App Service origins down so _only_ AFD can reach them (recommended
 hardening; follow-up after the first apply):
@@ -137,11 +144,20 @@ Service consume secrets via Key Vault references:
 - `app-service` stores only references:
   - `DATABASE_URL = @Microsoft.KeyVault(SecretUri=<versionless-uri>)`
   - `BETTER_AUTH_SECRET = @Microsoft.KeyVault(SecretUri=<versionless-uri>)`
-- `app-service` grants `Key Vault Secrets User` role on the vault to both
-  managed identities (OPS + API)
+- `app-service` grants `Key Vault Secrets User` on the vault to the **API**
+  web app's managed identity only
 
 Because references use versionless secret URIs, rotating a secret in Key Vault
 doesn't require changing Terraform app settings.
+
+## Static Web Apps + GitHub Actions
+
+`modules/static-web-app` creates one SWA per frontend. Terraform exports each
+site's **deployment token** as a sensitive output — map those to GitHub Actions
+repository secrets (`SWA_TOKEN_OPS_PROD`, …) so `.github/workflows/deploy-static-web-apps.yml`
+can upload `dist/` after `turbo build`. Static Web Apps are intentionally **not**
+stored in Key Vault here: the deploy token is a CI secret, not a runtime API
+secret.
 
 ## GitHub Actions OIDC
 
@@ -226,12 +242,15 @@ terraform -chdir=terraform/envs/shared/foundation apply
 terraform -chdir=terraform/envs/shared/ci-identity init
 terraform -chdir=terraform/envs/shared/ci-identity apply
 
-# then an env — database → key-vault → app-service
+# then an env — database → key-vault → static-web-apps → app-service
 terraform -chdir=terraform/envs/prod/database init
 terraform -chdir=terraform/envs/prod/database apply
 
 terraform -chdir=terraform/envs/prod/key-vault init
 terraform -chdir=terraform/envs/prod/key-vault apply
+
+terraform -chdir=terraform/envs/prod/static-web-apps init
+terraform -chdir=terraform/envs/prod/static-web-apps apply
 
 terraform -chdir=terraform/envs/prod/app-service init
 terraform -chdir=terraform/envs/prod/app-service apply
@@ -241,15 +260,15 @@ terraform -chdir=terraform/envs/prod/front-door init
 terraform -chdir=terraform/envs/prod/front-door apply
 ```
 
-For staging, swap `prod` → `staging` in the last six commands.
+For staging, swap `prod` → `staging` in the last eight commands.
 
 ## Adding a new environment
 
 Only three things change per environment:
 
-1. **A new directory** `envs/<newenv>/database/` + `envs/<newenv>/key-vault/` + `envs/<newenv>/app-service/`
+1. **A new directory** `envs/<newenv>/database/` + `envs/<newenv>/key-vault/` + `envs/<newenv>/static-web-apps/` + `envs/<newenv>/app-service/`
    (copy from `envs/staging/`, update tfvars)
-2. **New backend keys** in each `versions.tf` (e.g. `qa-database.tfstate`, `qa-key-vault.tfstate`)
+2. **New backend keys** in each `versions.tf` (e.g. `qa-database.tfstate`, `qa-key-vault.tfstate`, `qa-static-web-apps.tfstate`)
 3. **A new entry** in `envs/shared/ci-identity/terraform.tfvars` →
    `github_environments = ["staging", "prod", "qa"]`, then re-apply to
    provision the OIDC federated credential.

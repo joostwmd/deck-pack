@@ -4,7 +4,7 @@
 #
 # Run (set env for your database / auth — see apps/api/.env.example):
 #   docker run --rm -p 3000:3000 -e DATABASE_URL=... -e BETTER_AUTH_SECRET=... \
-#     -e BETTER_AUTH_URL=http://localhost:3000 -e CORS_ORIGIN=http://localhost:8080 \
+#     -e BETTER_AUTH_URL=http://localhost:3000 -e CORS_ORIGINS=http://localhost:8080 \
 #     deck-pack-api
 
 FROM node:22-bookworm-slim AS builder

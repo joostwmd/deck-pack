@@ -1,13 +1,12 @@
-name: Build and push images
+name: Build and push API image
 
 on:
   push:
     branches: [main]
     paths:
       - "apps/api/**"
-      - "apps/ops/**"
       - "packages/**"
-      - "docker/**"
+      - "docker/api.Dockerfile"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
       - ".github/workflows/build-and-push.yml"
@@ -15,9 +14,8 @@ on:
     branches: [main]
     paths:
       - "apps/api/**"
-      - "apps/ops/**"
       - "packages/**"
-      - "docker/**"
+      - "docker/api.Dockerfile"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
       - ".github/workflows/build-and-push.yml"
@@ -33,22 +31,10 @@ permissions:
 
 jobs:
   build-and-push:
-    name: Build and push ${{ matrix.app }}
+    name: Build and push API image
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - app: api
-            dockerfile: docker/api.Dockerfile
-            build_args: ""
-          - app: ops
-            dockerfile: docker/ops.Dockerfile
-            build_args: |
-              VITE_SERVER_URL=${{ vars.VITE_SERVER_URL || 'http://localhost:3000' }}
-
     env:
-      IMAGE_REPO: deck-pack-${{ matrix.app }}
+      IMAGE_REPO: deck-pack-api
 
     steps:
       - name: Checkout
@@ -89,21 +75,20 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Build and push ${{ matrix.app }} image
+      - name: Build and push API image
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ${{ matrix.dockerfile }}
+          file: docker/api.Dockerfile
           push: true
           tags: ${{ steps.tags.outputs.tags }}
-          build-args: ${{ matrix.build_args }}
-          cache-from: type=gha,scope=${{ matrix.app }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.app }}
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
 
       - name: Summary
         run: |
           {
-            echo "### Pushed ${IMAGE_REPO}"
+            echo "### Pushed deck-pack-api"
             echo ""
             echo "- \`${{ steps.tags.outputs.sha_tag }}\`"
             echo "- \`${{ steps.tags.outputs.extra_tag }}\`"

@@ -35,34 +35,6 @@ variable "acr_login_server" {
   type        = string
 }
 
-variable "ops_app_name" {
-  description = "Globally unique Linux Web App name for the OPS frontend. Becomes https://<name>.azurewebsites.net."
-  type        = string
-
-  validation {
-    condition     = can(regex("^[a-z0-9][a-z0-9-]{1,58}[a-z0-9]$", var.ops_app_name))
-    error_message = "ops_app_name must be 2-60 chars, lowercase letters, digits, or hyphens, and cannot start/end with a hyphen."
-  }
-}
-
-variable "ops_image_repository" {
-  description = "Image repository name in ACR for the OPS app."
-  type        = string
-  default     = "deck-pack-ops"
-}
-
-variable "ops_image_tag" {
-  description = "Image tag to deploy (e.g. `latest` or a git SHA)."
-  type        = string
-  default     = "latest"
-}
-
-variable "ops_container_port" {
-  description = "Port the OPS container listens on (matches Dockerfile EXPOSE)."
-  type        = number
-  default     = 8080
-}
-
 variable "api_app_name" {
   description = "Globally unique Linux Web App name for the API backend. Becomes https://<name>.azurewebsites.net."
   type        = string
@@ -97,6 +69,16 @@ variable "node_env" {
   default     = "production"
 }
 
+variable "cors_origins" {
+  description = "Allowed browser origins for the API (HTTPS URLs of Static Web Apps + any local dev URLs). Stored as comma-separated CORS_ORIGINS."
+  type        = list(string)
+
+  validation {
+    condition     = length(var.cors_origins) >= 1
+    error_message = "Provide at least one CORS origin (the API refuses to start with an empty list)."
+  }
+}
+
 variable "database_url_secret_uri" {
   description = "Versionless SecretUri for DATABASE_URL in Key Vault."
   type        = string
@@ -108,7 +90,7 @@ variable "better_auth_secret_uri" {
 }
 
 variable "key_vault_id" {
-  description = "Resource ID of the Key Vault. If set, web apps receive Key Vault Secrets User role assignments."
+  description = "Resource ID of the Key Vault. If set, the API receives Key Vault Secrets User role assignment."
   type        = string
   default     = null
 }

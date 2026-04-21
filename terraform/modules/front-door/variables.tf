@@ -14,7 +14,7 @@ variable "endpoint_suffix" {
 }
 
 variable "ops_origin_hostname" {
-  description = "Origin hostname for the OPS frontend (e.g. deck-pack-ops-jw.azurewebsites.net). Read from the app-service remote state in the caller."
+  description = "Origin hostname for the OPS frontend (Static Web App, e.g. xxx.azurestaticapps.net)."
   type        = string
 }
 
