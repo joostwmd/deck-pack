@@ -26,6 +26,10 @@ jobs:
   build-and-push:
     name: Build and push API image
     runs-on: ubuntu-latest
+    # Use a GitHub environment so the OIDC subject becomes
+    # `repo:<owner>/<repo>:environment:<name>`, matching the federated
+    # credentials provisioned by terraform/envs/shared/ci-identity.
+    environment: ${{ github.ref == 'refs/heads/main' && 'prod' || 'staging' }}
     env:
       IMAGE_REPO: deck-pack-api
 
