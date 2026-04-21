@@ -48,8 +48,3 @@ output "api_principal_id" {
   value       = azurerm_linux_web_app.api.identity[0].principal_id
 }
 
-output "better_auth_secret" {
-  description = "Generated Better Auth signing secret. Handled via Key Vault in the next hardening pass."
-  value       = random_password.better_auth_secret.result
-  sensitive   = true
-}

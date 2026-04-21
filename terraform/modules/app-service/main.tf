@@ -56,24 +56,6 @@ resource "azurerm_role_assignment" "ops_acr_pull" {
   principal_id         = azurerm_linux_web_app.ops.identity[0].principal_id
 }
 
-# Generated once, persists in Terraform state. Move to Key Vault in the next
-# hardening pass; the Better Auth docs explicitly call this secret a long-lived
-# signing key so it should NOT rotate casually.
-#
-# prevent_destroy: Terraform refuses to destroy this resource. Rotating the
-# secret invalidates every existing session cookie, so we want it to require
-# an explicit human action (remove the lifecycle block, run apply) rather than
-# happen as a side effect of `terraform destroy` or accidental resource
-# re-creation.
-resource "random_password" "better_auth_secret" {
-  length  = 48
-  special = false
-
-  lifecycle {
-    prevent_destroy = true
-  }
-}
-
 resource "azurerm_linux_web_app" "api" {
   name                = var.api_app_name
   resource_group_name = var.resource_group_name
@@ -104,8 +86,8 @@ resource "azurerm_linux_web_app" "api" {
     WEBSITES_ENABLE_APP_SERVICE_STORAGE = "false"
     PORT                                = tostring(var.api_container_port)
     NODE_ENV                            = var.node_env
-    DATABASE_URL                        = var.database_url
-    BETTER_AUTH_SECRET                  = random_password.better_auth_secret.result
+    DATABASE_URL                        = "@Microsoft.KeyVault(SecretUri=${var.database_url_secret_uri})"
+    BETTER_AUTH_SECRET                  = "@Microsoft.KeyVault(SecretUri=${var.better_auth_secret_uri})"
     BETTER_AUTH_URL                     = "https://${var.api_app_name}.azurewebsites.net"
     CORS_ORIGIN                         = "https://${azurerm_linux_web_app.ops.default_hostname}"
   }
@@ -122,5 +104,19 @@ resource "azurerm_linux_web_app" "api" {
 resource "azurerm_role_assignment" "api_acr_pull" {
   scope                = var.acr_id
   role_definition_name = "AcrPull"
+  principal_id         = azurerm_linux_web_app.api.identity[0].principal_id
+}
+
+resource "azurerm_role_assignment" "ops_kv_secrets_user" {
+  count                = var.key_vault_id == null ? 0 : 1
+  scope                = var.key_vault_id
+  role_definition_name = "Key Vault Secrets User"
+  principal_id         = azurerm_linux_web_app.ops.identity[0].principal_id
+}
+
+resource "azurerm_role_assignment" "api_kv_secrets_user" {
+  count                = var.key_vault_id == null ? 0 : 1
+  scope                = var.key_vault_id
+  role_definition_name = "Key Vault Secrets User"
   principal_id         = azurerm_linux_web_app.api.identity[0].principal_id
 }

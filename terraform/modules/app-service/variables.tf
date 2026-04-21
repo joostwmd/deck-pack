@@ -97,10 +97,20 @@ variable "node_env" {
   default     = "production"
 }
 
-variable "database_url" {
-  description = "Postgres connection string for the API. Inject from the database module output (or TF_VAR_database_url at the root)."
+variable "database_url_secret_uri" {
+  description = "Versionless SecretUri for DATABASE_URL in Key Vault."
   type        = string
-  sensitive   = true
+}
+
+variable "better_auth_secret_uri" {
+  description = "Versionless SecretUri for BETTER_AUTH_SECRET in Key Vault."
+  type        = string
+}
+
+variable "key_vault_id" {
+  description = "Resource ID of the Key Vault. If set, web apps receive Key Vault Secrets User role assignments."
+  type        = string
+  default     = null
 }
 
 variable "tags" {

@@ -5,7 +5,7 @@ terraform {
     resource_group_name  = "rg-deck-pack-tfstate"
     storage_account_name = "stdeckpacktfstatejw"
     container_name       = "tfstate"
-    key                  = "app-service.tfstate"
+    key                  = "prod-key-vault.tfstate"
     use_azuread_auth     = true
   }
 
@@ -13,6 +13,10 @@ terraform {
     azurerm = {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.6"
     }
   }
 }

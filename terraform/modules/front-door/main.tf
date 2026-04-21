@@ -60,12 +60,12 @@ resource "azurerm_cdn_frontdoor_origin_group" "ops" {
 }
 
 resource "azurerm_cdn_frontdoor_origin" "ops_primary" {
-  name                           = "o-ops-primary"
-  cdn_frontdoor_origin_group_id  = azurerm_cdn_frontdoor_origin_group.ops.id
-  enabled                        = true
-  host_name                      = var.ops_origin_hostname
-  http_port                      = 80
-  https_port                     = 443
+  name                          = "o-ops-primary"
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.ops.id
+  enabled                       = true
+  host_name                     = var.ops_origin_hostname
+  http_port                     = 80
+  https_port                    = 443
   # Must match host_name so App Service's SNI cert validation passes (the
   # cert on *.azurewebsites.net is bound to the literal hostname).
   origin_host_header             = var.ops_origin_hostname

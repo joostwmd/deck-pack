@@ -11,15 +11,15 @@ data "terraform_remote_state" "shared_foundation" {
   }
 }
 
-# Read the database URL from the prod/database state. Keeps DATABASE_URL out of
-# any tfvars file on disk; the value never leaves the state backend.
-data "terraform_remote_state" "database" {
+# Read Key Vault references from prod/key-vault state. App Service receives
+# only secret URIs, not plaintext values.
+data "terraform_remote_state" "key_vault" {
   backend = "azurerm"
   config = {
     resource_group_name  = "rg-deck-pack-tfstate"
     storage_account_name = "stdeckpacktfstatejw"
     container_name       = "tfstate"
-    key                  = "database.tfstate"
+    key                  = "prod-key-vault.tfstate"
     use_azuread_auth     = true
   }
 }
@@ -45,7 +45,9 @@ module "this" {
   api_image_repository = var.api_image_repository
   api_image_tag        = var.api_image_tag
 
-  database_url = data.terraform_remote_state.database.outputs.database_url
+  database_url_secret_uri = data.terraform_remote_state.key_vault.outputs.database_url_secret_uri
+  better_auth_secret_uri  = data.terraform_remote_state.key_vault.outputs.better_auth_secret_uri
+  key_vault_id            = data.terraform_remote_state.key_vault.outputs.key_vault_id
 
   tags = var.tags
 }

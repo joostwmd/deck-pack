@@ -38,8 +38,3 @@ output "api_principal_id" {
   value = module.this.api_principal_id
 }
 
-output "better_auth_secret" {
-  description = "Generated Better Auth signing secret (separate value from prod)."
-  value       = module.this.better_auth_secret
-  sensitive   = true
-}

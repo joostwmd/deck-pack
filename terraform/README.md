@@ -8,7 +8,8 @@ terraform/
     foundation/       RG + ACR
     ci-identity/      Entra app + OIDC federated credentials for GitHub Actions
     database/         Postgres Flexible Server + firewall + generated admin password
-    app-service/      App Service Plan + OPS Web App + API Web App + AcrPull role assignments
+    key-vault/        Key Vault + DATABASE_URL/BETTER_AUTH_SECRET secrets
+    app-service/      App Service Plan + OPS Web App + API Web App + AcrPull + Key Vault role assignments
     front-door/       AFD profile + endpoints + origin groups + routes + WAF
   envs/             Per-environment roots — each has its own state file
     shared/           Cross-environment resources (one copy, both envs use)
@@ -16,10 +17,12 @@ terraform/
       ci-identity/      → ci-identity.tfstate
     prod/             Production environment
       database/         → database.tfstate
+      key-vault/        → prod-key-vault.tfstate
       app-service/      → app-service.tfstate
       front-door/       → prod-front-door.tfstate
     staging/          Staging environment (same shape as prod)
       database/         → staging-database.tfstate
+      key-vault/        → staging-key-vault.tfstate
       app-service/      → staging-app-service.tfstate
 ```
 
@@ -41,10 +44,10 @@ once.
             │                           │
   ┌─────────▼─────────┐      ┌──────────▼────────┐
   │ envs/prod/        │      │ envs/staging/     │
-  │   database        │      │   database        │
-  │   app-service ◄───┘      │   app-service ◄───┘
-  │                  (reads DATABASE_URL         │
-  │                   via remote_state)          │
+  │   database ───► key-vault│   database ───► key-vault
+  │                    │      │                    │
+  │                    └───► app-service ◄────────┘
+  │                  (reads secret URIs, not values)
   └───────────────────┘      └───────────────────┘
 ```
 
@@ -52,7 +55,12 @@ Cross-stack data passes via `terraform_remote_state` data sources, not hand-copi
 tfvars. Each env's `app-service/main.tf` reads:
 
 - ACR info from `shared/foundation`
-- `DATABASE_URL` from its own env's `database` state
+- secret URIs + vault ID from its own env's `key-vault` state
+
+Each env's `key-vault/main.tf` reads:
+
+- `DATABASE_URL` from its own env's `database` state, then stores it as a secret
+- generates and stores `BETTER_AUTH_SECRET`
 
 And `prod/front-door/main.tf` reads:
 
@@ -119,6 +127,22 @@ hardening; follow-up after the first apply):
 
 This is a second-pass change to avoid a circular data dependency at bootstrap.
 
+## Key Vault runtime secrets
+
+`modules/key-vault` introduces per-environment secret storage and makes App
+Service consume secrets via Key Vault references:
+
+- `DATABASE_URL` is read from the env's `database` state and written to Key Vault
+- `BETTER_AUTH_SECRET` is generated in the key-vault stack and written to Key Vault
+- `app-service` stores only references:
+  - `DATABASE_URL = @Microsoft.KeyVault(SecretUri=<versionless-uri>)`
+  - `BETTER_AUTH_SECRET = @Microsoft.KeyVault(SecretUri=<versionless-uri>)`
+- `app-service` grants `Key Vault Secrets User` role on the vault to both
+  managed identities (OPS + API)
+
+Because references use versionless secret URIs, rotating a secret in Key Vault
+doesn't require changing Terraform app settings.
+
 ## GitHub Actions OIDC
 
 The `ci-identity` module creates federated credentials in a `for_each` loop
@@ -181,16 +205,13 @@ Then `terraform -chdir=terraform/envs/<env>/<stack> init` and they're in.
 
 ## Lifecycle protection on sensitive secrets
 
-Two `random_password` resources (defined inside modules, one instance per env)
-have `lifecycle { prevent_destroy = true }`:
+One `random_password` resource still has `lifecycle { prevent_destroy = true }`:
 
-- `modules/app-service/main.tf :: random_password.better_auth_secret` —
-  rotating this invalidates every session cookie.
 - `modules/database/main.tf :: random_password.admin` — this is the only
   credential the API has for the database.
 
-Terraform refuses to destroy these; rotation requires removing the
-`lifecycle` block, applying, then putting it back.
+`BETTER_AUTH_SECRET` now lives in Key Vault and can be rotated by updating the
+Key Vault secret value.
 
 ## Apply order (cold start)
 
@@ -205,9 +226,12 @@ terraform -chdir=terraform/envs/shared/foundation apply
 terraform -chdir=terraform/envs/shared/ci-identity init
 terraform -chdir=terraform/envs/shared/ci-identity apply
 
-# then an env — database before app-service (app-service reads database_url)
+# then an env — database → key-vault → app-service
 terraform -chdir=terraform/envs/prod/database init
 terraform -chdir=terraform/envs/prod/database apply
+
+terraform -chdir=terraform/envs/prod/key-vault init
+terraform -chdir=terraform/envs/prod/key-vault apply
 
 terraform -chdir=terraform/envs/prod/app-service init
 terraform -chdir=terraform/envs/prod/app-service apply
@@ -217,15 +241,15 @@ terraform -chdir=terraform/envs/prod/front-door init
 terraform -chdir=terraform/envs/prod/front-door apply
 ```
 
-For staging, swap `prod` → `staging` in the last four commands.
+For staging, swap `prod` → `staging` in the last six commands.
 
 ## Adding a new environment
 
 Only three things change per environment:
 
-1. **A new directory** `envs/<newenv>/database/` + `envs/<newenv>/app-service/`
+1. **A new directory** `envs/<newenv>/database/` + `envs/<newenv>/key-vault/` + `envs/<newenv>/app-service/`
    (copy from `envs/staging/`, update tfvars)
-2. **New backend keys** in each `versions.tf` (e.g. `qa-database.tfstate`)
+2. **New backend keys** in each `versions.tf` (e.g. `qa-database.tfstate`, `qa-key-vault.tfstate`)
 3. **A new entry** in `envs/shared/ci-identity/terraform.tfvars` →
    `github_environments = ["staging", "prod", "qa"]`, then re-apply to
    provision the OIDC federated credential.
