@@ -32,16 +32,22 @@ resource "azurerm_linux_web_app" "api" {
     }
   }
 
-  app_settings = {
-    WEBSITES_PORT                       = tostring(var.api_container_port)
-    WEBSITES_ENABLE_APP_SERVICE_STORAGE = "false"
-    PORT                                = tostring(var.api_container_port)
-    NODE_ENV                            = var.node_env
-    DATABASE_URL                        = "@Microsoft.KeyVault(SecretUri=${var.database_url_secret_uri})"
-    BETTER_AUTH_SECRET                  = "@Microsoft.KeyVault(SecretUri=${var.better_auth_secret_uri})"
-    BETTER_AUTH_URL                     = "https://${var.api_app_name}.azurewebsites.net"
-    CORS_ORIGINS                        = join(",", var.cors_origins)
-  }
+  app_settings = merge(
+    {
+      WEBSITES_PORT                       = tostring(var.api_container_port)
+      WEBSITES_ENABLE_APP_SERVICE_STORAGE = "false"
+      PORT                                = tostring(var.api_container_port)
+      NODE_ENV                            = var.node_env
+      DATABASE_URL                        = "@Microsoft.KeyVault(SecretUri=${var.database_url_secret_uri})"
+      BETTER_AUTH_SECRET                  = "@Microsoft.KeyVault(SecretUri=${var.better_auth_secret_uri})"
+      BETTER_AUTH_URL                     = "https://${var.api_app_name}.azurewebsites.net"
+      CORS_ORIGINS                        = join(",", var.cors_origins)
+    },
+    var.storage_account_name != null && var.storage_container_name != null ? {
+      AZURE_STORAGE_ACCOUNT_NAME = var.storage_account_name
+      AZURE_STORAGE_CONTAINER    = var.storage_container_name
+    } : {},
+  )
 
   lifecycle {
     ignore_changes = [

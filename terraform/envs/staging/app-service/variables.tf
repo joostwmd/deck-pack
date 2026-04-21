@@ -55,6 +55,12 @@ variable "cors_origins_extra" {
   default     = []
 }
 
+variable "wire_storage" {
+  description = "When true, read staging/storage state and set AZURE_STORAGE_* on the API. Apply staging/storage first, then enable."
+  type        = bool
+  default     = false
+}
+
 variable "tags" {
   description = "Tags applied to all resources."
   type        = map(string)

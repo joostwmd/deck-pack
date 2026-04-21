@@ -11,6 +11,7 @@ terraform/
     key-vault/        Key Vault + DATABASE_URL/BETTER_AUTH_SECRET secrets
     static-web-app/   One Azure Static Web App (Vite frontends)
     app-service/      App Service Plan + API Linux Web App + AcrPull + Key Vault role assignments
+    storage/          Blob Storage (LRS) + private uploads container + CORS + API MI blob RBAC
     front-door/       AFD profile + endpoints + origin groups + routes + WAF
   envs/             Per-environment roots — each has its own state file
     shared/           Cross-environment resources (one copy, both envs use)
@@ -20,12 +21,14 @@ terraform/
       database/         → database.tfstate
       key-vault/        → prod-key-vault.tfstate
       static-web-apps/  → prod-static-web-apps.tfstate
+      storage/          → prod-storage.tfstate
       app-service/      → app-service.tfstate
       front-door/       → prod-front-door.tfstate
     staging/          Staging environment (same shape as prod)
       database/         → staging-database.tfstate
       key-vault/        → staging-key-vault.tfstate
       static-web-apps/  → staging-static-web-apps.tfstate
+      storage/          → staging-storage.tfstate
       app-service/      → staging-app-service.tfstate
 ```
 
@@ -51,8 +54,10 @@ once.
   │        │               │        │               │
   │        └──► static-web-apps     └──► static-web-apps
   │                    │      │                    │
+  │                    ├──► storage (blob uploads; SWA URLs → blob CORS)
+  │                    │      │
   │                    └───► app-service ◄────────┘
-  │                  (SWA URLs → CORS; KV → secrets)
+  │                  (SWA URLs → CORS; KV → secrets; optional storage → AZURE_STORAGE_*)
   └───────────────────┘      └───────────────────┘
 ```
 
@@ -172,9 +177,31 @@ github_environments = ["staging", "prod", "uat"]
 Apply and you get a new OIDC trust for `environment:uat` that a workflow can
 claim with `environment: uat` in its job config.
 
-Today the workflow `.github/workflows/build-and-push.yml` still uses the
-branch/PR federated credentials (not env-scoped). Env-scoped CI is the next
-step once we have `terraform apply` wired up in CI.
+`.github/workflows/build-and-push.yml` uses GitHub **Environments** (`prod` /
+`staging`) so the OIDC subject matches the env-scoped federated credentials
+from `ci-identity`. Ensure those environment names exist under repo **Settings
+→ Environments**.
+
+## Blob storage (user/admin image uploads)
+
+`modules/storage` provisions a **Standard LRS** StorageV2 account, a **private**
+blob container (default name `images`), **CORS** from the env’s Static Web App
+URLs (so browsers can `PUT` using a signed URL), and **Storage Blob Data
+Contributor** for the API’s **system-assigned managed identity**.
+
+Shared access keys are **disabled** on the account; use **user delegation SAS**
+from the API (Entra ID + `@azure/storage-blob`) for upload and download URLs.
+
+**Apply order:** `static-web-apps` and `app-service` must exist first (storage
+reads the API principal ID and SWA URLs from remote state). Then:
+
+1. `terraform apply` in `envs/<env>/storage/` (or `pnpm tf:apply:prod:storage`).
+2. In `envs/<env>/app-service/terraform.tfvars`, set `wire_storage = true` and
+   re-apply app-service so the API receives `AZURE_STORAGE_ACCOUNT_NAME` and
+   `AZURE_STORAGE_CONTAINER`.
+
+If the chosen `storage_account_name` is not globally unique, change it in
+`envs/<env>/storage/terraform.tfvars` and re-apply.
 
 ## Remote state
 
@@ -254,6 +281,10 @@ terraform -chdir=terraform/envs/prod/static-web-apps apply
 
 terraform -chdir=terraform/envs/prod/app-service init
 terraform -chdir=terraform/envs/prod/app-service apply
+
+# uploads blob storage (after app-service + static-web-apps; then set wire_storage = true on app-service)
+terraform -chdir=terraform/envs/prod/storage init
+terraform -chdir=terraform/envs/prod/storage apply
 
 # optional: Front Door in front of prod (requires non-Student subscription)
 terraform -chdir=terraform/envs/prod/front-door init

@@ -95,6 +95,18 @@ variable "key_vault_id" {
   default     = null
 }
 
+variable "storage_account_name" {
+  description = "Uploads storage account name. When set with storage_container_name, the API receives AZURE_STORAGE_* app settings."
+  type        = string
+  default     = null
+}
+
+variable "storage_container_name" {
+  description = "Private blob container for uploads (e.g. images)."
+  type        = string
+  default     = null
+}
+
 variable "tags" {
   description = "Tags applied to all resources."
   type        = map(string)

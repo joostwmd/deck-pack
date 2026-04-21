@@ -31,6 +31,19 @@ data "terraform_remote_state" "static_web_apps" {
   }
 }
 
+data "terraform_remote_state" "storage" {
+  count = var.wire_storage ? 1 : 0
+
+  backend = "azurerm"
+  config = {
+    resource_group_name  = "rg-deck-pack-tfstate"
+    storage_account_name = "stdeckpacktfstatejw"
+    container_name       = "tfstate"
+    key                  = "staging-storage.tfstate"
+    use_azuread_auth     = true
+  }
+}
+
 module "this" {
   source = "../../../modules/app-service"
 
@@ -56,6 +69,9 @@ module "this" {
   database_url_secret_uri = data.terraform_remote_state.key_vault.outputs.database_url_secret_uri
   better_auth_secret_uri  = data.terraform_remote_state.key_vault.outputs.better_auth_secret_uri
   key_vault_id            = data.terraform_remote_state.key_vault.outputs.key_vault_id
+
+  storage_account_name   = var.wire_storage ? data.terraform_remote_state.storage[0].outputs.storage_account_name : null
+  storage_container_name = var.wire_storage ? data.terraform_remote_state.storage[0].outputs.container_name : null
 
   tags = var.tags
 }
