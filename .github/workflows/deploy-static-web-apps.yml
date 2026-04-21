@@ -11,6 +11,16 @@ on:
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
       - ".github/workflows/deploy-static-web-apps.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/ops/**"
+      - "apps/portal/**"
+      - "apps/addins/assets/**"
+      - "packages/**"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - ".github/workflows/deploy-static-web-apps.yml"
   workflow_dispatch:
 
 concurrency:
