@@ -10,7 +10,7 @@ const subjectByType: Record<OtpEmailType, string> = {
   "forget-password": "Reset your password",
 };
 
-const resend = new Resend(env.RESEND_API_KEY);
+const resend = new Resend(env.EMAIL_API_KEY);
 
 /**
  * Send a one-time code via Resend. `from` and API key always come from server env.
