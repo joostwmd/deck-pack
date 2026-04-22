@@ -1,10 +1,13 @@
 import { createDb } from "@deck-pack/db";
 import * as schema from "@deck-pack/db/schema/auth";
 import { env } from "@deck-pack/env/server";
-import { betterAuth } from "better-auth";
+import { APIError, betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { emailOTP } from "better-auth/plugins";
 import { sendOtpEmail } from "@deck-pack/email";
+import { createAuthMiddleware } from "better-auth/api";
+
+const ADMIN_EMAIL_DOMAIN = "code.berlin";
 
 export function createAuth() {
   const db = createDb();
@@ -55,6 +58,28 @@ export function createAuth() {
         },
       }),
     ],
+    hooks: {
+      before: createAuthMiddleware(async (ctx) => {
+        // Intercept email-otp sendVerificationOTP endpoint
+        if (ctx.path === "/email-otp/send-verification-otp") {
+          const email = ctx.body?.email as string;
+          if (!email?.endsWith(`@${ADMIN_EMAIL_DOMAIN}`)) {
+            throw new APIError("BAD_REQUEST", {
+              message: `Email must use the @${ADMIN_EMAIL_DOMAIN} domain.`,
+            });
+          }
+        }
+        // Intercept sign-in with OTP (new registrations happen here)
+        if (ctx.path === "/sign-in/email-otp") {
+          const email = ctx.body?.email as string;
+          if (!email?.endsWith(`@${ADMIN_EMAIL_DOMAIN}`)) {
+            throw new APIError("BAD_REQUEST", {
+              message: `Email must use the @${ADMIN_EMAIL_DOMAIN} domain.`,
+            });
+          }
+        }
+      }),
+    },
   });
 }
 
