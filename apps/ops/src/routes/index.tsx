@@ -6,7 +6,7 @@ export const Route = createFileRoute("/")({
 
 function HomeComponent() {
   return (
-    <div className="container mx-auto max-w-3xl px-4 py-2">
+    <div className="container px-2 py-2">
       <h1>Internal Dashbaord</h1>
     </div>
   );
