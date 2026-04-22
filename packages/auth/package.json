@@ -12,6 +12,7 @@
   "scripts": {},
   "dependencies": {
     "@deck-pack/db": "workspace:*",
+    "@deck-pack/email": "workspace:*",
     "@deck-pack/env": "workspace:*",
     "better-auth": "catalog:",
     "dotenv": "catalog:",

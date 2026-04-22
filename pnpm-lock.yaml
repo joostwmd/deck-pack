@@ -472,6 +472,9 @@ importers:
       '@deck-pack/db':
         specifier: workspace:*
         version: link:../db
+      '@deck-pack/email':
+        specifier: workspace:*
+        version: link:../email
       '@deck-pack/env':
         specifier: workspace:*
         version: link:../env
