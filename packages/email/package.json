@@ -1,0 +1,22 @@
+{
+  "name": "@deck-pack/email",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@deck-pack/env": "workspace:*",
+    "resend": "catalog:"
+  },
+  "devDependencies": {
+    "@deck-pack/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}
