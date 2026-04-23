@@ -23,8 +23,8 @@ export default function UserMenu() {
 
   if (!session) {
     return (
-      <Link to="/login">
-        <Button variant="outline">Sign In</Button>
+      <Link to="/">
+        <Button variant="outline">Sign in</Button>
       </Link>
     );
   }

@@ -2,10 +2,7 @@ import { Link } from "@tanstack/react-router";
 
 import { ModeToggle } from "./mode-toggle";
 
-const links = [
-  { to: "/", label: "Home" },
-  { to: "/login", label: "Sign in" },
-] as const;
+const links = [{ to: "/", label: "Home" }] as const;
 
 export default function PublicHeader() {
   return (

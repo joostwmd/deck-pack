@@ -1,8 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { OtpSignup, type OtpSignupStep } from "@deck-pack/ui/components/composite/otp-signup";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
+import { toast } from "sonner";
 
-import PublicHeader from "@/components/public-header";
-import { trpc } from "@/utils/trpc";
+import { authClient } from "@/utils/auth";
+
+const OTP_LENGTH = 6;
 
 export const Route = createFileRoute("/")({
   beforeLoad: async ({ context }) => {
@@ -17,48 +20,91 @@ export const Route = createFileRoute("/")({
   component: HomeComponent,
 });
 
-const TITLE_TEXT = `
- ██████╗ ███████╗████████╗████████╗███████╗██████╗
- ██╔══██╗██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗
- ██████╔╝█████╗     ██║      ██║   █████╗  ██████╔╝
- ██╔══██╗██╔══╝     ██║      ██║   ██╔══╝  ██╔══██╗
- ██████╔╝███████╗   ██║      ██║   ███████╗██║  ██║
- ╚═════╝ ╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝
-
- ████████╗    ███████╗████████╗ █████╗  ██████╗██╗  ██╗
- ╚══██╔══╝    ██╔════╝╚══██╔══╝██╔══██╗██╔════╝██║ ██╔╝
-    ██║       ███████╗   ██║   ███████║██║     █████╔╝
-    ██║       ╚════██║   ██║   ██╔══██║██║     ██╔═██╗
-    ██║       ███████║   ██║   ██║  ██║╚██████╗██║  ██╗
-    ╚═╝       ╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
- `;
+function displayNameFromEmail(email: string): string {
+  const localPart = email.split("@")[0] ?? "User";
+  return localPart
+    .split(/[._-]/)
+    .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
+    .join(" ");
+}
 
 function HomeComponent() {
-  const healthCheck = useQuery(trpc.healthCheck.queryOptions());
+  const navigate = useNavigate();
+
+  const [step, setStep] = useState<OtpSignupStep>("email");
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [sending, setSending] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+
+  const handleSendCode = async () => {
+    const trimmed = email.trim().toLowerCase();
+    if (!trimmed) {
+      toast.error("Enter your email to continue");
+      return;
+    }
+    setSending(true);
+    try {
+      const { error } = await authClient.emailOtp.sendVerificationOtp({
+        email: trimmed,
+        type: "sign-in",
+      });
+      if (error) {
+        toast.error(error.message ?? "Could not send the code. Try again in a moment.");
+        return;
+      }
+      setOtp("");
+      setStep("otp");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleVerify = async () => {
+    if (otp.length < OTP_LENGTH) {
+      toast.error(`Enter all ${String(OTP_LENGTH)} digits.`);
+      return;
+    }
+    const trimmed = email.trim().toLowerCase();
+    setVerifying(true);
+    try {
+      const { error } = await authClient.signIn.emailOtp({
+        email: trimmed,
+        otp,
+        name: displayNameFromEmail(trimmed),
+      });
+      if (error) {
+        toast.error(error.message ?? "That code did not work.");
+        return;
+      }
+      toast.success("You’re signed in");
+      void navigate({ to: "/dashboard" });
+    } finally {
+      setVerifying(false);
+    }
+  };
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      <PublicHeader />
-      <div className="container mx-auto max-w-3xl min-h-0 flex-1 overflow-auto px-4 py-2">
-        <pre className="overflow-x-auto font-mono text-sm">{TITLE_TEXT}</pre>
-        <div className="grid gap-6">
-          <section className="rounded-lg border p-4">
-            <h2 className="mb-2 font-medium">API Status</h2>
-            <div className="flex items-center gap-2">
-              <div
-                className={`h-2 w-2 rounded-full ${healthCheck.data ? "bg-green-500" : "bg-red-500"}`}
-              />
-              <span className="text-sm text-muted-foreground">
-                {healthCheck.isLoading
-                  ? "Checking..."
-                  : healthCheck.data
-                    ? "Connected"
-                    : "Disconnected"}
-              </span>
-            </div>
-          </section>
-        </div>
-      </div>
+    <div className="container flex min-h-[min(100dvh,48rem)] flex-col items-center justify-center px-2 py-8">
+      <OtpSignup
+        step={step}
+        email={email}
+        onEmailChange={setEmail}
+        otp={otp}
+        onOtpChange={setOtp}
+        onSubmitEmail={() => void handleSendCode()}
+        onSubmitOtp={() => void handleVerify()}
+        onBack={() => {
+          setStep("email");
+          setOtp("");
+        }}
+        sending={sending}
+        verifying={verifying}
+        otpLength={OTP_LENGTH}
+        emailHelperText="We’ll email a one-time code to this address."
+        titleEmailStep="Sign in to DeckPack"
+        descriptionEmailStep="We’ll email you a one-time code. It expires in a few minutes."
+      />
     </div>
   );
 }

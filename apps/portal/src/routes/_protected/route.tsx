@@ -7,7 +7,7 @@ export const Route = createFileRoute("/_protected")({
     const session = await context.authClient.getSession();
     if (!session.data) {
       redirect({
-        to: "/login",
+        to: "/",
         throw: true,
       });
     }
