@@ -3,15 +3,25 @@ import { adminClient, emailOTPClient, organizationClient } from "better-auth/cli
 import { ac, organizationOwner, organizationAdmin, organizationMember } from "./utils/rbac";
 
 /**
- * Browser client for Vite / React. Uses `better-auth/react` so `useSession` is a real hook.
- * The vanilla `better-auth/client` build exposes session as a Nano Store atom, not a React hook.
+ * Browser client for the internal ops dashboard (`/api/auth/ops`).
  */
-export function createAuthClient(config: { baseURL: string }) {
+export function createOpsAuthClient(config: { baseURL: string }) {
   return createReactAuthClient({
     baseURL: config.baseURL,
+    basePath: "/api/auth/ops",
+    plugins: [emailOTPClient(), adminClient()],
+  });
+}
+
+/**
+ * Browser client for customer-facing apps — portal, addins, etc. (`/api/auth/app`).
+ */
+export function createAppAuthClient(config: { baseURL: string }) {
+  return createReactAuthClient({
+    baseURL: config.baseURL,
+    basePath: "/api/auth/app",
     plugins: [
       emailOTPClient(),
-      adminClient(),
       organizationClient({
         ac,
         roles: { organizationOwner, organizationAdmin, organizationMember },

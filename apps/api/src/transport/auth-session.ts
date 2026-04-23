@@ -1,16 +1,20 @@
-import { auth } from "@deck-pack/auth/server";
+import { appAuth, opsAuth } from "@deck-pack/auth/server";
 import { createMiddleware } from "hono/factory";
 
 import type { AppEnv } from "../types";
 
 /**
- * One `auth.api.getSession()` per request. Populates Hono context for tRPC.
- * Does not reject unauthenticated users — public procedures must still work.
+ * Resolves the session for either ops or app auth (cookie names differ by instance).
+ * Populates Hono context for tRPC. Does not reject unauthenticated users.
  */
 export const sessionMiddleware = createMiddleware<AppEnv>(async (c, next) => {
-  const session = await auth.api.getSession({
-    headers: c.req.raw.headers,
-  });
+  const session =
+    (await opsAuth.api.getSession({
+      headers: c.req.raw.headers,
+    })) ??
+    (await appAuth.api.getSession({
+      headers: c.req.raw.headers,
+    }));
 
   if (!session) {
     c.set("user", null);

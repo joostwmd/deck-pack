@@ -1,6 +1,6 @@
+import { createAppAuthClient } from "@deck-pack/auth/client";
 import { env } from "@deck-pack/env/web";
-import { createAuthClient } from "better-auth/react";
 
-export const authClient = createAuthClient({
+export const authClient = createAppAuthClient({
   baseURL: env.VITE_SERVER_URL,
 });

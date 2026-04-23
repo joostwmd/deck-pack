@@ -7,12 +7,12 @@ import { ThemeProvider } from "@/components/theme-provider";
 import type { trpc } from "@/utils/trpc";
 
 import "../index.css";
-import { createAuthClient } from "@deck-pack/auth/client";
+import { createOpsAuthClient } from "@deck-pack/auth/client";
 
 export interface RouterAppContext {
   trpc: typeof trpc;
   queryClient: QueryClient;
-  authClient: ReturnType<typeof createAuthClient>;
+  authClient: ReturnType<typeof createOpsAuthClient>;
 }
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
