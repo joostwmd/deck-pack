@@ -1,5 +1,6 @@
 import type { Context as HonoContext } from "hono";
 import type { Logger } from "@logtape/logtape";
+import { tx } from "@deck-pack/db";
 
 import type { AppEnv, SessionPayload } from "../types";
 
@@ -14,6 +15,7 @@ export type Context = {
   requestId: string;
   logger: Logger;
   headers: Headers;
+  tx: typeof tx;
 };
 
 export async function createContext({ context }: CreateContextOptions): Promise<Context> {
@@ -23,5 +25,6 @@ export async function createContext({ context }: CreateContextOptions): Promise<
     requestId: context.get("requestId"),
     logger: context.get("logger"),
     headers: context.req.raw.headers,
+    tx,
   };
 }
