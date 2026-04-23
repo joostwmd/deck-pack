@@ -20,13 +20,13 @@ import UserMenu from "@/components/user-menu";
 export const Route = createFileRoute("/_protected")({
   beforeLoad: async ({ context }) => {
     const session = await context.authClient.getSession();
+    console.log("session", session);
     if (!session.data || session.data.user.role !== "admin") {
       redirect({
         to: "/",
         throw: true,
       });
     }
-    console.log("session", session.data);
     return { session };
   },
   component: RouteComponent,

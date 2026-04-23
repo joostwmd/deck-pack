@@ -5,6 +5,7 @@ import Header from "@/components/header";
 export const Route = createFileRoute("/_protected")({
   beforeLoad: async ({ context }) => {
     const session = await context.authClient.getSession();
+    console.log("session", session);
     if (!session.data) {
       redirect({
         to: "/",
