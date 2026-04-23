@@ -1,4 +1,4 @@
-import { auth } from "@deck-pack/auth";
+import { auth } from "@deck-pack/auth/server";
 import type { Logger } from "@logtape/logtape";
 
 export type SessionPayload = NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>;

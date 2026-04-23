@@ -1,28 +1,47 @@
-import { createDb } from "@deck-pack/db";
+import type { createDb } from "@deck-pack/db";
 import * as schema from "@deck-pack/db/schema/auth";
-import { env } from "@deck-pack/env/server";
 import { APIError, betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { emailOTP } from "better-auth/plugins";
-import { sendOtpEmail } from "@deck-pack/email";
+import { admin, emailOTP } from "better-auth/plugins";
 import { createAuthMiddleware } from "better-auth/api";
 
 const ADMIN_EMAIL_DOMAIN = "code.berlin";
 
-export function createAuth() {
-  const db = createDb();
+export type AuthDb = ReturnType<typeof createDb>;
+
+export type OtpEmailType = "sign-in" | "email-verification" | "forget-password" | "change-email";
+
+export type SendOtp = (args: { email: string; otp: string; type: OtpEmailType }) => Promise<void>;
+
+export interface AuthDeps {
+  db: AuthDb;
+  secret: string;
+  baseURL: string;
+  trustedOrigins: string[];
+  sendOtp: SendOtp;
+}
+
+/**
+ * Pure factory — takes everything it needs as arguments so it can also be
+ * called from a schema-generation context with fakes/placeholders.
+ *
+ * No module-level imports touch env, so importing this file does not trigger
+ * `@deck-pack/env` validation.
+ */
+export function createAuth(deps: AuthDeps) {
+  const { db, secret, baseURL, trustedOrigins, sendOtp } = deps;
 
   return betterAuth({
     database: drizzleAdapter(db, {
       provider: "pg",
-      schema: schema,
+      schema,
     }),
-    trustedOrigins: env.CORS_ORIGINS,
+    trustedOrigins,
+    secret,
+    baseURL,
     emailAndPassword: {
       enabled: false,
     },
-    secret: env.BETTER_AUTH_SECRET,
-    baseURL: env.BETTER_AUTH_URL,
     advanced: {
       defaultCookieAttributes: {
         sameSite: "none",
@@ -33,34 +52,15 @@ export function createAuth() {
     plugins: [
       emailOTP({
         async sendVerificationOTP({ email, otp, type }) {
-          if (type === "sign-in") {
-            // Send the OTP for sign in
-            await sendOtpEmail({
-              to: email,
-              otp,
-              type,
-            });
-          } else if (type === "email-verification") {
-            // Send the OTP for email verification
-            await sendOtpEmail({
-              to: email,
-              otp,
-              type,
-            });
-          } else if (type === "forget-password") {
-            // Send the OTP for password reset
-            await sendOtpEmail({
-              to: email,
-              otp,
-              type,
-            });
-          }
+          await sendOtp({ email, otp, type });
         },
+      }),
+      admin({
+        impersonationSessionDuration: 1000 * 60 * 60 * 24 * 30,
       }),
     ],
     hooks: {
       before: createAuthMiddleware(async (ctx) => {
-        // Intercept email-otp sendVerificationOTP endpoint
         if (ctx.path === "/email-otp/send-verification-otp") {
           const email = ctx.body?.email as string;
           if (!email?.endsWith(`@${ADMIN_EMAIL_DOMAIN}`)) {
@@ -69,7 +69,6 @@ export function createAuth() {
             });
           }
         }
-        // Intercept sign-in with OTP (new registrations happen here)
         if (ctx.path === "/sign-in/email-otp") {
           const email = ctx.body?.email as string;
           if (!email?.endsWith(`@${ADMIN_EMAIL_DOMAIN}`)) {
@@ -80,7 +79,23 @@ export function createAuth() {
         }
       }),
     },
+    databaseHooks: {
+      user: {
+        create: {
+          after: async (user, ctx) => {
+            if (user.email.endsWith(`@${ADMIN_EMAIL_DOMAIN}`)) {
+              console.log("promoting to admin", user.id);
+              await ctx?.context.adapter.update({
+                model: "user",
+                where: [{ field: "id", value: user.id }],
+                update: {
+                  role: "admin",
+                },
+              });
+            }
+          },
+        },
+      },
+    },
   });
 }
-
-export const auth = createAuth();

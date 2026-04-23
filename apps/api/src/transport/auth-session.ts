@@ -1,4 +1,4 @@
-import { auth } from "@deck-pack/auth";
+import { auth } from "@deck-pack/auth/server";
 import { createMiddleware } from "hono/factory";
 
 import type { AppEnv } from "../types";

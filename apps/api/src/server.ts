@@ -2,7 +2,7 @@ import { trpcServer } from "@hono/trpc-server";
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 
-import { auth } from "@deck-pack/auth";
+import { auth } from "@deck-pack/auth/server";
 import { env } from "@deck-pack/env/server";
 
 import { createContext } from "./api/context";

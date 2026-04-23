@@ -11,7 +11,7 @@ const OTP_LENGTH = 6;
 export const Route = createFileRoute("/")({
   beforeLoad: async () => {
     const session = await authClient.getSession();
-    if (session.data) {
+    if (session.data && session.data.user.role === "admin") {
       redirect({
         to: "/dashboard",
         throw: true,

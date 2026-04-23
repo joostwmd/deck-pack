@@ -2,12 +2,13 @@ import { Resend } from "resend";
 
 import { env } from "@deck-pack/env/server";
 
-export type OtpEmailType = "sign-in" | "email-verification" | "forget-password";
+export type OtpEmailType = "sign-in" | "email-verification" | "forget-password" | "change-email";
 
 const subjectByType: Record<OtpEmailType, string> = {
   "sign-in": "Your sign-in code",
   "email-verification": "Verify your email",
   "forget-password": "Reset your password",
+  "change-email": "Confirm your new email",
 };
 
 const resend = new Resend(env.EMAIL_API_KEY);

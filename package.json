@@ -12,6 +12,7 @@
     "build": "turbo build",
     "build:api": "turbo -F @deck-pack/api build",
     "build:ops": "turbo -F @deck-pack/ops build",
+    "auth:generate": "turbo -F @deck-pack/auth auth:generate",
     "tf:init:shared:foundation": "terraform -chdir=terraform/envs/shared/foundation init",
     "tf:plan:shared:foundation": "terraform -chdir=terraform/envs/shared/foundation plan",
     "tf:apply:shared:foundation": "terraform -chdir=terraform/envs/shared/foundation apply",

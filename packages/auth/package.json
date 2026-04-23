@@ -2,14 +2,13 @@
   "name": "@deck-pack/auth",
   "type": "module",
   "exports": {
-    ".": {
-      "default": "./src/index.ts"
-    },
-    "./*": {
-      "default": "./src/*.ts"
-    }
+    "./client": "./src/client.ts",
+    "./server": "./src/server.ts",
+    "./schema": "./src/schema.ts"
   },
-  "scripts": {},
+  "scripts": {
+    "auth:generate": "npx auth@latest generate --config ./src/schema.ts --output ../db/src/schema/auth.ts --y"
+  },
   "dependencies": {
     "@deck-pack/db": "workspace:*",
     "@deck-pack/email": "workspace:*",
