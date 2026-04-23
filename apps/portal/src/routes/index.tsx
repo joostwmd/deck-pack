@@ -12,7 +12,7 @@ export const Route = createFileRoute("/")({
     const session = await context.authClient.getSession();
     if (session.data) {
       redirect({
-        to: "/dashboard",
+        to: "/account",
         throw: true,
       });
     }
@@ -78,7 +78,7 @@ function HomeComponent() {
         return;
       }
       toast.success("You’re signed in");
-      void navigate({ to: "/dashboard" });
+      void navigate({ to: "/account" });
     } finally {
       setVerifying(false);
     }

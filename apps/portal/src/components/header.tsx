@@ -1,12 +1,21 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouteContext } from "@tanstack/react-router";
 
 import { ModeToggle } from "./mode-toggle";
 import UserMenu from "./user-menu";
 
 export default function Header() {
+  const { session } = useRouteContext({ from: "/_protected" });
+  const isOrgUser = Boolean(session.data?.session?.activeOrganizationId);
+
   const links = [
-    { to: "/", label: "Home" },
-    { to: "/dashboard", label: "Dashboard" },
+    { to: "/" as const, label: "Home" },
+    ...(isOrgUser
+      ? ([
+          { to: "/org/dashboard" as const, label: "Org" },
+          { to: "/org/members" as const, label: "Members" },
+        ] as const)
+      : []),
+    { to: "/account" as const, label: isOrgUser ? "Personal" : "Account" },
   ] as const;
 
   return (
@@ -15,7 +24,7 @@ export default function Header() {
         <nav className="flex gap-4 text-lg">
           {links.map(({ to, label }) => {
             return (
-              <Link key={to} to={to}>
+              <Link key={`${to}-${label}`} to={to}>
                 {label}
               </Link>
             );
