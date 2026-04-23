@@ -47,7 +47,7 @@ function RootComponent() {
         disableTransitionOnChange
         storageKey="deck-pack-portal-theme"
       >
-        <div className="grid grid-rows-[1fr] h-svh min-h-0">
+        <div className="grid h-svh min-h-0 grid-rows-[1fr] [&>*]:min-h-0">
           <Outlet />
         </div>
         <Toaster richColors />
