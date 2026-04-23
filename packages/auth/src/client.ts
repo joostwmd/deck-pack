@@ -1,5 +1,6 @@
 import { createAuthClient as createReactAuthClient } from "better-auth/react";
-import { adminClient, emailOTPClient } from "better-auth/client/plugins";
+import { adminClient, emailOTPClient, organizationClient } from "better-auth/client/plugins";
+import { ac, organizationOwner, organizationAdmin, organizationMember } from "./utils/rbac";
 
 /**
  * Browser client for Vite / React. Uses `better-auth/react` so `useSession` is a real hook.
@@ -8,6 +9,13 @@ import { adminClient, emailOTPClient } from "better-auth/client/plugins";
 export function createAuthClient(config: { baseURL: string }) {
   return createReactAuthClient({
     baseURL: config.baseURL,
-    plugins: [emailOTPClient(), adminClient()],
+    plugins: [
+      emailOTPClient(),
+      adminClient(),
+      organizationClient({
+        ac,
+        roles: { organizationOwner, organizationAdmin, organizationMember },
+      }),
+    ],
   });
 }

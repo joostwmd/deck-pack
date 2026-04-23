@@ -2,8 +2,10 @@ import type { createDb } from "@deck-pack/db";
 import * as schema from "@deck-pack/db/schema/auth";
 import { APIError, betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { admin, emailOTP } from "better-auth/plugins";
+import { admin, emailOTP, type Member } from "better-auth/plugins";
+import { organization } from "better-auth/plugins";
 import { createAuthMiddleware } from "better-auth/api";
+import { organizationOwner, organizationAdmin, organizationMember, ac } from "./utils/rbac";
 
 const ADMIN_EMAIL_DOMAIN = "code.berlin";
 
@@ -58,6 +60,16 @@ export function createAuth(deps: AuthDeps) {
       admin({
         impersonationSessionDuration: 1000 * 60 * 60 * 24 * 30,
       }),
+      organization({
+        ac: ac,
+        roles: { organizationOwner, organizationAdmin, organizationMember },
+        allowUserToCreateOrganization: false,
+        organizationLimit: 1,
+        sendInvitationEmail: async (data) => {
+          console.log("sendInvitationEmail", data);
+          //await sendInvitationEmail(data);
+        },
+      }),
     ],
     hooks: {
       before: createAuthMiddleware(async (ctx) => {
@@ -91,6 +103,29 @@ export function createAuth(deps: AuthDeps) {
                 update: {
                   role: "admin",
                 },
+              });
+            }
+          },
+        },
+      },
+      session: {
+        create: {
+          after: async (session, ctx) => {
+            const member = (await ctx!.context.adapter.findOne({
+              model: "member",
+              where: [{ field: "userId", value: session.userId }],
+            })) as Member;
+            if (member) {
+              const organization = await ctx!.context.adapter.findOne({
+                model: "organization",
+                where: [{ field: "id", value: member.organizationId }],
+              });
+              console.log("organization", organization);
+              // Update session with org + role info
+              await ctx!.context.internalAdapter.updateSession(session.id, {
+                activeOrganizationId: member.organizationId,
+                // Store role in session for quick access
+                role: member.role,
               });
             }
           },
