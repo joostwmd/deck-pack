@@ -8,3 +8,6 @@ export function createDb() {
 }
 
 export const db = createDb();
+
+export { tx } from "./transaction";
+export type { Transaction } from "./transaction";

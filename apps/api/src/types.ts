@@ -1,7 +1,15 @@
-import { auth } from "@deck-pack/auth";
+import { opsAuth } from "@deck-pack/auth/server";
 import type { Logger } from "@logtape/logtape";
 
-export type SessionPayload = NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>;
+type ApiSession = NonNullable<Awaited<ReturnType<typeof opsAuth.api.getSession>>>;
+
+/** Session from Better Auth + org plugin fields stored on the `session` row (see `packages/db/schema/auth.ts`). */
+export type SessionPayload = Omit<ApiSession, "session"> & {
+  session: ApiSession["session"] & {
+    activeOrganizationId?: string | null;
+    role?: string | null;
+  };
+};
 
 export type AppEnv = {
   Variables: {

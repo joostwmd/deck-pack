@@ -36,6 +36,8 @@ cp apps/ops/.env.example apps/ops/.env
 # Optional: copy .env for portal and addins the same way
 ```
 
+Fill in **Resend** in `apps/api/.env` (`RESEND_API_KEY` and `EMAIL_FROM`) using a [Resend](https://resend.com) API key and a sender you have verified. Email sign-in (OTP) uses Resend in **development and production**; there is no local mock sender.
+
 Start Postgres (from repo root):
 
 ```bash

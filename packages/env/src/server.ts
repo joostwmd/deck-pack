@@ -22,6 +22,10 @@ export const env = createEnv({
     /** Comma-separated list of browser origins (e.g. Static Web Apps URLs). */
     CORS_ORIGINS: commaSeparatedUrls,
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+    /** Resend API key; required whenever the API sends mail (incl. local dev with OTP). */
+    EMAIL_API_KEY: z.string().min(1),
+    /** Resend "from" (must be a verified sender in Resend). */
+    EMAIL_FROM: z.string().min(1),
   },
   runtimeEnv: process.env,
   emptyStringAsUndefined: true,

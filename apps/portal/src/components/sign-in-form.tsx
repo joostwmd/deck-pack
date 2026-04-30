@@ -6,7 +6,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import z from "zod";
 
-import { authClient } from "@/lib/auth-client";
+import { authClient } from "@/utils/auth";
 
 import Loader from "./loader";
 
@@ -30,7 +30,7 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
         {
           onSuccess: () => {
             void navigate({
-              to: "/dashboard",
+              to: "/account",
             });
             toast.success("Sign in successful");
           },

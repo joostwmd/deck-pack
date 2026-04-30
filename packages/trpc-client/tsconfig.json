@@ -1,6 +1,7 @@
 {
   "extends": "@deck-pack/config/tsconfig.base.json",
   "compilerOptions": {
+    "noEmit": true,
     "lib": ["ESNext", "DOM"]
   }
 }

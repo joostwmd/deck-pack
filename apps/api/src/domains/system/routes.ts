@@ -14,6 +14,6 @@ export const systemRoutes = {
     )
     .query(({ ctx }) => ({
       message: "This is private",
-      user: ctx.session.user,
+      user: ctx.session!.user,
     })),
 };

@@ -4,15 +4,16 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { HeadContent, Outlet, createRootRouteWithContext } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
-import Header from "@/components/header";
 import { ThemeProvider } from "@/components/theme-provider";
 import type { trpc } from "@/utils/trpc";
 
 import "../index.css";
+import { createAppAuthClient } from "@deck-pack/auth/client";
 
 export interface RouterAppContext {
   trpc: typeof trpc;
   queryClient: QueryClient;
+  authClient: ReturnType<typeof createAppAuthClient>;
 }
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
@@ -46,8 +47,7 @@ function RootComponent() {
         disableTransitionOnChange
         storageKey="deck-pack-portal-theme"
       >
-        <div className="grid grid-rows-[auto_1fr] h-svh">
-          <Header />
+        <div className="grid h-svh min-h-0 grid-rows-[1fr] [&>*]:min-h-0">
           <Outlet />
         </div>
         <Toaster richColors />
