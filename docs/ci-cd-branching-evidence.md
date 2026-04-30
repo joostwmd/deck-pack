@@ -11,11 +11,11 @@ See also `assesment/cloud-computing/module.md` in your local tree (that folder m
 **Terraform** (`terraform/envs/shared/github-governance/`) configures **repository rulesets** for `main` and `staging`:
 
 - **Both:** merges go through a **pull request**; **force-push** and **branch deletion** are blocked.
-- **`staging` only:** **`required_status_checks`** with **`strict_required_status_checks_policy = true`** so the PR must be **up to date with `staging`** and must pass **`Staging merge gate`**.
+- **`staging` only:** **`required_status_checks`** with **`strict_required_status_checks_policy = true`** so the PR must be **up to date with `staging`** and must pass **`Staging merge gate`**. “Up to date” is **not** a separate row in Checks: when you’re behind, GitHub shows **This branch is out of date with the base branch** and **Update branch** near the merge area; when you’re current, nothing extra appears.
 
 The **Staging merge gate** job in [`.github/workflows/pull-request-ci.yml`](../.github/workflows/pull-request-ci.yml) runs only after **Lint and build** (`pnpm build`, `pnpm oxlint:strict`, `pnpm check-types`) and **Docker build (API)** succeed — one stable check name for the ruleset instead of three separate Terraform strings.
 
-If GitHub shows **Expected — Waiting for status** while CI is green, the **context** in `terraform/modules/github-repo-rules/main.tf` may not match GitHub’s label; copy the full check name from the PR **Checks** tab into `required_check.context`.
+If GitHub shows **Expected — Waiting for status** while the job is green, the ruleset **context** is usually missing the Actions suffix **` (pull_request)`** — compare the gray “Expected” row vs the green row on the PR **Checks** tab.
 
 **`main`** still has no Terraform-managed required checks (promotion PRs use the same workflow for visibility). **Promotion policy:** only **`staging`** may open a PR into **`main`** — [`.github/workflows/pull-request-main-branch-rules.yml`](../.github/workflows/pull-request-main-branch-rules.yml).
 
