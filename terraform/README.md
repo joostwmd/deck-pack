@@ -126,7 +126,7 @@ the OPS **Static Web App** through AFD:
 
 1. Set the repository variable `VITE_SERVER_URL` to `https://<api_endpoint_hostname>`
    (or the API’s direct App Service URL if you are not using the API AFD endpoint).
-2. Re-run `.github/workflows/deploy-static-web-apps.yml` (or push to `main` so
+2. Re-run **Actions → `Production — full release (API + frontends)`** (or run `.github/workflows/production-deploy.yml` via workflow dispatch) using **`main`** so
    it runs) so the OPS bundle is rebuilt with the new API origin.
 
 To lock App Service origins down so _only_ AFD can reach them (recommended
@@ -159,7 +159,7 @@ doesn't require changing Terraform app settings.
 
 `modules/static-web-app` creates one SWA per frontend. Terraform exports each
 site's **deployment token** as a sensitive output — map those to GitHub Actions
-repository secrets (`SWA_TOKEN_OPS_PROD`, …) so `.github/workflows/deploy-static-web-apps.yml`
+repository secrets (`SWA_TOKEN_OPS_PROD`, …) so `.github/workflows/production-deploy.yml`
 can upload `dist/` after `turbo build`. Static Web Apps are intentionally **not**
 stored in Key Vault here: the deploy token is a CI secret, not a runtime API
 secret.
@@ -177,8 +177,9 @@ github_environments = ["staging", "prod", "uat"]
 Apply and you get a new OIDC trust for `environment:uat` that a workflow can
 claim with `environment: uat` in its job config.
 
-`.github/workflows/build-and-push.yml` uses GitHub **Environments** (`prod` /
-`staging`) so the OIDC subject matches the env-scoped federated credentials
+`.github/workflows/staging-api-container.yml` and the **API** job in
+`.github/workflows/production-deploy.yml` use GitHub **Environments** (`staging` /
+`prod`) so the OIDC subject matches the env-scoped federated credentials
 from `ci-identity`. Ensure those environment names exist under repo **Settings
 → Environments**.
 

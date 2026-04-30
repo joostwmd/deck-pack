@@ -1,0 +1,14 @@
+# Copy to terraform.tfvars (gitignored) and set github_token via env or file.
+# export TF_VAR_github_token=ghp_...
+
+github_owner = "your-org-or-user"
+github_repo  = "deck-pack"
+
+# After CI runs on a PR, copy exact check names from the GitHub UI (Workflow / job name).
+# Example:
+# required_ci_contexts_staging = ["Pull request — quality checks / Lint and build", "Pull request — quality checks / Docker build (API)"]
+# required_ci_contexts_main = [
+#   "Pull request — quality checks / Lint and build",
+#   "Pull request — quality checks / Docker build (API)",
+#   "Pull request → main — must be from staging / Source branch must be staging",
+# ]

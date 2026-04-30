@@ -1,0 +1,168 @@
+# One manual run: production API container (ACR + App Service) + all prod Static Web Apps.
+# Use after merging `staging` → `main` when you want production to match that commit.
+name: Production — full release (API + frontends)
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: production-full-release
+  cancel-in-progress: true
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  api-container:
+    name: Production — API container (ACR + restart)
+    runs-on: ubuntu-latest
+    environment: prod
+    env:
+      IMAGE_REPO: deck-pack-api
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Log in to ACR
+        run: az acr login --name "${{ vars.ACR_NAME }}"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Compute image tags
+        id: tags
+        run: |
+          REGISTRY="${{ vars.ACR_LOGIN_SERVER }}"
+          SHA_TAG="${REGISTRY}/${IMAGE_REPO}:${GITHUB_SHA::7}"
+          LATEST_TAG="${REGISTRY}/${IMAGE_REPO}:latest"
+          TAGS="${SHA_TAG}"$'\n'"${LATEST_TAG}"
+          echo "sha_tag=${SHA_TAG}" >> "$GITHUB_OUTPUT"
+          echo "extra_tag=${LATEST_TAG}" >> "$GITHUB_OUTPUT"
+          {
+            echo "tags<<EOF"
+            echo "${TAGS}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/api.Dockerfile
+          push: true
+          tags: ${{ steps.tags.outputs.tags }}
+          cache-from: type=gha,scope=api-prod
+          cache-to: type=gha,mode=max,scope=api-prod
+
+      - name: Restart production API Web App
+        run: >-
+          az webapp restart
+          --name "${{ vars.PROD_API_WEBAPP_NAME || 'deck-pack-api-jw' }}"
+          --resource-group "${{ vars.PROD_API_RESOURCE_GROUP || 'rg-deck-pack-cloud' }}"
+
+      - name: Summary (API)
+        run: |
+          {
+            echo "### Production API image"
+            echo ""
+            echo "- \`${{ steps.tags.outputs.sha_tag }}\`"
+            echo "- \`${{ steps.tags.outputs.extra_tag }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  swa-ops:
+    name: Production — OPS (Static Web Apps)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm exec turbo build --filter=@deck-pack/ops
+        env:
+          VITE_SERVER_URL: ${{ vars.VITE_SERVER_URL_PROD || vars.VITE_SERVER_URL || 'http://localhost:3000' }}
+
+      - name: Upload to Azure Static Web Apps
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.SWA_TOKEN_OPS_PROD }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: upload
+          app_location: apps/ops/dist
+          skip_app_build: true
+
+  swa-portal:
+    name: Production — Portal (Static Web Apps)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm exec turbo build --filter=@deck-pack/portal
+        env:
+          VITE_SERVER_URL: ${{ vars.VITE_SERVER_URL_PROD || vars.VITE_SERVER_URL || 'http://localhost:3000' }}
+
+      - name: Upload to Azure Static Web Apps
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.SWA_TOKEN_PORTAL_PROD }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: upload
+          app_location: apps/portal/dist
+          skip_app_build: true
+
+  swa-assets:
+    name: Production — Add-in assets (Static Web Apps)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm exec turbo build --filter=@deck-pack/assets
+        env:
+          VITE_SERVER_URL: ${{ vars.VITE_SERVER_URL_PROD || vars.VITE_SERVER_URL || 'http://localhost:3000' }}
+
+      - name: Upload to Azure Static Web Apps
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.SWA_TOKEN_ASSETS_PROD }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: upload
+          app_location: apps/addins/assets/dist
+          skip_app_build: true

@@ -1,0 +1,22 @@
+# Enforces: only branch `staging` may be merged into `main` via a pull request.
+# This is not a deployment — it blocks incorrect PRs (e.g. feature → main).
+name: Pull request → main — must be from staging
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  require-staging-head:
+    name: Source branch must be staging
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enforce promotion branch
+        run: |
+          if [[ "${GITHUB_HEAD_REF:-}" != "staging" ]]; then
+            echo "::error::Only branch 'staging' may open a pull request into 'main'. Source branch: ${GITHUB_HEAD_REF:-<empty>}"
+            exit 1
+          fi
