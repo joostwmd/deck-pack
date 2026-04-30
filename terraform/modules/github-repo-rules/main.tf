@@ -1,7 +1,15 @@
 # Branch rulesets: require pull requests, block force-push and branch deletion.
-# We intentionally do NOT set required_status_checks here — GitHub matches checks
-# by opaque/context strings that drift (e.g. " (pull_request)" suffix), which is
-# brittle in Terraform. Teams rely on social review + green CI without merge gates.
+# Staging also requires one aggregate Actions check (see pull-request-ci.yml
+# `Staging merge gate`) so lint, build, typecheck, and Docker build must pass.
+# Context must match GitHub exactly — if merges stall on “Expected”, compare the
+# check name in the PR Checks tab with `required_check.context` below.
+
+# GitHub Actions app / integration id used for status checks from workflows.
+# See: https://api.github.com/apps/github-actions
+locals {
+  github_actions_integration_id = 15368
+}
+
 resource "github_repository_ruleset" "main" {
   name        = "protect-main"
   repository  = var.github_repo
@@ -44,6 +52,15 @@ resource "github_repository_ruleset" "staging" {
 
     pull_request {
       required_approving_review_count = 0
+    }
+
+    required_status_checks {
+      strict_required_status_checks_policy = true
+
+      required_check {
+        context        = "Pull request — quality checks / Staging merge gate"
+        integration_id = local.github_actions_integration_id
+      }
     }
   }
 }
