@@ -4,17 +4,4 @@
 github_owner = "your-org-or-user"
 github_repo  = "deck-pack"
 
-# After CI runs on a PR, copy EXACT names from the green checks in the PR "Checks" tab.
-# GitHub Actions often appends " (pull_request)" to the name — rules must match that exactly
-# or the required checks stay "Expected — Waiting for status" forever while jobs show green.
-#
-# Example (verify on your repo — copy from a successful run):
-# required_ci_contexts_staging = [
-#   "Pull request — quality checks / Lint and build (pull_request)",
-#   "Pull request — quality checks / Docker build (API) (pull_request)",
-# ]
-# required_ci_contexts_main = [
-#   "Pull request — quality checks / Lint and build (pull_request)",
-#   "Pull request — quality checks / Docker build (API) (pull_request)",
-#   "Pull request → main — must be from staging / Source branch must be staging (pull_request)",
-# ]
+# Required status checks are NOT managed in Terraform — see docs/ci-cd-branching-evidence.md.
