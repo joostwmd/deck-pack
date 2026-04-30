@@ -35,7 +35,7 @@ flowchart LR
 ```
 
 - Feature work branches from **`staging`**; pull requests target **`staging`**. CI runs on the PR; **no** shared staging deploy runs from feature branches until merge.
-- Merges to **`staging`** trigger **staging** deploys (API container + staging SWA).
+- Merges to **`staging`** trigger **`staging-deploy.yml`** (API container + staging SWAs together).
 - PRs to **`main`**: CI + **`pull-request-main-branch-rules.yml`** (head must be **`staging`**).
 
 ## IaC and GitHub rules
@@ -53,14 +53,13 @@ Apply with a repo-admin PAT (`TF_VAR_github_token` or `terraform.tfvars`); see `
 | ------------------------------------ | ------------------------------------------------------------------------------ |
 | `pull-request-ci.yml`                | PRs → `staging` / `main`: build, oxlint, typecheck, Docker build API (no push) |
 | `pull-request-main-branch-rules.yml` | PRs → `main`: fail unless head branch is `staging`                             |
-| `staging-api-container.yml`          | **Push `staging`**: ACR `:staging` + SHA, restart staging App Service          |
-| `staging-frontend-swa.yml`           | **Push `staging`**: staging Static Web Apps                                    |
+| `staging-deploy.yml`                 | **Push `staging`**: staging API + all staging Static Web Apps (one workflow)   |
 | `production-deploy.yml`              | **Manual**: prod API + prod Static Web Apps                                    |
 
 ## Release process (short)
 
 1. PR **feature → `staging`**; merge when satisfied with CI.
-2. **`staging`** push deploys staging API + SWA.
+2. **`staging`** push runs **`staging-deploy.yml`** (API + all staging SWAs).
 3. PR **`staging` → `main`** when ready; CI + staging-head rule must pass.
 4. Merge **`main`**; run **Production — full release** when you want production updated.
 
