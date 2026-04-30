@@ -30,7 +30,7 @@ flowchart LR
 | GitHub rulesets (require PR, no force-push, optional required checks) | `terraform/envs/shared/github-governance/` and `terraform/modules/github-repo-rules/` |
 | Entra OIDC for Actions → Azure                                        | `terraform/modules/ci-identity/main.tf`                                               |
 
-Apply GitHub governance with a repo-admin PAT (e.g. `TF_VAR_github_token`); see `terraform/envs/shared/github-governance/terraform.tfvars.example`. After CI has run once, copy **exact** check names from GitHub into `required_ci_contexts_*` if you want strict required status checks.
+Apply GitHub governance with a repo-admin PAT (e.g. `TF_VAR_github_token`); see `terraform/envs/shared/github-governance/terraform.tfvars.example`. After CI has run once, copy **exact** check names from the **green** rows in the PR Checks tab into `required_ci_contexts_*` (often including the ` (pull_request)` suffix); a mismatch leaves required checks stuck on “Expected — Waiting for status” while jobs succeed.
 
 ## Workflow files (file names)
 
