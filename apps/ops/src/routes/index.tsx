@@ -87,6 +87,11 @@ function HomeComponent() {
 
   return (
     <div className="container flex min-h-[min(100dvh,48rem)] flex-col items-center justify-center px-2 py-8">
+      <h1 className="text-2xl font-bold">Deck Pack Ops</h1>
+      <p className="text-sm text-muted-foreground">Internal dashboard</p>
+      <p className="text-sm text-muted-foreground">
+        We’ll email you a one-time code. It expires in a few minutes.
+      </p>
       <OtpSignup
         step={step}
         email={email}
