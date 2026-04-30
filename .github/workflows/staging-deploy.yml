@@ -1,30 +1,85 @@
-# Staging frontends: ops, portal, add-in assets → Azure Static Web Apps (staging).
-name: Staging — frontends (Static Web Apps)
+# Staging: API (ACR + App Service) + ops / portal / add-in SWAs in one workflow.
+# Push to `staging` always runs the full stack (no path filters — front-only merges
+# still refresh the API image so staging never drifts from “latest staging commit”).
+name: Staging — full release (API + frontends)
 
 on:
   push:
     branches: [staging]
-    paths:
-      - "apps/ops/**"
-      - "apps/portal/**"
-      - "apps/addins/assets/**"
-      - "packages/**"
-      - "pnpm-lock.yaml"
-      - "pnpm-workspace.yaml"
-      - ".github/workflows/staging-frontend-swa.yml"
   workflow_dispatch:
 
 concurrency:
-  group: staging-frontend-swa-${{ github.ref }}
+  group: staging-full-release
   cancel-in-progress: true
 
 permissions:
+  id-token: write
   contents: read
   pull-requests: write
 
 jobs:
-  deploy-ops:
-    name: Deploy OPS to staging SWA
+  api-container:
+    name: Staging — API container (ACR + restart)
+    runs-on: ubuntu-latest
+    environment: staging
+    env:
+      IMAGE_REPO: deck-pack-api
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Log in to ACR
+        run: az acr login --name "${{ vars.ACR_NAME }}"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Compute image tags
+        id: tags
+        run: |
+          REGISTRY="${{ vars.ACR_LOGIN_SERVER }}"
+          SHA_TAG="${REGISTRY}/${IMAGE_REPO}:${GITHUB_SHA::7}"
+          STAGING_TAG="${REGISTRY}/${IMAGE_REPO}:staging"
+          TAGS="${SHA_TAG}"$'\n'"${STAGING_TAG}"
+          echo "sha_tag=${SHA_TAG}" >> "$GITHUB_OUTPUT"
+          echo "extra_tag=${STAGING_TAG}" >> "$GITHUB_OUTPUT"
+          {
+            echo "tags<<EOF"
+            echo "${TAGS}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/api.Dockerfile
+          push: true
+          tags: ${{ steps.tags.outputs.tags }}
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
+
+      - name: Restart staging API Web App
+        run: >-
+          az webapp restart
+          --name "${{ vars.STAGING_API_WEBAPP_NAME || 'deck-pack-api-staging-jw' }}"
+          --resource-group "${{ vars.STAGING_API_RESOURCE_GROUP || 'rg-deck-pack-cloud' }}"
+
+      - name: Summary (API)
+        run: |
+          {
+            echo "### Staging deck-pack-api"
+            echo ""
+            echo "- \`${{ steps.tags.outputs.sha_tag }}\`"
+            echo "- \`${{ steps.tags.outputs.extra_tag }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  swa-ops:
+    name: Staging — OPS (Static Web Apps)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -38,8 +93,7 @@ jobs:
           node-version: "22"
           cache: pnpm
 
-      - name: Install
-        run: pnpm install --frozen-lockfile
+      - run: pnpm install --frozen-lockfile
 
       - name: Build
         run: pnpm exec turbo build --filter=@deck-pack/ops
@@ -56,8 +110,8 @@ jobs:
           skip_app_build: true
           production_branch: staging
 
-  deploy-portal:
-    name: Deploy portal to staging SWA
+  swa-portal:
+    name: Staging — Portal (Static Web Apps)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -71,8 +125,7 @@ jobs:
           node-version: "22"
           cache: pnpm
 
-      - name: Install
-        run: pnpm install --frozen-lockfile
+      - run: pnpm install --frozen-lockfile
 
       - name: Build
         run: pnpm exec turbo build --filter=@deck-pack/portal
@@ -89,8 +142,8 @@ jobs:
           skip_app_build: true
           production_branch: staging
 
-  deploy-assets:
-    name: Deploy add-in assets to staging SWA
+  swa-assets:
+    name: Staging — Add-in assets (Static Web Apps)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -104,8 +157,7 @@ jobs:
           node-version: "22"
           cache: pnpm
 
-      - name: Install
-        run: pnpm install --frozen-lockfile
+      - run: pnpm install --frozen-lockfile
 
       - name: Build
         run: pnpm exec turbo build --filter=@deck-pack/assets

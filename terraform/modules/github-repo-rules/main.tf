@@ -1,3 +1,8 @@
+# Branch rulesets: require pull requests, block force-push and branch deletion.
+# We do not set required_status_checks in Terraform — GitHub matches checks by
+# context strings that drift (workflow renames, “ (pull_request)” suffix, etc.).
+# Use the GitHub UI on branch / ruleset settings if you want merge-blocking
+# checks and pick names from the dropdown after CI has run at least once.
 resource "github_repository_ruleset" "main" {
   name        = "protect-main"
   repository  = var.github_repo
@@ -17,21 +22,6 @@ resource "github_repository_ruleset" "main" {
 
     pull_request {
       required_approving_review_count = 0
-    }
-
-    dynamic "required_status_checks" {
-      for_each = length(var.required_ci_contexts_main) > 0 ? [1] : []
-      content {
-        strict_required_status_checks_policy = true
-
-        dynamic "required_check" {
-          for_each = var.required_ci_contexts_main
-          content {
-            context        = required_check.value
-            integration_id = 15368
-          }
-        }
-      }
     }
   }
 }
@@ -55,21 +45,6 @@ resource "github_repository_ruleset" "staging" {
 
     pull_request {
       required_approving_review_count = 0
-    }
-
-    dynamic "required_status_checks" {
-      for_each = length(var.required_ci_contexts_staging) > 0 ? [1] : []
-      content {
-        strict_required_status_checks_policy = true
-
-        dynamic "required_check" {
-          for_each = var.required_ci_contexts_staging
-          content {
-            context        = required_check.value
-            integration_id = 15368
-          }
-        }
-      }
     }
   }
 }
