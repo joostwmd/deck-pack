@@ -31,14 +31,16 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
+      # TanStack Router writes routeTree.gen.ts during Vite build (see README).
+      # Build first so generated route types exist; then type-aware oxlint; then check-types (vite+tsc again per app scripts).
+      - name: Build
+        run: pnpm build
+
       - name: Oxlint (strict)
         run: pnpm oxlint:strict
 
       - name: Typecheck
         run: pnpm check-types
-
-      - name: Build
-        run: pnpm build
 
   docker-build-api:
     name: Docker build (API)

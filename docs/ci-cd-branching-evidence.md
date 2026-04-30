@@ -6,6 +6,22 @@ Supporting the Cloud Computing module checklist: pipelines, branching, IaC paths
 
 See also `assesment/cloud-computing/module.md` in your local tree (that folder may be gitignored).
 
+## Branch protection (Terraform) — no required check strings
+
+**Terraform** (`terraform/envs/shared/github-governance/`) configures **repository rulesets** for **`main`** and **`staging`**:
+
+- Merges go through a **pull request**; **force-push** and **branch deletion** are blocked.
+
+We **do not** declare **`required_status_checks`** in Terraform. GitHub’s check **context** strings are easy to mismatch (renames, event suffixes), which produces **“Expected — Waiting for status”** even when jobs are green.
+
+**CI** still runs on every PR via [`.github/workflows/pull-request-ci.yml`](../.github/workflows/pull-request-ci.yml) (lint, typecheck, build, Docker build). To **block** merges until those pass (or until the branch is up to date with the base), configure **required status checks** in the **GitHub UI** for the `staging` ruleset / branch settings and select the checks from the list after a green run — no magic strings in this repo.
+
+**Promotion policy:** only **`staging`** may open a PR into **`main`** — [`.github/workflows/pull-request-main-branch-rules.yml`](../.github/workflows/pull-request-main-branch-rules.yml).
+
+After changing Terraform rules, run `pnpm tf:apply:shared:github-governance`.
+
+---
+
 ## Branch model
 
 ```mermaid
@@ -13,50 +29,42 @@ flowchart LR
   feature[feature_branch]
   staging[staging]
   main[main]
-  feature -->|PR_CI_only| staging
-  staging -->|PR_plus_branch_rule| main
+  feature -->|PR_CI| staging
+  staging -->|PR_CI_plus_staging_only_to_main| main
   main -->|manual_prod_workflow| prod[Prod_API_and_SWA]
 ```
 
-- Feature work branches from **`staging`**; pull requests target **`staging`**. CI runs on the PR; **no** shared staging deploy runs from feature branches.
+- Feature work branches from **`staging`**; pull requests target **`staging`**. CI runs on the PR; **no** shared staging deploy runs from feature branches until merge.
 - Merges to **`staging`** trigger **staging** deploys (API container + staging SWA).
-- Pull requests to **`main`** must come **only** from **`staging`** (`pull-request-main-branch-rules.yml`).
-- **Production (API + all prod Static Web Apps)** is **one manual workflow**: **`production-deploy.yml`** — run it on the branch/commit you want live (typically **`main`** after promoting `staging`).
+- PRs to **`main`**: CI + **`pull-request-main-branch-rules.yml`** (head must be **`staging`**).
 
 ## IaC and GitHub rules
 
-| Area                                                                  | Path                                                                                  |
-| --------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| GitHub rulesets (require PR, no force-push, optional required checks) | `terraform/envs/shared/github-governance/` and `terraform/modules/github-repo-rules/` |
-| Entra OIDC for Actions → Azure                                        | `terraform/modules/ci-identity/main.tf`                                               |
+| Area                                                             | Path                                                                                  |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| GitHub rulesets (PR required, no force-push, no branch deletion) | `terraform/envs/shared/github-governance/` and `terraform/modules/github-repo-rules/` |
+| Entra OIDC for Actions → Azure                                   | `terraform/modules/ci-identity/main.tf`                                               |
 
-Apply GitHub governance with a repo-admin PAT (e.g. `TF_VAR_github_token`); see `terraform/envs/shared/github-governance/terraform.tfvars.example`. After CI has run once, copy **exact** check names from GitHub into `required_ci_contexts_*` if you want strict required status checks.
+Apply with a repo-admin PAT (`TF_VAR_github_token` or `terraform.tfvars`); see `terraform/envs/shared/github-governance/terraform.tfvars.example`.
 
-## Workflow files (file names)
+## Workflow files
 
-| File                                 | Role                                                                                      |
-| ------------------------------------ | ----------------------------------------------------------------------------------------- |
-| `pull-request-ci.yml`                | PRs → `staging` / `main`: lint, typecheck, `pnpm build`; Docker build API without push    |
-| `pull-request-main-branch-rules.yml` | PRs → `main`: fail unless head branch is `staging`                                        |
-| `staging-api-container.yml`          | **Push `staging` only**: ACR `:staging` + SHA, restart **staging** App Service            |
-| `staging-frontend-swa.yml`           | **Push `staging` only**: staging Static Web Apps                                          |
-| `production-deploy.yml`              | **Manual**: prod API `:latest` + restart **and** prod ops/portal/assets SWA, **same run** |
+| File                                 | Role                                                                           |
+| ------------------------------------ | ------------------------------------------------------------------------------ |
+| `pull-request-ci.yml`                | PRs → `staging` / `main`: build, oxlint, typecheck, Docker build API (no push) |
+| `pull-request-main-branch-rules.yml` | PRs → `main`: fail unless head branch is `staging`                             |
+| `staging-api-container.yml`          | **Push `staging`**: ACR `:staging` + SHA, restart staging App Service          |
+| `staging-frontend-swa.yml`           | **Push `staging`**: staging Static Web Apps                                    |
+| `production-deploy.yml`              | **Manual**: prod API + prod Static Web Apps                                    |
 
 ## Release process (short)
 
-1. Open PR **feature → `staging`**, merge when CI is green.
-2. Staging environment updates from **`staging` branch** pushes (API + frontends).
-3. Open PR **`staging` → `main`** when ready to promote; branch-rule workflow + CI must pass.
-4. Merge to **`main`** (no automatic production deploy).
-5. Run **Production — full release (API + frontends)** on **`main`** so production API and all prod sites match that commit.
-
-## One-time repo setup
-
-Create branch **`staging`** from **`main`** on the remote if it does not exist yet, then protect behavior is enforced after Terraform rulesets apply:
-
-`git checkout main && git pull && git checkout -b staging && git push -u origin staging`
+1. PR **feature → `staging`**; merge when satisfied with CI.
+2. **`staging`** push deploys staging API + SWA.
+3. PR **`staging` → `main`** when ready; CI + staging-head rule must pass.
+4. Merge **`main`**; run **Production — full release** when you want production updated.
 
 ## IAM and secrets
 
-- **Azure**: GitHub Actions uses **OIDC** (`azure/login`) with `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID` and environments **`staging`** / **`prod`** aligned with federated credentials in `ci-identity`.
-- **Do not** commit application secrets; local `.env` files stay untracked per project `.gitignore`.
+- **Azure**: OIDC via `azure/login` and GitHub Environments **`staging`** / **`prod`** (see `ci-identity`).
+- Do not commit application secrets or PATs; keep `terraform.tfvars` gitignored.

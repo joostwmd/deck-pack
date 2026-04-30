@@ -13,15 +13,3 @@ variable "github_token" {
   type        = string
   sensitive   = true
 }
-
-variable "required_ci_contexts_staging" {
-  description = "Optional required check contexts for merges into staging."
-  type        = list(string)
-  default     = []
-}
-
-variable "required_ci_contexts_main" {
-  description = "Optional required check contexts for merges into main."
-  type        = list(string)
-  default     = []
-}
