@@ -177,7 +177,7 @@ github_environments = ["staging", "prod", "uat"]
 Apply and you get a new OIDC trust for `environment:uat` that a workflow can
 claim with `environment: uat` in its job config.
 
-`.github/workflows/staging-api-container.yml` and the **API** job in
+`.github/workflows/staging-deploy.yml` and the **API** job in
 `.github/workflows/production-deploy.yml` use GitHub **Environments** (`staging` /
 `prod`) so the OIDC subject matches the env-scoped federated credentials
 from `ci-identity`. Ensure those environment names exist under repo **Settings

@@ -1,5 +1,3 @@
-chore: trigger ci again
-
 # DeckPack
 
 PowerPoint add-ins and dashboards sharing one **Hono + tRPC** API (`apps/api`), **Drizzle + Postgres**, and **Better Auth**.
@@ -80,8 +78,8 @@ Terraform lives under `terraform/envs/` (see `terraform/README.md`).
 
 **Architecture**
 
-- **Frontends** (`apps/ops`, `apps/portal`, `apps/addins/assets`) → **Azure Static Web Apps** (`terraform/envs/<env>/static-web-apps/`). **Staging** builds deploy on push to **`staging`** (`.github/workflows/staging-frontend-swa.yml`). **Production** builds deploy only when you run **`.github/workflows/production-deploy.yml`** (manual, together with the API). See **`.github/workflows/README.md`**.
-- **Backend** (`apps/api`) → **Azure App Service (Linux, custom container from ACR)**. **Staging** image on push to **`staging`** (`staging-api-container.yml`). **Production** image is part of the same **`production-deploy.yml`** manual run as the frontends.
+- **Frontends** (`apps/ops`, `apps/portal`, `apps/addins/assets`) → **Azure Static Web Apps** (`terraform/envs/<env>/static-web-apps/`). **Staging** deploys on push to **`staging`** via **`.github/workflows/staging-deploy.yml`** (with the API). **Production** builds run only when you execute **`.github/workflows/production-deploy.yml`** (manual, together with the API). See **`.github/workflows/README.md`**.
+- **Backend** (`apps/api`) → **Azure App Service (Linux, custom container from ACR)**. **Staging** image is built in **`staging-deploy.yml`** on push to **`staging`**. **Production** image is part of the same **`production-deploy.yml`** manual run as the frontends.
 
 After `terraform apply` on `static-web-apps`, copy each sensitive `*_deployment_token` output into GitHub secrets: `SWA_TOKEN_OPS_PROD`, `SWA_TOKEN_PORTAL_PROD`, `SWA_TOKEN_ASSETS_PROD` (and staging equivalents when you bring staging up).
 
