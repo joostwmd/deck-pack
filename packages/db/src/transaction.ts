@@ -8,8 +8,8 @@ export type Transaction = PgTransaction<PostgresJsQueryResultHKT, typeof import(
 const transactionStorage = new AsyncLocalStorage<Transaction>();
 
 /**
- * Transaction singleton - always behaves like a transaction.
- * Auto-creates transactions for single operations when not already in one.
+ * Transaction handle: inside `withTransaction`, delegates to the active Drizzle transaction;
+ * otherwise delegates to the root `db` so fluent builders like `tx.select().from(...)` work.
  */
 export const tx = new Proxy({} as Transaction, {
   get(_target, prop) {
@@ -20,16 +20,9 @@ export const tx = new Proxy({} as Transaction, {
       return activeTransaction[prop as keyof Transaction];
     }
 
-    // Not in transaction - auto-wrap operations
-    if (prop === "select" || prop === "insert" || prop === "update" || prop === "delete") {
-      return (...args: any[]) => {
-        return db.transaction(async (transaction) => {
-          return transactionStorage.run(transaction, () => {
-            return (transaction as any)[prop](...args);
-          });
-        });
-      };
-    }
+    // Outside `withTransaction`, Drizzle query builders must chain synchronously
+    // (e.g. `tx.select().from(...)`). Delegate to the root client — do not return
+    // a Promise from `select()`/`insert()` or `.from` breaks.
 
     // For transaction-specific methods, delegate to a real transaction
     if (prop === "transaction") {

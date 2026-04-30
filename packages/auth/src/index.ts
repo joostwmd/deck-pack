@@ -68,15 +68,21 @@ async function sessionCreateAfter(
     model: "member",
     where: [{ field: "userId", value: session.userId }],
   })) as Member;
+
+  console.log("member", member);
   if (member) {
     const org = await ctx!.context.adapter.findOne({
       model: "organization",
       where: [{ field: "id", value: member.organizationId }],
     });
     console.log("organization", org);
-    await ctx!.context.internalAdapter.updateSession(session.id, {
-      activeOrganizationId: member.organizationId,
-      role: member.role,
+    await ctx!.context.adapter.update({
+      model: "session",
+      where: [{ field: "id", value: session.id }],
+      update: {
+        activeOrganizationId: member.organizationId,
+        role: member.role,
+      },
     });
   }
 }

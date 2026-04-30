@@ -1,3 +1,6 @@
 {
-  "extends": "@deck-pack/config/tsconfig.base.json"
+  "extends": "@deck-pack/config/tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true
+  }
 }
