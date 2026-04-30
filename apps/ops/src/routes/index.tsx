@@ -87,6 +87,7 @@ function HomeComponent() {
 
   return (
     <div className="container flex min-h-[min(100dvh,48rem)] flex-col items-center justify-center px-2 py-8">
+      <h1 className="text-2xl font-bold">Deck Pack Ops</h1>
       <OtpSignup
         step={step}
         email={email}
