@@ -6,20 +6,19 @@ Supporting the Cloud Computing module checklist: pipelines, branching, IaC paths
 
 See also `assesment/cloud-computing/module.md` in your local tree (that folder may be gitignored).
 
-## Staging merge gates (Terraform + CI)
+## Branch protection (Terraform) — no required check strings
 
-**Terraform** (`terraform/envs/shared/github-governance/`) configures **repository rulesets** for `main` and `staging`:
+**Terraform** (`terraform/envs/shared/github-governance/`) configures **repository rulesets** for **`main`** and **`staging`**:
 
-- **Both:** merges go through a **pull request**; **force-push** and **branch deletion** are blocked.
-- **`staging` only:** **`required_status_checks`** with **`strict_required_status_checks_policy = true`** so the PR must be **up to date with `staging`** and must pass **`Staging merge gate`**. “Up to date” is **not** a separate row in Checks: when you’re behind, GitHub shows **This branch is out of date with the base branch** and **Update branch** near the merge area; when you’re current, nothing extra appears.
+- Merges go through a **pull request**; **force-push** and **branch deletion** are blocked.
 
-The **Staging merge gate** job in [`.github/workflows/pull-request-ci.yml`](../.github/workflows/pull-request-ci.yml) runs only after **Lint and build** (`pnpm build`, `pnpm oxlint:strict`, `pnpm check-types`) and **Docker build (API)** succeed — one stable check name for the ruleset instead of three separate Terraform strings.
+We **do not** declare **`required_status_checks`** in Terraform. GitHub’s check **context** strings are easy to mismatch (renames, event suffixes), which produces **“Expected — Waiting for status”** even when jobs are green.
 
-If GitHub shows **Expected — Waiting for status** while the job is green, the ruleset **context** is usually missing the Actions suffix **` (pull_request)`** — compare the gray “Expected” row vs the green row on the PR **Checks** tab.
+**CI** still runs on every PR via [`.github/workflows/pull-request-ci.yml`](../.github/workflows/pull-request-ci.yml) (lint, typecheck, build, Docker build). To **block** merges until those pass (or until the branch is up to date with the base), configure **required status checks** in the **GitHub UI** for the `staging` ruleset / branch settings and select the checks from the list after a green run — no magic strings in this repo.
 
-**`main`** still has no Terraform-managed required checks (promotion PRs use the same workflow for visibility). **Promotion policy:** only **`staging`** may open a PR into **`main`** — [`.github/workflows/pull-request-main-branch-rules.yml`](../.github/workflows/pull-request-main-branch-rules.yml).
+**Promotion policy:** only **`staging`** may open a PR into **`main`** — [`.github/workflows/pull-request-main-branch-rules.yml`](../.github/workflows/pull-request-main-branch-rules.yml).
 
-After changing rules, run `pnpm tf:apply:shared:github-governance`.
+After changing Terraform rules, run `pnpm tf:apply:shared:github-governance`.
 
 ---
 

@@ -57,12 +57,3 @@ jobs:
           push: false
           cache-from: type=gha,scope=api-pr
           cache-to: type=gha,mode=max,scope=api-pr
-
-  # Single named check for branch rulesets: lint + pnpm build + typecheck + Docker API image.
-  staging-merge-gate:
-    name: Staging merge gate
-    needs: [lint-and-build, docker-build-api]
-    runs-on: ubuntu-latest
-    steps:
-      - name: OK
-        run: echo "Lint, build, typecheck, and Docker build passed."
