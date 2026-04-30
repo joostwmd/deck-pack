@@ -1,21 +1,21 @@
-name: Build and push API image
+# Staging backend: Docker image to ACR + restart staging App Service.
+# Triggers only when branch `staging` changes (after merging a feature PR).
+name: Staging — API container (ACR + App Service)
 
 on:
-  # Push to any branch builds/pushes an API image. `main` also gets :latest and
-  # restarts prod. Any other branch also gets :staging and restarts staging.
   push:
-    branches: ["**"]
+    branches: [staging]
     paths:
       - "apps/api/**"
       - "packages/**"
       - "docker/api.Dockerfile"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
-      - ".github/workflows/build-and-push.yml"
+      - ".github/workflows/staging-api-container.yml"
   workflow_dispatch:
 
 concurrency:
-  group: build-and-push-${{ github.ref }}
+  group: staging-api-container-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -23,13 +23,10 @@ permissions:
   contents: read
 
 jobs:
-  build-and-push:
-    name: Build and push API image
+  build-push-restart:
+    name: Build, push to ACR, restart staging App Service
     runs-on: ubuntu-latest
-    # Use a GitHub environment so the OIDC subject becomes
-    # `repo:<owner>/<repo>:environment:<name>`, matching the federated
-    # credentials provisioned by terraform/envs/shared/ci-identity.
-    environment: ${{ github.ref == 'refs/heads/main' && 'prod' || 'staging' }}
+    environment: staging
     env:
       IMAGE_REPO: deck-pack-api
 
@@ -55,17 +52,10 @@ jobs:
         run: |
           REGISTRY="${{ vars.ACR_LOGIN_SERVER }}"
           SHA_TAG="${REGISTRY}/${IMAGE_REPO}:${GITHUB_SHA::7}"
-          TAGS="${SHA_TAG}"
-          if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
-            LATEST_TAG="${REGISTRY}/${IMAGE_REPO}:latest"
-            TAGS="${TAGS}"$'\n'"${LATEST_TAG}"
-            echo "extra_tag=${LATEST_TAG}" >> "$GITHUB_OUTPUT"
-          else
-            STAGING_TAG="${REGISTRY}/${IMAGE_REPO}:staging"
-            TAGS="${TAGS}"$'\n'"${STAGING_TAG}"
-            echo "extra_tag=${STAGING_TAG}" >> "$GITHUB_OUTPUT"
-          fi
+          STAGING_TAG="${REGISTRY}/${IMAGE_REPO}:staging"
+          TAGS="${SHA_TAG}"$'\n'"${STAGING_TAG}"
           echo "sha_tag=${SHA_TAG}" >> "$GITHUB_OUTPUT"
+          echo "extra_tag=${STAGING_TAG}" >> "$GITHUB_OUTPUT"
           {
             echo "tags<<EOF"
             echo "${TAGS}"
@@ -82,18 +72,7 @@ jobs:
           cache-from: type=gha,scope=api
           cache-to: type=gha,mode=max,scope=api
 
-      # App Service keeps the old digest under a moving tag until the site
-      # restarts (the image reference string doesn't change), so we force a
-      # restart after every push here. Prod on main, staging on PR.
-      - name: Restart prod API Web App (after :latest push)
-        if: github.ref == 'refs/heads/main'
-        run: >-
-          az webapp restart
-          --name "${{ vars.PROD_API_WEBAPP_NAME || 'deck-pack-api-jw' }}"
-          --resource-group "${{ vars.PROD_API_RESOURCE_GROUP || 'rg-deck-pack-cloud' }}"
-
-      - name: Restart staging API Web App (after :staging push)
-        if: github.ref != 'refs/heads/main'
+      - name: Restart staging API Web App
         run: >-
           az webapp restart
           --name "${{ vars.STAGING_API_WEBAPP_NAME || 'deck-pack-api-staging-jw' }}"
@@ -102,7 +81,7 @@ jobs:
       - name: Summary
         run: |
           {
-            echo "### Pushed deck-pack-api"
+            echo "### Staging deck-pack-api"
             echo ""
             echo "- \`${{ steps.tags.outputs.sha_tag }}\`"
             echo "- \`${{ steps.tags.outputs.extra_tag }}\`"

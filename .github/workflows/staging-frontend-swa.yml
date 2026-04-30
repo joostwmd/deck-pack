@@ -1,11 +1,9 @@
-name: Deploy Static Web Apps (staging)
+# Staging frontends: ops, portal, add-in assets → Azure Static Web Apps (staging).
+name: Staging — frontends (Static Web Apps)
 
 on:
-  # Deploy to staging on every push to any non-main branch. This avoids the SWA
-  # action's pull_request preview behavior and always publishes to the main
-  # *.azurestaticapps.net URL of the STAGING SWA resource.
   push:
-    branches-ignore: [main]
+    branches: [staging]
     paths:
       - "apps/ops/**"
       - "apps/portal/**"
@@ -13,11 +11,11 @@ on:
       - "packages/**"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
-      - ".github/workflows/deploy-static-web-apps-staging.yml"
+      - ".github/workflows/staging-frontend-swa.yml"
   workflow_dispatch:
 
 concurrency:
-  group: swa-staging-${{ github.ref }}
+  group: staging-frontend-swa-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -56,9 +54,7 @@ jobs:
           action: upload
           app_location: apps/ops/dist
           skip_app_build: true
-          # Make the currently pushed branch the "production" branch of the
-          # staging SWA resource so uploads land on its main URL (no -1 preview).
-          production_branch: ${{ github.ref_name }}
+          production_branch: staging
 
   deploy-portal:
     name: Deploy portal to staging SWA
@@ -91,7 +87,7 @@ jobs:
           action: upload
           app_location: apps/portal/dist
           skip_app_build: true
-          production_branch: ${{ github.ref_name }}
+          production_branch: staging
 
   deploy-assets:
     name: Deploy add-in assets to staging SWA
@@ -124,4 +120,4 @@ jobs:
           action: upload
           app_location: apps/addins/assets/dist
           skip_app_build: true
-          production_branch: ${{ github.ref_name }}
+          production_branch: staging

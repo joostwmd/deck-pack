@@ -78,8 +78,8 @@ Terraform lives under `terraform/envs/` (see `terraform/README.md`).
 
 **Architecture**
 
-- **Frontends** (`apps/ops`, `apps/portal`, `apps/addins/assets`) → **Azure Static Web Apps** (`terraform/envs/<env>/static-web-apps/`). Vite `dist/` is deployed by `.github/workflows/deploy-static-web-apps.yml` using each SWA’s deployment token (GitHub Actions secrets).
-- **Backend** (`apps/api`) → **Azure App Service (Linux, custom container from ACR)** (`terraform/envs/<env>/app-service/`). Built and pushed by `.github/workflows/build-and-push.yml` (API image only).
+- **Frontends** (`apps/ops`, `apps/portal`, `apps/addins/assets`) → **Azure Static Web Apps** (`terraform/envs/<env>/static-web-apps/`). **Staging** builds deploy on push to **`staging`** (`.github/workflows/staging-frontend-swa.yml`). **Production** builds deploy only when you run **`.github/workflows/production-deploy.yml`** (manual, together with the API). See **`.github/workflows/README.md`**.
+- **Backend** (`apps/api`) → **Azure App Service (Linux, custom container from ACR)**. **Staging** image on push to **`staging`** (`staging-api-container.yml`). **Production** image is part of the same **`production-deploy.yml`** manual run as the frontends.
 
 After `terraform apply` on `static-web-apps`, copy each sensitive `*_deployment_token` output into GitHub secrets: `SWA_TOKEN_OPS_PROD`, `SWA_TOKEN_PORTAL_PROD`, `SWA_TOKEN_ASSETS_PROD` (and staging equivalents when you bring staging up).
 
