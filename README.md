@@ -68,16 +68,14 @@ Jobs that touch Azure use **`azure/login`** with **OIDC** and GitHub **Environme
 
 ## Deployed URLs (production and staging)
 
-Public HTTPS entry points for the four applications. **Staging** URLs are left blank until they are wired and verified.
+Public HTTPS entry points for the four applications on Azure Static Web Apps (frontends) and Azure App Service (API).
 
-| Application | Role                                                      | Production                                                                                                   | Staging |
-| ----------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ------- |
-| **Ops**     | Internal operations dashboard (Static Web App)            | [https://orange-bay-0bf467703.7.azurestaticapps.net/](https://orange-bay-0bf467703.7.azurestaticapps.net/)   | —       |
-| **Portal**  | Organization admin dashboard (Static Web App)             | [https://blue-hill-0434a2003.7.azurestaticapps.net/](https://blue-hill-0434a2003.7.azurestaticapps.net/)     | —       |
-| **Add-in**  | DeckPack add-in web shell / Static Web App                | [https://yellow-tree-08cc84803.7.azurestaticapps.net/](https://yellow-tree-08cc84803.7.azurestaticapps.net/) | —       |
-| **API**     | Hono + tRPC + Better Auth (App Service – Linux container) | [https://deck-pack-api-staging-jw.azurewebsites.net](https://deck-pack-api-staging-jw.azurewebsites.net)     | —       |
-
-> **Note:** The production URL for the API uses the hostname above as currently deployed in Azure; rename the Web App in Azure/Terraform over time without changing this table until DNS and workflows are updated.
+| Application | Role                                                      | Production                                                                                                     | Staging                                                                                                      |
+| ----------- | --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **Ops**     | Internal operations dashboard (Static Web App)            | [https://blue-stone-00d228c03.7.azurestaticapps.net/](https://blue-stone-00d228c03.7.azurestaticapps.net/)     | [https://orange-bay-0bf467703.7.azurestaticapps.net/](https://orange-bay-0bf467703.7.azurestaticapps.net/)   |
+| **Portal**  | Organization admin dashboard (Static Web App)             | [https://white-wave-0cfaad503.7.azurestaticapps.net/](https://white-wave-0cfaad503.7.azurestaticapps.net/)     | [https://blue-hill-0434a2003.7.azurestaticapps.net/](https://blue-hill-0434a2003.7.azurestaticapps.net/)     |
+| **Add-in**  | DeckPack add-in web shell / Static Web App                | [https://lively-coast-020399703.7.azurestaticapps.net/](https://lively-coast-020399703.7.azurestaticapps.net/) | [https://yellow-tree-08cc84803.7.azurestaticapps.net/](https://yellow-tree-08cc84803.7.azurestaticapps.net/) |
+| **API**     | Hono + tRPC + Better Auth (App Service – Linux container) | [https://deck-pack-api-jw.azurewebsites.net/](https://deck-pack-api-jw.azurewebsites.net/)                     | [https://deck-pack-api-staging-jw.azurewebsites.net/](https://deck-pack-api-staging-jw.azurewebsites.net/)   |
 
 ---
 
