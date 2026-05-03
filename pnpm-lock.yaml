@@ -96,51 +96,15 @@ importers:
 
   apps/addins/assets:
     dependencies:
-      '@deck-pack/api':
-        specifier: workspace:*
-        version: link:../../api
-      '@deck-pack/auth':
-        specifier: workspace:*
-        version: link:../../../packages/auth
-      '@deck-pack/env':
-        specifier: workspace:*
-        version: link:../../../packages/env
-      '@deck-pack/trpc-client':
-        specifier: workspace:*
-        version: link:../../../packages/trpc-client
       '@deck-pack/ui':
         specifier: workspace:*
         version: link:../../../packages/ui
-      '@hookform/resolvers':
-        specifier: ^5.2.2
-        version: 5.2.2(react-hook-form@7.72.1(react@19.2.5))
       '@tailwindcss/vite':
         specifier: ^4.2.2
         version: 4.2.2(vite@8.0.9(@types/node@22.19.17)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0))
-      '@tanstack/react-form':
-        specifier: ^1.28.0
-        version: 1.29.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
-      '@tanstack/react-query':
-        specifier: ^5.90.12
-        version: 5.99.2(react@19.2.5)
       '@tanstack/react-router':
         specifier: ^1.168.22
         version: 1.168.23(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
-      '@trpc/client':
-        specifier: 'catalog:'
-        version: 11.16.0(@trpc/server@11.16.0(typescript@6.0.3))(typescript@6.0.3)
-      '@trpc/server':
-        specifier: 'catalog:'
-        version: 11.16.0(typescript@6.0.3)
-      '@trpc/tanstack-react-query':
-        specifier: ^11.16.0
-        version: 11.16.0(@tanstack/react-query@5.99.2(react@19.2.5))(@trpc/client@11.16.0(@trpc/server@11.16.0(typescript@6.0.3))(typescript@6.0.3))(@trpc/server@11.16.0(typescript@6.0.3))(react@19.2.5)(typescript@6.0.3)
-      better-auth:
-        specifier: 'catalog:'
-        version: 1.5.5(better-sqlite3@11.10.0)(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(better-sqlite3@11.10.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.1.1)(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vitest@3.2.4(@types/node@22.19.17)(jiti@2.6.1)(lightningcss@1.32.0)(msw@2.13.4(@types/node@22.19.17)(typescript@6.0.3))(tsx@4.21.0))
-      dotenv:
-        specifier: 'catalog:'
-        version: 17.4.2
       lucide-react:
         specifier: ^1.8.0
         version: 1.8.0(react@19.2.5)
@@ -156,16 +120,10 @@ importers:
       sonner:
         specifier: ^2.0.7
         version: 2.0.7(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
-      zod:
-        specifier: 'catalog:'
-        version: 4.3.6
     devDependencies:
       '@deck-pack/config':
         specifier: workspace:*
         version: link:../../../packages/config
-      '@tanstack/react-query-devtools':
-        specifier: ^5.91.1
-        version: 5.99.2(@tanstack/react-query@5.99.2(react@19.2.5))(react@19.2.5)
       '@tanstack/react-router-devtools':
         specifier: ^1.166.13
         version: 1.166.13(@tanstack/react-router@1.168.23(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(@tanstack/router-core@1.168.15)(csstype@3.2.3)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
