@@ -17,3 +17,13 @@ output "better_auth_secret_uri" {
   description = "Versionless secret URI for BETTER_AUTH_SECRET."
   value       = module.this.better_auth_secret_uri
 }
+
+output "email_api_key_secret_uri" {
+  description = "Versionless secret URI for EMAIL_API_KEY (Resend)."
+  value       = module.this.email_api_key_secret_uri
+}
+
+output "email_from_secret_uri" {
+  description = "Versionless secret URI for EMAIL_FROM."
+  value       = module.this.email_from_secret_uri
+}

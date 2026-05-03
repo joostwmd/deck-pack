@@ -40,6 +40,8 @@ resource "azurerm_linux_web_app" "api" {
       NODE_ENV                            = var.node_env
       DATABASE_URL                        = "@Microsoft.KeyVault(SecretUri=${var.database_url_secret_uri})"
       BETTER_AUTH_SECRET                  = "@Microsoft.KeyVault(SecretUri=${var.better_auth_secret_uri})"
+      EMAIL_API_KEY                       = "@Microsoft.KeyVault(SecretUri=${var.email_api_key_secret_uri})"
+      EMAIL_FROM                          = "@Microsoft.KeyVault(SecretUri=${var.email_from_secret_uri})"
       BETTER_AUTH_URL                     = "https://${var.api_app_name}.azurewebsites.net"
       CORS_ORIGINS                        = join(",", var.cors_origins)
     },
