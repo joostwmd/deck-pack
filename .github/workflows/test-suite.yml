@@ -49,7 +49,8 @@ jobs:
     env:
       NODE_ENV: test
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/deck_pack_test
-      BETTER_AUTH_SECRET: 012345678901234567890123456789012
+      # Must stay a YAML string — an unquoted numeric value loses precision (<32 chars → env validation fails).
+      BETTER_AUTH_SECRET: "deck-pack-ci-better-auth-placeholder-32-characters-long"
       BETTER_AUTH_URL: https://localhost
       CORS_ORIGINS: https://localhost
       EMAIL_API_KEY: test-ci-email-key-placeholder
