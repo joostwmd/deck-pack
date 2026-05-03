@@ -20,6 +20,11 @@ module "this" {
   database_url_secret_name = var.database_url_secret_name
   better_auth_secret_name  = var.better_auth_secret_name
 
+  email_api_key             = var.email_api_key
+  email_from                = var.email_from
+  email_api_key_secret_name = var.email_api_key_secret_name
+  email_from_secret_name    = var.email_from_secret_name
+
   purge_protection_enabled = var.purge_protection_enabled
   tags                     = var.tags
 }

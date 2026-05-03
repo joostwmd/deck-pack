@@ -66,9 +66,11 @@ module "this" {
     var.cors_origins_extra,
   )
 
-  database_url_secret_uri = data.terraform_remote_state.key_vault.outputs.database_url_secret_uri
-  better_auth_secret_uri  = data.terraform_remote_state.key_vault.outputs.better_auth_secret_uri
-  key_vault_id            = data.terraform_remote_state.key_vault.outputs.key_vault_id
+  database_url_secret_uri  = data.terraform_remote_state.key_vault.outputs.database_url_secret_uri
+  better_auth_secret_uri   = data.terraform_remote_state.key_vault.outputs.better_auth_secret_uri
+  email_api_key_secret_uri = data.terraform_remote_state.key_vault.outputs.email_api_key_secret_uri
+  email_from_secret_uri    = data.terraform_remote_state.key_vault.outputs.email_from_secret_uri
+  key_vault_id             = data.terraform_remote_state.key_vault.outputs.key_vault_id
 
   storage_account_name   = var.wire_storage ? data.terraform_remote_state.storage[0].outputs.storage_account_name : null
   storage_container_name = var.wire_storage ? data.terraform_remote_state.storage[0].outputs.container_name : null

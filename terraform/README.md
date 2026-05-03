@@ -8,7 +8,7 @@ terraform/
     foundation/       RG + ACR
     ci-identity/      Entra app + OIDC federated credentials for GitHub Actions
     database/         Postgres Flexible Server + firewall + generated admin password
-    key-vault/        Key Vault + DATABASE_URL/BETTER_AUTH_SECRET secrets
+    key-vault/        Key Vault + DATABASE_URL/BETTER_AUTH_SECRET/Resend EMAIL_* secrets
     static-web-app/   One Azure Static Web App (Vite frontends)
     app-service/      App Service Plan + API Linux Web App + AcrPull + Key Vault role assignments
     storage/          Blob Storage (LRS) + private uploads container + CORS + API MI blob RBAC
@@ -146,14 +146,45 @@ Service consume secrets via Key Vault references:
 
 - `DATABASE_URL` is read from the env's `database` state and written to Key Vault
 - `BETTER_AUTH_SECRET` is generated in the key-vault stack and written to Key Vault
+- `EMAIL_API_KEY` and `EMAIL_FROM` (Resend) are provided at **`key-vault` apply**
+  time (`email_api_key` / `email_from` Terraform variables) and stored in Key Vault
 - `app-service` stores only references:
   - `DATABASE_URL = @Microsoft.KeyVault(SecretUri=<versionless-uri>)`
   - `BETTER_AUTH_SECRET = @Microsoft.KeyVault(SecretUri=<versionless-uri>)`
+  - `EMAIL_API_KEY = @Microsoft.KeyVault(SecretUri=<versionless-uri>)`
+  - `EMAIL_FROM = @Microsoft.KeyVault(SecretUri=<versionless-uri>)`
 - `app-service` grants `Key Vault Secrets User` on the vault to the **API**
   web app's managed identity only
 
 Because references use versionless secret URIs, rotating a secret in Key Vault
 doesn't require changing Terraform app settings.
+
+**Apply order when adding mail secrets:** `terraform apply` in
+`envs/<staging|prod>/key-vault/` first (so state exports the new secret URIs),
+then `terraform apply` in `envs/<env>/app-service/`.
+
+Do **not** commit real Resend credentials in `terraform.tfvars`.
+Pass `email_api_key` / `email_from` via **`-var`**, **`TF_VAR_email_api_key`** /
+**`TF_VAR_email_from`**, or a **gitignored** `*.tfvars`.
+
+**Reuse [`apps/api/.env`](../apps/api/.env) locally:** the API uses the same names
+(`EMAIL_API_KEY`, `EMAIL_FROM`). From `terraform/envs/staging/key-vault` or
+`.../prod/key-vault`:
+
+```bash
+set -a
+source ../../../../apps/api/.env
+set +a
+export TF_VAR_email_api_key="$EMAIL_API_KEY"
+export TF_VAR_email_from="$EMAIL_FROM"
+terraform apply
+```
+
+Use different values per Azure environment if staging and prod should differ;
+otherwise you can source the same file for both `key-vault` applies.
+
+`set -a` + `source` exports every variable defined in that file for the shell — to
+avoid that, export only `TF_VAR_email_*` manually or extract just those keys.
 
 ## Static Web Apps + GitHub Actions
 

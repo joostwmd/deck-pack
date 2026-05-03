@@ -33,6 +33,30 @@ variable "better_auth_secret_name" {
   default     = "better-auth-secret"
 }
 
+variable "email_api_key" {
+  description = "Resend API key (pass via TF_VAR_email_api_key or -var-file; matches apps/api .env EMAIL_API_KEY)."
+  type        = string
+  sensitive   = true
+}
+
+variable "email_from" {
+  description = "Verified Resend From address (TF_VAR_email_from; matches EMAIL_FROM in apps/api .env)."
+  type        = string
+  sensitive   = true
+}
+
+variable "email_api_key_secret_name" {
+  description = "Key Vault secret name for the Resend API key."
+  type        = string
+  default     = "email-api-key"
+}
+
+variable "email_from_secret_name" {
+  description = "Key Vault secret name for the From address."
+  type        = string
+  default     = "email-from"
+}
+
 variable "purge_protection_enabled" {
   description = "Enable purge protection for the vault."
   type        = bool

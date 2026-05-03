@@ -37,6 +37,30 @@ variable "better_auth_secret_length" {
   default     = 48
 }
 
+variable "email_api_key" {
+  description = "Resend API key; stored as EMAIL_API_KEY for the API (Key Vault secret value)."
+  type        = string
+  sensitive   = true
+}
+
+variable "email_from" {
+  description = "Resend-verified sender for outbound mail (Key Vault secret value)."
+  type        = string
+  sensitive   = true
+}
+
+variable "email_api_key_secret_name" {
+  description = "Secret name used to store the Resend API key."
+  type        = string
+  default     = "email-api-key"
+}
+
+variable "email_from_secret_name" {
+  description = "Secret name used to store the verified From address."
+  type        = string
+  default     = "email-from"
+}
+
 variable "soft_delete_retention_days" {
   description = "Soft-delete retention in days for Key Vault (7-90)."
   type        = number
