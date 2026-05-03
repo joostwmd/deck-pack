@@ -19,3 +19,4 @@ catalog:
   typescript: ^6
   zod: ^4.1.13
   resend: 6.12.2
+  vitest: ^3.2.4

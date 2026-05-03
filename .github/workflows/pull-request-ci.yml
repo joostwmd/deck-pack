@@ -1,9 +1,10 @@
-# Pull requests — lint, typecheck, build (no deploy)
+# Pull requests targeting `staging` — quality checks + tests (no deploy).
+# Promotion PRs `staging` → `main` do not run here; only `.github/workflows/pull-request-main-branch-rules.yml` guards `main`.
 name: Pull request — quality checks
 
 on:
   pull_request:
-    branches: [staging, main]
+    branches: [staging]
 
 concurrency:
   group: pr-quality-${{ github.workflow }}-${{ github.ref }}
@@ -13,6 +14,10 @@ permissions:
   contents: read
 
 jobs:
+  test-suite:
+    name: Test suite
+    uses: ./.github/workflows/test-suite.yml
+
   lint-and-build:
     name: Lint and build
     runs-on: ubuntu-latest
