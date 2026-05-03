@@ -8,5 +8,6 @@ export const corsMiddleware = cors({
   origin: env.CORS_ORIGINS,
   allowMethods: ["GET", "POST", "OPTIONS"],
   allowHeaders: ["Content-Type", "Authorization"],
+  exposeHeaders: ["X-Request-Id"],
   credentials: true,
 });

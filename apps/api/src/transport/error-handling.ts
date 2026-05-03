@@ -2,6 +2,7 @@ import type { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { ZodError } from "zod";
 
+import { captureRequestError } from "../lib/observability/sentry";
 import type { AppEnv } from "../types";
 
 export function registerErrorHandlers(app: Hono<AppEnv>) {
@@ -19,6 +20,12 @@ export function registerErrorHandlers(app: Hono<AppEnv>) {
 
     log?.error("Unhandled error", {
       message: err instanceof Error ? err.message : String(err),
+    });
+
+    captureRequestError(err, {
+      requestId: c.get("requestId"),
+      userId: c.get("user")?.id,
+      tags: { path: c.req.path, method: c.req.method },
     });
     return c.json({ error: "Internal Server Error" }, 500);
   });
