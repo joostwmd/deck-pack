@@ -65,6 +65,10 @@
     "docker:run": "pnpm docker:run:api",
     "docker:stop:api": "docker stop deck-pack-api-local",
     "docker:stop:ops": "docker stop deck-pack-ops-local",
+    "test": "pnpm test:unit && pnpm test:integration",
+    "test:unit": "vitest run --config vitest.unit.config.ts",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:integration:with-db": "pnpm db:start && pnpm test:integration",
     "check-types": "turbo check-types",
     "dev:api": "turbo -F @deck-pack/api dev",
     "dev:ops": "turbo -F @deck-pack/ops dev",
@@ -100,7 +104,8 @@
     "oxlint": "^1.41.0",
     "oxlint-tsgolint": "^0.21.1",
     "turbo": "^2.8.12",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "packageManager": "pnpm@10.33.0"
 }

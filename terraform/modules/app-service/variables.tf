@@ -89,6 +89,16 @@ variable "better_auth_secret_uri" {
   type        = string
 }
 
+variable "email_api_key_secret_uri" {
+  description = "Versionless SecretUri for EMAIL_API_KEY (Resend) in Key Vault."
+  type        = string
+}
+
+variable "email_from_secret_uri" {
+  description = "Versionless SecretUri for EMAIL_FROM in Key Vault."
+  type        = string
+}
+
 variable "key_vault_id" {
   description = "Resource ID of the Key Vault. If set, the API receives Key Vault Secrets User role assignment."
   type        = string

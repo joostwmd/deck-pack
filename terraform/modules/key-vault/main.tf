@@ -40,3 +40,21 @@ resource "azurerm_key_vault_secret" "better_auth_secret" {
   tags         = var.tags
   depends_on   = [azurerm_role_assignment.current_user_kv_admin]
 }
+
+resource "azurerm_key_vault_secret" "email_api_key" {
+  name         = var.email_api_key_secret_name
+  value        = var.email_api_key
+  key_vault_id = azurerm_key_vault.main.id
+  content_type = "text/plain"
+  tags         = var.tags
+  depends_on   = [azurerm_role_assignment.current_user_kv_admin]
+}
+
+resource "azurerm_key_vault_secret" "email_from" {
+  name         = var.email_from_secret_name
+  value        = var.email_from
+  key_vault_id = azurerm_key_vault.main.id
+  content_type = "text/plain"
+  tags         = var.tags
+  depends_on   = [azurerm_role_assignment.current_user_kv_admin]
+}

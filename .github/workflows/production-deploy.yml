@@ -1,5 +1,5 @@
-# One manual run: production API container (ACR + App Service) + all prod Static Web Apps.
-# Use after merging `staging` → `main` when you want production to match that commit.
+# One manual run: parallel builds, then simultaneous API restart + prod SWA uploads.
+# Run from the branch/commit you want production to match (usually `main` after merging `staging` → `main`).
 name: Production — full release (API + frontends)
 
 on:
@@ -14,8 +14,8 @@ permissions:
   contents: read
 
 jobs:
-  api-container:
-    name: Production — API container (ACR + restart)
+  api-container-build:
+    name: Production — API image (build + push)
     runs-on: ubuntu-latest
     environment: prod
     env:
@@ -59,23 +59,17 @@ jobs:
           cache-from: type=gha,scope=api-prod
           cache-to: type=gha,mode=max,scope=api-prod
 
-      - name: Restart production API Web App
-        run: >-
-          az webapp restart
-          --name "${{ vars.PROD_API_WEBAPP_NAME || 'deck-pack-api-jw' }}"
-          --resource-group "${{ vars.PROD_API_RESOURCE_GROUP || 'rg-deck-pack-cloud' }}"
-
-      - name: Summary (API)
+      - name: Summary (API image)
         run: |
           {
-            echo "### Production API image"
+            echo "### Production API image (pushed)"
             echo ""
             echo "- \`${{ steps.tags.outputs.sha_tag }}\`"
             echo "- \`${{ steps.tags.outputs.extra_tag }}\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
-  swa-ops:
-    name: Production — OPS (Static Web Apps)
+  swa-ops-build:
+    name: Production — OPS (build artifact)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -96,17 +90,14 @@ jobs:
         env:
           VITE_SERVER_URL: ${{ vars.VITE_SERVER_URL_PROD || vars.VITE_SERVER_URL || 'http://localhost:3000' }}
 
-      - name: Upload to Azure Static Web Apps
-        uses: Azure/static-web-apps-deploy@v1
+      - uses: actions/upload-artifact@v4
         with:
-          azure_static_web_apps_api_token: ${{ secrets.SWA_TOKEN_OPS_PROD }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          action: upload
-          app_location: apps/ops/dist
-          skip_app_build: true
+          name: prod-ops-dist
+          path: apps/ops/dist
+          retention-days: 1
 
-  swa-portal:
-    name: Production — Portal (Static Web Apps)
+  swa-portal-build:
+    name: Production — Portal (build artifact)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -127,17 +118,14 @@ jobs:
         env:
           VITE_SERVER_URL: ${{ vars.VITE_SERVER_URL_PROD || vars.VITE_SERVER_URL || 'http://localhost:3000' }}
 
-      - name: Upload to Azure Static Web Apps
-        uses: Azure/static-web-apps-deploy@v1
+      - uses: actions/upload-artifact@v4
         with:
-          azure_static_web_apps_api_token: ${{ secrets.SWA_TOKEN_PORTAL_PROD }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          action: upload
-          app_location: apps/portal/dist
-          skip_app_build: true
+          name: prod-portal-dist
+          path: apps/portal/dist
+          retention-days: 1
 
-  swa-assets:
-    name: Production — Add-in assets (Static Web Apps)
+  swa-assets-build:
+    name: Production — Add-in assets (build artifact)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -158,11 +146,108 @@ jobs:
         env:
           VITE_SERVER_URL: ${{ vars.VITE_SERVER_URL_PROD || vars.VITE_SERVER_URL || 'http://localhost:3000' }}
 
+      - uses: actions/upload-artifact@v4
+        with:
+          name: prod-assets-dist
+          path: apps/addins/assets/dist
+          retention-days: 1
+
+  api-container-deploy:
+    name: Production — API Web App (restart)
+    runs-on: ubuntu-latest
+    environment: prod
+    needs:
+      - api-container-build
+      - swa-ops-build
+      - swa-portal-build
+      - swa-assets-build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Restart production API Web App
+        run: >-
+          az webapp restart
+          --name "${{ vars.PROD_API_WEBAPP_NAME || 'deck-pack-api-jw' }}"
+          --resource-group "${{ vars.PROD_API_RESOURCE_GROUP || 'rg-deck-pack-cloud' }}"
+
+  swa-ops-deploy:
+    name: Production — OPS (deploy SWA)
+    runs-on: ubuntu-latest
+    needs:
+      - api-container-build
+      - swa-ops-build
+      - swa-portal-build
+      - swa-assets-build
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: prod-ops-dist
+          path: ops-dist
+
+      - name: Upload to Azure Static Web Apps
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.SWA_TOKEN_OPS_PROD }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: upload
+          app_location: ops-dist
+          skip_app_build: true
+
+  swa-portal-deploy:
+    name: Production — Portal (deploy SWA)
+    runs-on: ubuntu-latest
+    needs:
+      - api-container-build
+      - swa-ops-build
+      - swa-portal-build
+      - swa-assets-build
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: prod-portal-dist
+          path: portal-dist
+
+      - name: Upload to Azure Static Web Apps
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.SWA_TOKEN_PORTAL_PROD }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: upload
+          app_location: portal-dist
+          skip_app_build: true
+
+  swa-assets-deploy:
+    name: Production — Add-in assets (deploy SWA)
+    runs-on: ubuntu-latest
+    needs:
+      - api-container-build
+      - swa-ops-build
+      - swa-portal-build
+      - swa-assets-build
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: prod-assets-dist
+          path: assets-dist
+
       - name: Upload to Azure Static Web Apps
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.SWA_TOKEN_ASSETS_PROD }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: upload
-          app_location: apps/addins/assets/dist
+          app_location: assets-dist
           skip_app_build: true

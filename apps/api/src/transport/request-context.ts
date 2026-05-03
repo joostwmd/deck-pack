@@ -8,5 +8,6 @@ export const requestContextMiddleware = createMiddleware<AppEnv>(async (c, next)
   const requestId = crypto.randomUUID();
   c.set("requestId", requestId);
   c.set("logger", getLogger(["deck-pack", "request"]));
+  c.header("X-Request-Id", requestId);
   await next();
 });

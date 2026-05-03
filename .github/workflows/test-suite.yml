@@ -1,0 +1,77 @@
+# Reusable quality gate: unit + integration (Postgres) tests.
+name: Test suite
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  test-unit:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Unit tests
+        run: pnpm test:unit
+
+  test-integration:
+    name: Integration tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: deck_pack_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d deck_pack_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/deck_pack_test
+      # Must stay a YAML string — an unquoted numeric value loses precision (<32 chars → env validation fails).
+      BETTER_AUTH_SECRET: "deck-pack-ci-better-auth-placeholder-32-characters-long"
+      BETTER_AUTH_URL: https://localhost
+      CORS_ORIGINS: https://localhost
+      EMAIL_API_KEY: test-ci-email-key-placeholder
+      EMAIL_FROM: onboarding@localhost
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply DB schema
+        run: pnpm --filter @deck-pack/db exec drizzle-kit push
+
+      - name: Integration tests
+        run: pnpm test:integration
