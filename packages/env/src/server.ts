@@ -26,6 +26,12 @@ export const env = createEnv({
     EMAIL_API_KEY: z.string().min(1),
     /** Resend "from" (must be a verified sender in Resend). */
     EMAIL_FROM: z.string().min(1),
+    /** Server-side Sentry DSN; omit to disable Sentry. */
+    SENTRY_DSN: z.string().min(1).optional(),
+    /** Apitally client id; omit to skip Apitally middleware. */
+    APITALLY_CLIENT_ID: z.string().min(1).optional(),
+    /** Apitally environment label (dashboards). */
+    APITALLY_ENV: z.enum(["dev", "staging", "prod"]).default("dev"),
   },
   runtimeEnv: process.env,
   emptyStringAsUndefined: true,
