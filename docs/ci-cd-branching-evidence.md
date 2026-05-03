@@ -14,9 +14,9 @@ See also `assesment/cloud-computing/module.md` in your local tree (that folder m
 
 We **do not** declare **`required_status_checks`** in Terraform. GitHub’s check **context** strings are easy to mismatch (renames, event suffixes), which produces **“Expected — Waiting for status”** even when jobs are green.
 
-**CI** still runs on every PR via [`.github/workflows/pull-request-ci.yml`](../.github/workflows/pull-request-ci.yml) (lint, typecheck, build, Docker build). To **block** merges until those pass (or until the branch is up to date with the base), configure **required status checks** in the **GitHub UI** for the `staging` ruleset / branch settings and select the checks from the list after a green run — no magic strings in this repo.
+**CI** on **`staging`**: [`.github/workflows/pull-request-ci.yml`](../.github/workflows/pull-request-ci.yml) invokes the reusable **`test-suite.yml`** plus build, oxlint, typecheck, Docker build. To **block** merges until those pass, configure **required status checks** in the **GitHub UI** for **`staging`** and pick the contexts after a green run — no magic strings in this repo.
 
-**Promotion policy:** only **`staging`** may open a PR into **`main`** — [`.github/workflows/pull-request-main-branch-rules.yml`](../.github/workflows/pull-request-main-branch-rules.yml).
+**Promotion policy:** only **`staging`** may open a PR into **`main`** — [`.github/workflows/pull-request-main-branch-rules.yml`](../.github/workflows/pull-request-main-branch-rules.yml). PRs into **`main`** do **not** run **`pull-request-ci`** (staging push already ran tests + deploy gate).
 
 After changing Terraform rules, run `pnpm tf:apply:shared:github-governance`.
 
@@ -29,14 +29,14 @@ flowchart LR
   feature[feature_branch]
   staging[staging]
   main[main]
-  feature -->|PR_CI| staging
-  staging -->|PR_CI_plus_staging_only_to_main| main
+  feature -->|PR_CI_tests_plus_build| staging
+  staging -->|promotion_PR_rules_only| main
   main -->|manual_prod_workflow| prod[Prod_API_and_SWA]
 ```
 
-- Feature work branches from **`staging`**; pull requests target **`staging`**. CI runs on the PR; **no** shared staging deploy runs from feature branches until merge.
-- Merges to **`staging`** trigger **`staging-deploy.yml`** (API container + staging SWAs together).
-- PRs to **`main`**: CI + **`pull-request-main-branch-rules.yml`** (head must be **`staging`**).
+- Feature work branches from **`staging`**; pull requests target **`staging`**. **`pull-request-ci.yml`** runs **`test-suite.yml`** (Vitest unit + Postgres integration) plus build and lint gates; **no** shared staging deploy until merge.
+- Merges to **`staging`** trigger **`staging-deploy.yml`**: **`test-suite`** → parallel **build phase** → parallel **deploy phase** (API restart + staging SWAs).
+- PRs to **`main`**: **`pull-request-main-branch-rules.yml`** only (head must be **`staging`**).
 
 ## IaC and GitHub rules
 
@@ -49,18 +49,23 @@ Apply with a repo-admin PAT (`TF_VAR_github_token` or `terraform.tfvars`); see `
 
 ## Workflow files
 
-| File                                 | Role                                                                           |
-| ------------------------------------ | ------------------------------------------------------------------------------ |
-| `pull-request-ci.yml`                | PRs → `staging` / `main`: build, oxlint, typecheck, Docker build API (no push) |
-| `pull-request-main-branch-rules.yml` | PRs → `main`: fail unless head branch is `staging`                             |
-| `staging-deploy.yml`                 | **Push `staging`**: staging API + all staging Static Web Apps (one workflow)   |
-| `production-deploy.yml`              | **Manual**: prod API + prod Static Web Apps                                    |
+| File                                 | Role                                                                                                                           |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| `test-suite.yml`                     | **`workflow_call`**: unit tests + Postgres integration tests (used by **`pull-request-ci.yml`** and **`staging-deploy.yml`**). |
+| `pull-request-ci.yml`                | PRs targeting **`staging`**: test suite + build + oxlint + typecheck + Docker build API (no push).                             |
+| `pull-request-main-branch-rules.yml` | PRs → **`main`**: fail unless head branch is **`staging`** (no rerun of **`pull-request-ci`**).                                |
+| `staging-deploy.yml`                 | **Push `staging`**: test gate, then staged **build-all / deploy-together** (API image + staging SWAs).                         |
+| `production-deploy.yml`              | **Manual**: same two-phase rollout for prod API + Static Web Apps.                                                             |
+
+### Local testing
+
+After `pnpm install`, run **`pnpm test:unit`** (no database). **`pnpm test:integration`** expects **`DATABASE_URL`** and a reachable Postgres matching **`@deck-pack/env/server`** (CI applies schema via **`pnpm --filter @deck-pack/db exec drizzle-kit push`** first).
 
 ## Release process (short)
 
-1. PR **feature → `staging`**; merge when satisfied with CI.
-2. **`staging`** push runs **`staging-deploy.yml`** (API + all staging SWAs).
-3. PR **`staging` → `main`** when ready; CI + staging-head rule must pass.
+1. PR **feature → `staging`**; merge when satisfied with **`pull-request-ci`** (includes tests).
+2. **`staging`** push runs **`staging-deploy.yml`** (tests again, coordinated API + SWAs).
+3. PR **`staging` → `main`** when ready (**staging-head rule** only — no **`pull-request-ci`** on `main`).
 4. Merge **`main`**; run **Production — full release** when you want production updated.
 
 ## IAM and secrets

@@ -50,6 +50,8 @@ Push schema (or use `db:migrate` after generating migrations):
 pnpm db:push
 ```
 
+Integration tests (`pnpm test:integration`) need Postgres listening on `DATABASE_URL` (defaults match `packages/db/docker-compose.yml`). If Docker is not running yet, use `pnpm test:integration:with-db` (starts compose with `--wait`, then runs Vitest) or run `pnpm db:start` yourself, then ensure the schema is applied with `pnpm db:push`.
+
 ## Development
 
 Run API + internal dashboard (default CORS targets `http://localhost:3001`):

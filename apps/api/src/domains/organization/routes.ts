@@ -7,15 +7,12 @@ import { withTransaction } from "@deck-pack/db/transaction";
 
 import { platformAdminProcedure } from "../../api/procedures";
 
-const OWNER_ROLE = "organizationOwner" as const;
+import {
+  organizationEmailSchema as emailSchema,
+  organizationSlugSchema as slugSchema,
+} from "./schemas";
 
-const emailSchema = z.string().trim().email();
-const slugSchema = z
-  .string()
-  .trim()
-  .min(1)
-  .max(128)
-  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug must be lowercase letters, numbers, and hyphens");
+const OWNER_ROLE = "organizationOwner" as const;
 
 export const organizationRoutes = {
   lookupUser: platformAdminProcedure

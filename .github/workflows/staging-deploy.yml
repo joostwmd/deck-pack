@@ -1,4 +1,4 @@
-# Staging: API (ACR + App Service) + ops / portal / add-in SWAs in one workflow.
+# Staging: test gate, then parallel builds, then simultaneous API restart + SWA uploads.
 # Push to `staging` always runs the full stack (no path filters — front-only merges
 # still refresh the API image so staging never drifts from “latest staging commit”).
 name: Staging — full release (API + frontends)
@@ -18,8 +18,13 @@ permissions:
   pull-requests: write
 
 jobs:
-  api-container:
-    name: Staging — API container (ACR + restart)
+  quality:
+    name: Staging — quality (tests)
+    uses: ./.github/workflows/test-suite.yml
+
+  api-container-build:
+    name: Staging — API image (build + push)
+    needs: [quality]
     runs-on: ubuntu-latest
     environment: staging
     env:
@@ -63,23 +68,18 @@ jobs:
           cache-from: type=gha,scope=api
           cache-to: type=gha,mode=max,scope=api
 
-      - name: Restart staging API Web App
-        run: >-
-          az webapp restart
-          --name "${{ vars.STAGING_API_WEBAPP_NAME || 'deck-pack-api-staging-jw' }}"
-          --resource-group "${{ vars.STAGING_API_RESOURCE_GROUP || 'rg-deck-pack-cloud' }}"
-
-      - name: Summary (API)
+      - name: Summary (API image)
         run: |
           {
-            echo "### Staging deck-pack-api"
+            echo "### Staging deck-pack-api (image pushed)"
             echo ""
             echo "- \`${{ steps.tags.outputs.sha_tag }}\`"
             echo "- \`${{ steps.tags.outputs.extra_tag }}\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
-  swa-ops:
-    name: Staging — OPS (Static Web Apps)
+  swa-ops-build:
+    name: Staging — OPS (build artifact)
+    needs: [quality]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -100,18 +100,15 @@ jobs:
         env:
           VITE_SERVER_URL: ${{ vars.VITE_SERVER_URL_STAGING || 'http://localhost:3000' }}
 
-      - name: Upload to Azure Static Web Apps (staging)
-        uses: Azure/static-web-apps-deploy@v1
+      - uses: actions/upload-artifact@v4
         with:
-          azure_static_web_apps_api_token: ${{ secrets.SWA_TOKEN_OPS_STAGING }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          action: upload
-          app_location: apps/ops/dist
-          skip_app_build: true
-          production_branch: staging
+          name: staging-ops-dist
+          path: apps/ops/dist
+          retention-days: 1
 
-  swa-portal:
-    name: Staging — Portal (Static Web Apps)
+  swa-portal-build:
+    name: Staging — Portal (build artifact)
+    needs: [quality]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -132,18 +129,15 @@ jobs:
         env:
           VITE_SERVER_URL: ${{ vars.VITE_SERVER_URL_STAGING || 'http://localhost:3000' }}
 
-      - name: Upload to Azure Static Web Apps (staging)
-        uses: Azure/static-web-apps-deploy@v1
+      - uses: actions/upload-artifact@v4
         with:
-          azure_static_web_apps_api_token: ${{ secrets.SWA_TOKEN_PORTAL_STAGING }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          action: upload
-          app_location: apps/portal/dist
-          skip_app_build: true
-          production_branch: staging
+          name: staging-portal-dist
+          path: apps/portal/dist
+          retention-days: 1
 
-  swa-assets:
-    name: Staging — Add-in assets (Static Web Apps)
+  swa-assets-build:
+    name: Staging — Add-in assets (build artifact)
+    needs: [quality]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -164,12 +158,111 @@ jobs:
         env:
           VITE_SERVER_URL: ${{ vars.VITE_SERVER_URL_STAGING || 'http://localhost:3000' }}
 
+      - uses: actions/upload-artifact@v4
+        with:
+          name: staging-assets-dist
+          path: apps/addins/assets/dist
+          retention-days: 1
+
+  api-container-deploy:
+    name: Staging — API Web App (restart)
+    runs-on: ubuntu-latest
+    environment: staging
+    needs:
+      - api-container-build
+      - swa-ops-build
+      - swa-portal-build
+      - swa-assets-build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Restart staging API Web App
+        run: >-
+          az webapp restart
+          --name "${{ vars.STAGING_API_WEBAPP_NAME || 'deck-pack-api-staging-jw' }}"
+          --resource-group "${{ vars.STAGING_API_RESOURCE_GROUP || 'rg-deck-pack-cloud' }}"
+
+  swa-ops-deploy:
+    name: Staging — OPS (deploy SWA)
+    runs-on: ubuntu-latest
+    needs:
+      - api-container-build
+      - swa-ops-build
+      - swa-portal-build
+      - swa-assets-build
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: staging-ops-dist
+          path: ops-dist
+
+      - name: Upload to Azure Static Web Apps (staging)
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.SWA_TOKEN_OPS_STAGING }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: upload
+          app_location: ops-dist
+          skip_app_build: true
+          production_branch: staging
+
+  swa-portal-deploy:
+    name: Staging — Portal (deploy SWA)
+    runs-on: ubuntu-latest
+    needs:
+      - api-container-build
+      - swa-ops-build
+      - swa-portal-build
+      - swa-assets-build
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: staging-portal-dist
+          path: portal-dist
+
+      - name: Upload to Azure Static Web Apps (staging)
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.SWA_TOKEN_PORTAL_STAGING }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: upload
+          app_location: portal-dist
+          skip_app_build: true
+          production_branch: staging
+
+  swa-assets-deploy:
+    name: Staging — Add-in assets (deploy SWA)
+    runs-on: ubuntu-latest
+    needs:
+      - api-container-build
+      - swa-ops-build
+      - swa-portal-build
+      - swa-assets-build
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: staging-assets-dist
+          path: assets-dist
+
       - name: Upload to Azure Static Web Apps (staging)
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.SWA_TOKEN_ASSETS_STAGING }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: upload
-          app_location: apps/addins/assets/dist
+          app_location: assets-dist
           skip_app_build: true
           production_branch: staging
