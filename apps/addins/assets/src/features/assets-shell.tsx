@@ -14,11 +14,13 @@ export function AssetsShell({ mode }: AssetsShellProps) {
   const [activeTab, setActiveTab] = useState<AssetTab>("logos");
 
   return (
-    <div className="flex min-h-svh flex-col">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden">
       <AssetTabs activeTab={activeTab} onTabChange={setActiveTab} />
-      {activeTab === "logos" && <LogosPanel mode={mode} />}
-      {activeTab === "flags" && <FlagsPanel mode={mode} />}
-      {activeTab === "icons" && <IconsPanel mode={mode} />}
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+        {activeTab === "logos" && <LogosPanel mode={mode} />}
+        {activeTab === "flags" && <FlagsPanel mode={mode} />}
+        {activeTab === "icons" && <IconsPanel mode={mode} />}
+      </div>
     </div>
   );
 }

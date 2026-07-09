@@ -2,6 +2,7 @@ import { Loader2, type LucideIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { useWebCanvasOptional } from "@/contexts/web-canvas-context";
 import { useAssetSearchFlow } from "@/hooks/use-asset-search-flow";
 import type { AssetDetailsResponse, AssetListItem, AssetPanelMode } from "@/lib/asset-types";
 
@@ -45,6 +46,7 @@ export function AssetSearchPanel({
   onInsert,
 }: AssetSearchPanelProps) {
   const flow = useAssetSearchFlow({ search, getDetails });
+  const webCanvas = useWebCanvasOptional();
   const [isInserting, setIsInserting] = useState(false);
 
   const label = assetLabel.toLowerCase();
@@ -61,9 +63,37 @@ export function AssetSearchPanel({
     if (!flow.selectedEntity || !flow.selectedVariantId || !flow.details) return;
 
     if (mode === "web") {
-      toast.info("Canvas coming soon", {
-        description: `${assetLabel} will be addable to the slide canvas in a future update.`,
-      });
+      const variant = flow.details.variants.find((item) => item.id === flow.selectedVariantId);
+
+      if (!variant) {
+        toast.error("Variant not found");
+        return;
+      }
+
+      if (!webCanvas) {
+        toast.error("Canvas not available");
+        return;
+      }
+
+      setIsInserting(true);
+
+      try {
+        webCanvas.addToCanvas({
+          id: variant.id,
+          name: flow.details.name,
+          imageUrl: variant.imageUrl,
+          insert: variant.insert,
+          metadata: flow.details.metadata,
+        });
+
+        toast.success(`${assetLabel} added to canvas`);
+      } catch (error) {
+        console.error(`Error adding ${label} to canvas:`, error);
+        toast.error(error instanceof Error ? error.message : `Error adding ${label} to canvas`);
+      } finally {
+        setIsInserting(false);
+      }
+
       return;
     }
 
