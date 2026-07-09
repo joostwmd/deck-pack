@@ -96,6 +96,9 @@ importers:
 
   apps/addins/assets:
     dependencies:
+      '@deck-pack/office-js':
+        specifier: workspace:*
+        version: link:../../../packages/office-js
       '@deck-pack/ui':
         specifier: workspace:*
         version: link:../../../packages/ui
@@ -133,6 +136,9 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 22.19.17
+      '@types/office-js':
+        specifier: ^1.0.514
+        version: 1.0.599
       '@types/react':
         specifier: ^19.2.14
         version: 19.2.14
@@ -532,6 +538,18 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 22.19.17
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+
+  packages/office-js:
+    devDependencies:
+      '@deck-pack/config':
+        specifier: workspace:*
+        version: link:../config
+      '@types/office-js':
+        specifier: ^1.0.514
+        version: 1.0.599
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
@@ -2679,6 +2697,9 @@ packages:
 
   '@types/node@25.6.0':
     resolution: {integrity: sha512-+qIYRKdNYJwY3vRCZMdJbPLJAtGjQBudzZzdzwQYkEPQd+PJGixUL5QfvCLDaULoLv+RhT3LDkwEfKaAkgSmNQ==}
+
+  '@types/office-js@1.0.599':
+    resolution: {integrity: sha512-wipSNDGbnEVOGzzzbdsvVi9rULAmbBrTCUA+BtxbmPbCaFSywzehI5akEg+KZSt81pA97kx8MHMm+CNgGplytQ==}
 
   '@types/pg-pool@2.0.7':
     resolution: {integrity: sha512-U4CwmGVQcbEuqpyju8/ptOKg6gEC+Tqsvj2xS9o1g71bUh8twxnC6ZL5rZKCsGN0iyH0CwgUyc9VR5owNQF9Ng==}
@@ -7034,6 +7055,8 @@ snapshots:
   '@types/node@25.6.0':
     dependencies:
       undici-types: 7.19.2
+
+  '@types/office-js@1.0.599': {}
 
   '@types/pg-pool@2.0.7':
     dependencies:

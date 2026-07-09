@@ -11,6 +11,7 @@
     "check-types": "vite build && tsc --noEmit"
   },
   "dependencies": {
+    "@deck-pack/office-js": "workspace:*",
     "@deck-pack/ui": "workspace:*",
     "@tailwindcss/vite": "^4.2.2",
     "@tanstack/react-router": "^1.168.22",
@@ -22,6 +23,7 @@
   },
   "devDependencies": {
     "@deck-pack/config": "workspace:*",
+    "@types/office-js": "^1.0.514",
     "@tanstack/react-router-devtools": "^1.166.13",
     "@tanstack/router-plugin": "^1.167.22",
     "@types/node": "catalog:",

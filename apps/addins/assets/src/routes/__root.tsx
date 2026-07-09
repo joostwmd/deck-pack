@@ -3,6 +3,7 @@ import { HeadContent, Outlet, createRootRoute } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
 import { ThemeProvider } from "@/components/theme-provider";
+import { EnvironmentProvider } from "@/contexts/EnvironmentContext";
 
 import "../index.css";
 
@@ -37,7 +38,9 @@ function RootComponent() {
         disableTransitionOnChange
         storageKey="deck-pack-addin-one-theme"
       >
-        <Outlet />
+        <EnvironmentProvider>
+          <Outlet />
+        </EnvironmentProvider>
         <Toaster richColors />
       </ThemeProvider>
       <TanStackRouterDevtools position="bottom-left" />
