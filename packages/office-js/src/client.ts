@@ -40,7 +40,10 @@ export class OfficeClient {
           if (options.width !== undefined) asyncOptions.imageWidth = options.width;
           if (options.height !== undefined) asyncOptions.imageHeight = options.height;
 
-          Office.context.document.setSelectedDataAsync(base64, asyncOptions, (result) => {
+          Office.context.document.setSelectedDataAsync(
+            base64,
+            asyncOptions,
+            (result: Office.AsyncResult<void>) => {
             if (result.status === Office.AsyncResultStatus.Failed) {
               reject(new Error(result.error?.message ?? "Failed to insert image"));
               return;
@@ -77,7 +80,7 @@ export class OfficeClient {
       const shapes = slide.shapes;
       shapes.load("items/id");
       await context.sync();
-      return shapes.items.map((shape) => shape.id);
+      return shapes.items.map((shape: PowerPoint.Shape) => shape.id);
     });
   }
 

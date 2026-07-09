@@ -46,7 +46,7 @@ export function getOfficeReadyInfo(): Promise<OfficeReadyInfo | null> {
       return;
     }
 
-    Office.onReady((info) => {
+    Office.onReady((info: { host: Office.HostType; platform: Office.PlatformType }) => {
       resolve({
         host: info.host,
         platform: info.platform,
@@ -66,23 +66,23 @@ export function isPowerPointApiAvailable(minVersion = "1.5"): boolean {
 }
 
 function getOfficeOrThrow(): typeof Office {
-  const Office = getOfficeGlobal();
+  const office = getOfficeGlobal();
 
-  if (!Office?.context?.document) {
+  if (!office?.context?.document) {
     throw new Error("Office.js is not available");
   }
 
-  return Office;
+  return office;
 }
 
-function getPowerPointOrThrow(): typeof PowerPoint {
-  const PowerPoint = (window as Window & { PowerPoint?: typeof PowerPoint }).PowerPoint;
+function getPowerPointOrThrow() {
+  const powerPoint = (window as Window & { PowerPoint?: typeof PowerPoint }).PowerPoint;
 
-  if (!PowerPoint) {
+  if (!powerPoint) {
     throw new Error("PowerPoint API is not available");
   }
 
-  return PowerPoint;
+  return powerPoint;
 }
 
 export async function runPowerPoint<T>(

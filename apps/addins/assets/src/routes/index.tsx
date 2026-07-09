@@ -1,7 +1,7 @@
 import { createFileRoute, Navigate } from "@tanstack/react-router";
 
 import Loader from "@/components/loader";
-import { useOfficeDetection } from "@/hooks/useOfficeDetection";
+import { useOfficeDetection } from "@/hooks/use-office-detection";
 
 export const Route = createFileRoute("/")({
   component: HomeComponent,

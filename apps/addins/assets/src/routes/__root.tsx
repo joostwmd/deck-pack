@@ -41,7 +41,7 @@ function RootComponent() {
         <EnvironmentProvider>
           <Outlet />
         </EnvironmentProvider>
-        <Toaster richColors />
+        <Toaster />
       </ThemeProvider>
       <TanStackRouterDevtools position="bottom-left" />
     </>

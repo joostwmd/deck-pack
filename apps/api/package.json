@@ -19,10 +19,12 @@
   },
   "dependencies": {
     "@deck-pack/auth": "workspace:*",
+    "@deck-pack/brandfetch": "workspace:*",
     "@deck-pack/db": "workspace:*",
     "@deck-pack/env": "workspace:*",
     "@hono/node-server": "^1.14.4",
     "@hono/trpc-server": "^0.4.0",
+    "@hono/zod-validator": "^0.8.0",
     "@logtape/drizzle-orm": "^2.0.5",
     "@logtape/file": "^2.0.5",
     "@logtape/hono": "^2.0.5",
