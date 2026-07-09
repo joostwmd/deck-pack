@@ -1,9 +1,7 @@
 class AddinApi {
-  constructor(private readonly baseUrl: string) { }
+  constructor(private readonly baseUrl: string) {}
 
   async searchLogos(query: string): Promise<any> {
-    console.log("About to call API with query:", query);
-    console.log("Base URL:", this.baseUrl);
     return this.request("/api/logos/search", {
       method: "POST",
       body: JSON.stringify({ query }),
@@ -14,6 +12,34 @@ class AddinApi {
     return this.request("/api/logos/get", {
       method: "POST",
       body: JSON.stringify({ brandId }),
+    });
+  }
+
+  async searchFlags(query: string): Promise<any> {
+    return this.request("/api/flags/search", {
+      method: "POST",
+      body: JSON.stringify({ query }),
+    });
+  }
+
+  async getFlagDetails(flagId: string): Promise<any> {
+    return this.request("/api/flags/get", {
+      method: "POST",
+      body: JSON.stringify({ flagId }),
+    });
+  }
+
+  async searchIcons(query: string): Promise<any> {
+    return this.request("/api/icons/search", {
+      method: "POST",
+      body: JSON.stringify({ query }),
+    });
+  }
+
+  async getIconDetails(iconId: string): Promise<any> {
+    return this.request("/api/icons/get", {
+      method: "POST",
+      body: JSON.stringify({ iconId }),
     });
   }
 

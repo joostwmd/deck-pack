@@ -1,11 +1,11 @@
-import type { LogoListItem } from "@/hooks/use-logo-search";
+import type { AssetListItem } from "@/lib/asset-types";
 
-interface LogoSearchResultItemProps {
-  result: LogoListItem;
+interface SearchResultItemProps {
+  result: AssetListItem;
   isSelected?: boolean;
 }
 
-export function LogoSearchResultItem({ result, isSelected = false }: LogoSearchResultItemProps) {
+export function SearchResultItem({ result, isSelected = false }: SearchResultItemProps) {
   return (
     <div
       className={`flex w-full items-center gap-3 ${isSelected ? "opacity-100" : "opacity-90"}`}

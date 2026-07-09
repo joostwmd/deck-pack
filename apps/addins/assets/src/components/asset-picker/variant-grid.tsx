@@ -1,18 +1,18 @@
-import type { LogoListItem } from "@/hooks/use-logo-search";
+import type { AssetListItem } from "@/lib/asset-types";
 
-import { LogoVariantItem } from "./logo-variant-item";
+import { VariantItem } from "./variant-item";
 
-interface LogoVariantGridProps {
-  variants: LogoListItem[];
+interface VariantGridProps {
+  variants: AssetListItem[];
   selectedId?: string | null;
   onSelect: (id: string) => void;
 }
 
-export function LogoVariantGrid({ variants, selectedId = null, onSelect }: LogoVariantGridProps) {
+export function VariantGrid({ variants, selectedId = null, onSelect }: VariantGridProps) {
   return (
     <div className="grid grid-cols-2 gap-2">
       {variants.map((variant) => (
-        <LogoVariantItem
+        <VariantItem
           key={variant.id}
           variant={variant}
           isSelected={selectedId === variant.id}

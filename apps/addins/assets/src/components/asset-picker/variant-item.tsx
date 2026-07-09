@@ -1,14 +1,14 @@
 import { Button } from "@deck-pack/ui/components/system/button";
 
-import type { LogoListItem } from "@/hooks/use-logo-search";
+import type { AssetListItem } from "@/lib/asset-types";
 
-interface LogoVariantItemProps {
-  variant: LogoListItem;
+interface VariantItemProps {
+  variant: AssetListItem;
   isSelected: boolean;
   onSelect: (id: string) => void;
 }
 
-export function LogoVariantItem({ variant, isSelected, onSelect }: LogoVariantItemProps) {
+export function VariantItem({ variant, isSelected, onSelect }: VariantItemProps) {
   return (
     <Button
       type="button"

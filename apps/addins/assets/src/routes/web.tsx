@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { LogosPanel } from "@/features/logos/logos-panel";
+import { AssetsShell } from "@/features/assets-shell";
 
 export const Route = createFileRoute("/web")({
   component: WebComponent,
 });
 
 function WebComponent() {
-  return <LogosPanel mode="web" />;
+  return <AssetsShell mode="web" />;
 }

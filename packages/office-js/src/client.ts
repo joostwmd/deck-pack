@@ -74,6 +74,44 @@ export class OfficeClient {
     return newShapeId;
   }
 
+  async insertSvg(svg: string): Promise<void> {
+    return runOfficeAsync(
+      (Office) =>
+        new Promise((resolve, reject) => {
+          Office.context.document.setSelectedDataAsync(
+            svg,
+            { coercionType: Office.CoercionType.XmlSvg },
+            (result: Office.AsyncResult<void>) => {
+              if (result.status === Office.AsyncResultStatus.Failed) {
+                reject(new Error(result.error?.message ?? "Failed to insert SVG"));
+                return;
+              }
+
+              resolve();
+            },
+          );
+        }),
+    );
+  }
+
+  async insertSvgWithMetadata(
+    svg: string,
+    metadata: ShapeMetadata,
+  ): Promise<string> {
+    const existingShapeIds = await this.getShapeIdsOnCurrentSlide();
+    await this.insertSvg(svg);
+
+    const currentShapeIds = await this.getShapeIdsOnCurrentSlide();
+    const newShapeId = currentShapeIds.find((id) => !existingShapeIds.includes(id));
+
+    if (!newShapeId) {
+      throw new Error("Failed to find inserted shape");
+    }
+
+    await this.addMetadataToShapeById(newShapeId, metadata);
+    return newShapeId;
+  }
+
   private async getShapeIdsOnCurrentSlide(): Promise<string[]> {
     return runPowerPoint(async (context) => {
       const slide = context.presentation.getSelectedSlides().getItemAt(0);

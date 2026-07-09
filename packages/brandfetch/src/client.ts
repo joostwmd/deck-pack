@@ -6,10 +6,9 @@ import type {
 } from "./types";
 
 export class BrandfetchClient {
-  constructor(
-    private readonly apiKey: string,
-    private readonly baseUrl = "https://api.brandfetch.io/v2"
-  ) { }
+  constructor(_apiKey: string, _baseUrl = "https://api.brandfetch.io/v2") {
+    // Reserved for live Brandfetch API integration
+  }
 
   async searchBrands(input: SearchBrandsInput): Promise<BrandfetchSearchResponse> {
     // TODO: Implement actual Brandfetch API call
@@ -75,25 +74,5 @@ export class BrandfetchClient {
     };
 
     return mockResponse;
-  }
-
-  private async request<T>(endpoint: string, init?: RequestInit): Promise<T> {
-    const url = `${this.baseUrl}${endpoint}`;
-
-    const response = await fetch(url, {
-      ...init,
-      headers: {
-        "Authorization": `Bearer ${this.apiKey}`,
-        "Content-Type": "application/json",
-        ...init?.headers,
-      },
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: "Unknown error" }));
-      throw new Error(`Brandfetch API error: ${error.message || response.statusText}`);
-    }
-
-    return response.json();
   }
 }

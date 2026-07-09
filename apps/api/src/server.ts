@@ -9,10 +9,15 @@ import { z } from "zod";
 import { appAuth, opsAuth } from "@deck-pack/auth/server";
 import { env } from "@deck-pack/env/server";
 import { BrandfetchClient } from "@deck-pack/brandfetch";
+import { Icons8Client } from "@deck-pack/icons8";
 
 import { createContext } from "./api/context";
 import type { Context } from "./api/context";
 import { appRouter } from "./api/router";
+import { getFlagByIdMock, searchFlagsMock } from "./domains/flags/mock-data";
+import { mapFlagDetailsResponse, mapFlagSearchResponse } from "./domains/flags/mappers";
+import { mapIconDetailsResponse, mapIconSearchResponse } from "./domains/icons/mappers";
+import { mapLogoDetailsResponse, mapLogoSearchResponse } from "./domains/logos/mappers";
 import { initializeApitally } from "./lib/observability/apitally";
 import { captureRequestError } from "./lib/observability/sentry";
 import { apitallySessionConsumerMiddleware } from "./transport/apitally-consumer";
@@ -29,6 +34,7 @@ export function createApp() {
 
   // TODO: Add proper Brandfetch API key from environment
   const brandfetch = new BrandfetchClient("dummy-key-for-now");
+  const icons8 = new Icons8Client("dummy-key-for-now");
 
   // Custom CORS middleware (works reliably)
   app.use("*", corsMiddleware);
@@ -101,7 +107,7 @@ export function createApp() {
       try {
         const { query } = c.req.valid("json");
         const response = await brandfetch.searchBrands({ query });
-        return c.json(response);
+        return c.json(mapLogoSearchResponse(response));
       } catch (error) {
         console.error("Logo search error:", error);
         return c.json({ error: "Failed to search logos" }, 500);
@@ -128,10 +134,89 @@ export function createApp() {
       try {
         const { brandId } = c.req.valid("json");
         const response = await brandfetch.getBrandDetails({ brandId });
-        return c.json(response);
+        return c.json(mapLogoDetailsResponse(response));
       } catch (error) {
         console.error("Logo details error:", error);
         return c.json({ error: "Failed to get logo details" }, 500);
+      }
+    },
+  );
+
+  // Flag API endpoints
+  app.post(
+    "/api/flags/search",
+    validator("json", (value, c) => {
+      const parsed = z.object({ query: z.string().min(1).max(100) }).safeParse(value);
+      if (!parsed.success) return c.json({ error: "Invalid request body" }, 400);
+      return parsed.data;
+    }),
+    async (c) => {
+      try {
+        const { query } = c.req.valid("json");
+        const results = searchFlagsMock(query);
+        return c.json(mapFlagSearchResponse(results));
+      } catch (error) {
+        console.error("Flag search error:", error);
+        return c.json({ error: "Failed to search flags" }, 500);
+      }
+    },
+  );
+
+  app.post(
+    "/api/flags/get",
+    validator("json", (value, c) => {
+      const parsed = z.object({ flagId: z.string().min(1) }).safeParse(value);
+      if (!parsed.success) return c.json({ error: "Invalid request body" }, 400);
+      return parsed.data;
+    }),
+    async (c) => {
+      try {
+        const { flagId } = c.req.valid("json");
+        const flag = getFlagByIdMock(flagId);
+        if (!flag) return c.json({ error: "Flag not found" }, 404);
+        return c.json(mapFlagDetailsResponse(flag));
+      } catch (error) {
+        console.error("Flag details error:", error);
+        return c.json({ error: "Failed to get flag details" }, 500);
+      }
+    },
+  );
+
+  // Icon API endpoints
+  app.post(
+    "/api/icons/search",
+    validator("json", (value, c) => {
+      const parsed = z.object({ query: z.string().min(1).max(100) }).safeParse(value);
+      if (!parsed.success) return c.json({ error: "Invalid request body" }, 400);
+      return parsed.data;
+    }),
+    async (c) => {
+      try {
+        const { query } = c.req.valid("json");
+        const response = await icons8.searchIcons({ term: query });
+        return c.json(mapIconSearchResponse(response));
+      } catch (error) {
+        console.error("Icon search error:", error);
+        return c.json({ error: "Failed to search icons" }, 500);
+      }
+    },
+  );
+
+  app.post(
+    "/api/icons/get",
+    validator("json", (value, c) => {
+      const parsed = z.object({ iconId: z.string().min(1) }).safeParse(value);
+      if (!parsed.success) return c.json({ error: "Invalid request body" }, 400);
+      return parsed.data;
+    }),
+    async (c) => {
+      try {
+        const { iconId } = c.req.valid("json");
+        const response = await icons8.getIconById({ id: iconId });
+        return c.json(mapIconDetailsResponse(response));
+      } catch (error) {
+        console.error("Icon details error:", error);
+        return c.json({ error: "Failed to get icon details" }, 500);
       }
     },
   );

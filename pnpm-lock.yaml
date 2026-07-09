@@ -172,6 +172,9 @@ importers:
       '@deck-pack/env':
         specifier: workspace:*
         version: link:../../packages/env
+      '@deck-pack/icons8':
+        specifier: workspace:*
+        version: link:../../packages/icons8
       '@hono/node-server':
         specifier: ^1.14.4
         version: 1.19.14(hono@4.12.14)
@@ -547,6 +550,22 @@ importers:
       dotenv:
         specifier: 'catalog:'
         version: 17.4.2
+      zod:
+        specifier: 'catalog:'
+        version: 4.3.6
+    devDependencies:
+      '@deck-pack/config':
+        specifier: workspace:*
+        version: link:../config
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.19.17
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+
+  packages/icons8:
+    dependencies:
       zod:
         specifier: 'catalog:'
         version: 4.3.6

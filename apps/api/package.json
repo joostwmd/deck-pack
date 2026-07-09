@@ -22,6 +22,7 @@
     "@deck-pack/brandfetch": "workspace:*",
     "@deck-pack/db": "workspace:*",
     "@deck-pack/env": "workspace:*",
+    "@deck-pack/icons8": "workspace:*",
     "@hono/node-server": "^1.14.4",
     "@hono/trpc-server": "^0.4.0",
     "@hono/zod-validator": "^0.8.0",

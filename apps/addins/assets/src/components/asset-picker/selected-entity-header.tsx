@@ -1,11 +1,11 @@
-interface SelectedBrandHeaderProps {
+interface SelectedEntityHeaderProps {
   entity: {
     name: string;
     icon: string;
   };
 }
 
-export function SelectedBrandHeader({ entity }: SelectedBrandHeaderProps) {
+export function SelectedEntityHeader({ entity }: SelectedEntityHeaderProps) {
   return (
     <div className="flex w-full flex-row items-center justify-between border-b p-4">
       <div className="flex flex-row items-center gap-4">

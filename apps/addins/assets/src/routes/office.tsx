@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { LogosPanel } from "@/features/logos/logos-panel";
+import { AssetsShell } from "@/features/assets-shell";
 
 export const Route = createFileRoute("/office")({
   component: OfficeComponent,
 });
 
 function OfficeComponent() {
-  return <LogosPanel mode="office" />;
+  return <AssetsShell mode="office" />;
 }

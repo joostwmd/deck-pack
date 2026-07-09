@@ -1,7 +1,7 @@
 import { Button } from "@deck-pack/ui/components/system/button";
 import { Loader2 } from "lucide-react";
 
-interface LogoInsertButtonProps {
+interface InsertButtonProps {
   disabled?: boolean;
   isInserting?: boolean;
   label?: string;
@@ -9,13 +9,13 @@ interface LogoInsertButtonProps {
   onClick: () => void | Promise<void>;
 }
 
-export function LogoInsertButton({
+export function InsertButton({
   disabled = false,
   isInserting = false,
   label = "Insert",
   insertingLabel = "Inserting...",
   onClick,
-}: LogoInsertButtonProps) {
+}: InsertButtonProps) {
   return (
     <div className="sticky bottom-0 border-t bg-background p-4">
       <Button className="w-full" disabled={disabled || isInserting} onClick={() => void onClick()}>

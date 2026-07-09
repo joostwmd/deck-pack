@@ -1,14 +1,14 @@
-import type { LogoListItem } from "@/hooks/use-logo-search";
+import type { AssetListItem } from "@/lib/asset-types";
 
-import { LogoSearchResultItem } from "./logo-search-result-item";
+import { SearchResultItem } from "./search-result-item";
 
-interface LogoSearchResultsProps {
-  results: LogoListItem[];
+interface SearchResultsProps {
+  results: AssetListItem[];
   selectedId?: string | null;
   onSelect?: (id: string) => void;
 }
 
-export function LogoSearchResults({ results, selectedId = null, onSelect }: LogoSearchResultsProps) {
+export function SearchResults({ results, selectedId = null, onSelect }: SearchResultsProps) {
   return (
     <div className="divide-y border">
       {results.map((result) => (
@@ -20,7 +20,7 @@ export function LogoSearchResults({ results, selectedId = null, onSelect }: Logo
           }`}
           onClick={() => onSelect?.(result.id)}
         >
-          <LogoSearchResultItem result={result} isSelected={selectedId === result.id} />
+          <SearchResultItem result={result} isSelected={selectedId === result.id} />
         </button>
       ))}
     </div>

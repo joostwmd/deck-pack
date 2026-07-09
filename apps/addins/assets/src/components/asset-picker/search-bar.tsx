@@ -1,19 +1,19 @@
 import { Input } from "@deck-pack/ui/components/system/input";
 import { Loader2, Search } from "lucide-react";
 
-interface LogoSearchBarProps {
+interface SearchBarProps {
   value: string;
   onChange: (value: string) => void;
   isSearching?: boolean;
   placeholder?: string;
 }
 
-export function LogoSearchBar({
+export function SearchBar({
   value,
   onChange,
   isSearching = false,
   placeholder = "Search...",
-}: LogoSearchBarProps) {
+}: SearchBarProps) {
   return (
     <div className="relative">
       <Input
