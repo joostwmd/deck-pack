@@ -32,13 +32,15 @@ export function useLogoSearch(debouncedQuery: string) {
       setError(null);
 
       try {
-        const brands = await addinApi.searchLogos(query);
+        const response = await addinApi.searchLogos(query);
 
         if (cancelled) return;
 
-        const mapped = (Array.isArray(brands) ? brands : []).map((logo: any) => ({
-          id: logo.brandId,
-          imageUrl: logo.icon || "",
+        // API returns { results: [...] }
+        const brands = response.results || [];
+        const mapped = brands.map((logo: any) => ({
+          id: logo.brandId || logo.id,
+          imageUrl: logo.logo || logo.icon || "",
           name: logo.name || logo.domain,
         }));
 

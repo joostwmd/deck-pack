@@ -9,7 +9,7 @@ export class BrandfetchClient {
   constructor(
     private readonly apiKey: string,
     private readonly baseUrl = "https://api.brandfetch.io/v2"
-  ) {}
+  ) { }
 
   async searchBrands(input: SearchBrandsInput): Promise<BrandfetchSearchResponse> {
     // TODO: Implement actual Brandfetch API call
@@ -20,14 +20,14 @@ export class BrandfetchClient {
           id: "mock-1",
           name: `${input.query} Corp`,
           domain: `${input.query.toLowerCase()}.com`,
-          logo: `https://via.placeholder.com/200x200/007acc/ffffff?text=${input.query}`,
+          logo: `https://picsum.photos/200/300 `,
           brandId: "mock-1",
         },
         {
           id: "mock-2",
           name: `${input.query} Inc`,
           domain: `${input.query.toLowerCase()}.inc.com`,
-          logo: `https://via.placeholder.com/200x200/28a745/ffffff?text=${input.query}`,
+          logo: `https://picsum.photos/200/300 `,
           brandId: "mock-2",
         }
       ]
@@ -51,23 +51,23 @@ export class BrandfetchClient {
             {
               format: "png",
               size: 200,
-              src: "https://via.placeholder.com/200x200/007acc/ffffff?text=Logo",
+              src: "https://picsum.photos/200/300 ",
             },
             {
               format: "png",
               size: 400,
-              src: "https://via.placeholder.com/400x400/007acc/ffffff?text=Logo",
+              src: "https://picsum.photos/400/600 ",
             }
           ]
         },
         {
-          type: "logo", 
+          type: "logo",
           theme: "dark",
           formats: [
             {
               format: "png",
               size: 200,
-              src: "https://via.placeholder.com/200x200/ffffff/000000?text=Logo",
+              src: "https://picsum.photos/200/300 ",
             }
           ]
         }
@@ -79,7 +79,7 @@ export class BrandfetchClient {
 
   private async request<T>(endpoint: string, init?: RequestInit): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
-    
+
     const response = await fetch(url, {
       ...init,
       headers: {
