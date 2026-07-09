@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import type { AssetDetailsResponse, AssetListItem, SelectedAssetEntity } from "@/lib/asset-types";
@@ -46,9 +46,35 @@ export function useAssetSearchFlow({ search, getDetails }: UseAssetSearchFlowCon
   const [selectedEntity, setSelectedEntity] = useState<SelectedAssetEntity | null>(null);
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
   const [selectionQuery, setSelectionQuery] = useState("");
+  const [highlightedResultIndex, setHighlightedResultIndex] = useState(-1);
+  const [highlightedVariantIndex, setHighlightedVariantIndex] = useState(-1);
 
   const activeEntity = selectionQuery === query ? selectedEntity : null;
   const activeVariantId = selectionQuery === query ? selectedVariantId : null;
+
+  useEffect(() => {
+    if (results.length > 0) {
+      setHighlightedResultIndex(0);
+      return;
+    }
+
+    setHighlightedResultIndex(-1);
+  }, [results]);
+
+  useEffect(() => {
+    if (variants.length === 0) {
+      setHighlightedVariantIndex(-1);
+      return;
+    }
+
+    if (activeVariantId) {
+      const index = variants.findIndex((variant) => variant.id === activeVariantId);
+      setHighlightedVariantIndex(index >= 0 ? index : 0);
+      return;
+    }
+
+    setHighlightedVariantIndex(0);
+  }, [variants, activeVariantId]);
 
   const selectEntity = useCallback(
     async (id: string) => {
@@ -63,6 +89,85 @@ export function useAssetSearchFlow({ search, getDetails }: UseAssetSearchFlowCon
     [results, loadVariants, query],
   );
 
+  const navigateResults = useCallback(
+    (direction: "up" | "down") => {
+      if (results.length === 0) return;
+
+      setHighlightedResultIndex((current) => {
+        const start = current < 0 ? 0 : current;
+
+        if (direction === "down") {
+          return Math.min(start + 1, results.length - 1);
+        }
+
+        return Math.max(start - 1, 0);
+      });
+    },
+    [results.length],
+  );
+
+  const selectHighlightedResult = useCallback(() => {
+    if (results.length === 0) return;
+
+    const index = highlightedResultIndex >= 0 ? highlightedResultIndex : 0;
+    const result = results[index];
+
+    if (result) {
+      void selectEntity(result.id);
+    }
+  }, [highlightedResultIndex, results, selectEntity]);
+
+  const navigateVariants = useCallback(
+    (direction: "left" | "right") => {
+      if (variants.length === 0) return;
+
+      setHighlightedVariantIndex((current) => {
+        const start = current < 0 ? 0 : current;
+
+        if (direction === "right") {
+          return Math.min(start + 1, variants.length - 1);
+        }
+
+        return Math.max(start - 1, 0);
+      });
+    },
+    [variants.length],
+  );
+
+  const confirmHighlightedVariant = useCallback(() => {
+    if (variants.length === 0) return;
+
+    const index = highlightedVariantIndex >= 0 ? highlightedVariantIndex : 0;
+    const variant = variants[index];
+
+    if (variant) {
+      setSelectedVariantId(variant.id);
+    }
+  }, [highlightedVariantIndex, variants]);
+
+  const goBack = useCallback(() => {
+    if (activeVariantId) {
+      setSelectedVariantId(null);
+      return;
+    }
+
+    if (activeEntity) {
+      setSelectedEntity(null);
+      setSelectionQuery("");
+      setHighlightedResultIndex(results.length > 0 ? 0 : -1);
+      return;
+    }
+
+    if (searchValue) {
+      setSearchValue("");
+    }
+  }, [activeEntity, activeVariantId, results.length, searchValue]);
+
+  const highlightedResultId =
+    highlightedResultIndex >= 0 ? (results[highlightedResultIndex]?.id ?? null) : null;
+  const highlightedVariantId =
+    highlightedVariantIndex >= 0 ? (variants[highlightedVariantIndex]?.id ?? null) : null;
+
   return {
     searchValue,
     setSearchValue,
@@ -76,7 +181,14 @@ export function useAssetSearchFlow({ search, getDetails }: UseAssetSearchFlowCon
     variantsError,
     selectedEntity: activeEntity,
     selectedVariantId: activeVariantId,
+    highlightedResultId,
+    highlightedVariantId,
     selectEntity,
     selectVariant: setSelectedVariantId,
+    navigateResults,
+    selectHighlightedResult,
+    navigateVariants,
+    confirmHighlightedVariant,
+    goBack,
   };
 }

@@ -1,10 +1,13 @@
 import { Loader2, type LucideIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { ShortcutHints } from "@/components/shortcut-hint";
 import { useWebCanvasOptional } from "@/contexts/web-canvas-context";
 import { useAssetSearchFlow } from "@/hooks/use-asset-search-flow";
+import { useAssetSearchHotkeys } from "@/hooks/use-asset-search-hotkeys";
 import type { AssetDetailsResponse, AssetListItem, AssetPanelMode } from "@/lib/asset-types";
+import { SEARCH_SHORTCUTS, VARIANT_SHORTCUTS } from "@/lib/shortcuts";
 
 import { EmptyState } from "./empty-state";
 import { InsertButton } from "./insert-button";
@@ -47,19 +50,12 @@ export function AssetSearchPanel({
 }: AssetSearchPanelProps) {
   const flow = useAssetSearchFlow({ search, getDetails });
   const webCanvas = useWebCanvasOptional();
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [isInserting, setIsInserting] = useState(false);
 
   const label = assetLabel.toLowerCase();
 
-  useEffect(() => {
-    if (flow.searchError) toast.error(`Error searching for ${label}s`);
-  }, [flow.searchError, label]);
-
-  useEffect(() => {
-    if (flow.variantsError) toast.error(`Error fetching ${label} variants`);
-  }, [flow.variantsError, label]);
-
-  async function handleInsert() {
+  const handleInsert = useCallback(async () => {
     if (!flow.selectedEntity || !flow.selectedVariantId || !flow.details) return;
 
     if (mode === "web") {
@@ -112,7 +108,31 @@ export function AssetSearchPanel({
     } finally {
       setIsInserting(false);
     }
-  }
+  }, [
+    assetLabel,
+    flow.details,
+    flow.selectedEntity,
+    flow.selectedVariantId,
+    label,
+    mode,
+    onInsert,
+    webCanvas,
+  ]);
+
+  useAssetSearchHotkeys({
+    searchInputRef,
+    flow,
+    onInsert: handleInsert,
+    isInserting,
+  });
+
+  useEffect(() => {
+    if (flow.searchError) toast.error(`Error searching for ${label}s`);
+  }, [flow.searchError, label]);
+
+  useEffect(() => {
+    if (flow.variantsError) toast.error(`Error fetching ${label} variants`);
+  }, [flow.variantsError, label]);
 
   return (
     <div className="flex flex-1 flex-col">
@@ -120,17 +140,20 @@ export function AssetSearchPanel({
 
       <div className="px-4 pt-4">
         <SearchBar
+          ref={searchInputRef}
           value={flow.searchValue}
           onChange={flow.setSearchValue}
           isSearching={flow.isSearching}
           placeholder={searchPlaceholder}
         />
+        <ShortcutHints defs={SEARCH_SHORTCUTS} className="mt-2" />
       </div>
 
       <div className="mt-4 flex flex-1 flex-col px-4 pb-4">
         {flow.results.length > 0 ? (
           <SearchResults
             results={flow.results}
+            highlightedId={flow.highlightedResultId}
             selectedId={flow.selectedEntity?.id}
             onSelect={(id) => void flow.selectEntity(id)}
           />
@@ -148,11 +171,15 @@ export function AssetSearchPanel({
                   <Loader2 className="size-8 animate-spin" />
                 </div>
               ) : flow.variants.length > 0 ? (
-                <VariantGrid
-                  variants={flow.variants}
-                  selectedId={flow.selectedVariantId}
-                  onSelect={flow.selectVariant}
-                />
+                <>
+                  <VariantGrid
+                    variants={flow.variants}
+                    highlightedId={flow.highlightedVariantId}
+                    selectedId={flow.selectedVariantId}
+                    onSelect={flow.selectVariant}
+                  />
+                  <ShortcutHints defs={VARIANT_SHORTCUTS} className="mt-3" />
+                </>
               ) : (
                 <EmptyState
                   icon={Icon}
@@ -167,6 +194,7 @@ export function AssetSearchPanel({
               isInserting={isInserting}
               label={mode === "web" ? "Add to canvas" : "Insert"}
               insertingLabel={mode === "web" ? "Adding..." : "Inserting..."}
+              showShortcut={!isInserting && !!flow.selectedVariantId}
               onClick={handleInsert}
             />
           </div>

@@ -4,16 +4,22 @@ import type { AssetListItem } from "@/lib/asset-types";
 
 interface VariantItemProps {
   variant: AssetListItem;
+  isHighlighted?: boolean;
   isSelected: boolean;
   onSelect: (id: string) => void;
 }
 
-export function VariantItem({ variant, isSelected, onSelect }: VariantItemProps) {
+export function VariantItem({
+  variant,
+  isHighlighted = false,
+  isSelected,
+  onSelect,
+}: VariantItemProps) {
   return (
     <Button
       type="button"
-      variant={isSelected ? "default" : "ghost"}
-      className="h-auto w-full p-2"
+      variant={isSelected ? "default" : isHighlighted ? "secondary" : "ghost"}
+      className={`h-auto w-full p-2 ${isHighlighted && !isSelected ? "ring-2 ring-primary/40" : ""}`}
       onClick={() => onSelect(variant.id)}
     >
       {variant.imageUrl ? (

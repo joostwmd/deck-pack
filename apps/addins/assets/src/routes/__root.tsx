@@ -4,6 +4,7 @@ import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
 import { ThemeProvider } from "@/components/theme-provider";
 import { EnvironmentProvider } from "@/contexts/EnvironmentContext";
+import { AppHotkeysProvider } from "@/providers/app-hotkeys-provider";
 
 import "../index.css";
 
@@ -39,7 +40,9 @@ function RootComponent() {
         storageKey="deck-pack-addin-one-theme"
       >
         <EnvironmentProvider>
-          <Outlet />
+          <AppHotkeysProvider>
+            <Outlet />
+          </AppHotkeysProvider>
         </EnvironmentProvider>
         <Toaster />
       </ThemeProvider>

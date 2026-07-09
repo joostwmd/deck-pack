@@ -1,5 +1,6 @@
 import { Input } from "@deck-pack/ui/components/system/input";
 import { Loader2, Search } from "lucide-react";
+import { forwardRef } from "react";
 
 interface SearchBarProps {
   value: string;
@@ -8,15 +9,14 @@ interface SearchBarProps {
   placeholder?: string;
 }
 
-export function SearchBar({
-  value,
-  onChange,
-  isSearching = false,
-  placeholder = "Search...",
-}: SearchBarProps) {
+export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(function SearchBar(
+  { value, onChange, isSearching = false, placeholder = "Search..." },
+  ref,
+) {
   return (
     <div className="relative">
       <Input
+        ref={ref}
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
@@ -27,4 +27,4 @@ export function SearchBar({
       </div>
     </div>
   );
-}
+});

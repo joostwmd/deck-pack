@@ -1,4 +1,6 @@
 import { Button } from "@deck-pack/ui/components/system/button";
+import { Kbd, KbdGroup } from "@deck-pack/ui/components/system/kbd";
+import { CornerDownLeft } from "lucide-react";
 import { Loader2 } from "lucide-react";
 
 interface InsertButtonProps {
@@ -6,6 +8,7 @@ interface InsertButtonProps {
   isInserting?: boolean;
   label?: string;
   insertingLabel?: string;
+  showShortcut?: boolean;
   onClick: () => void | Promise<void>;
 }
 
@@ -14,6 +17,7 @@ export function InsertButton({
   isInserting = false,
   label = "Insert",
   insertingLabel = "Inserting...",
+  showShortcut = false,
   onClick,
 }: InsertButtonProps) {
   return (
@@ -25,7 +29,17 @@ export function InsertButton({
             {insertingLabel}
           </>
         ) : (
-          label
+          <>
+            <span>{label}</span>
+            {showShortcut && (
+              <KbdGroup className="ml-auto opacity-60">
+                <Kbd className="rounded-sm border border-current bg-transparent">⌘</Kbd>
+                <Kbd className="rounded-sm border border-current bg-transparent">
+                  <CornerDownLeft aria-label="↵" />
+                </Kbd>
+              </KbdGroup>
+            )}
+          </>
         )}
       </Button>
     </div>
