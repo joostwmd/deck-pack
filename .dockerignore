@@ -21,7 +21,6 @@ node_modules
 
 # Large / unrelated trees
 external
-steno
 coverage
 tmp
 temp
