@@ -10,7 +10,7 @@ import type { AssetDetailsResponse, AssetListItem, AssetPanelMode } from "@/lib/
 import { SHORTCUTS } from "@/lib/shortcuts";
 
 import { EmptyState } from "./empty-state";
-import { InsertButton } from "./insert-button";
+import { InsertSection } from "./insert-section";
 import { ScreenHeader } from "./screen-header";
 import { SearchResults } from "./search-results";
 import { SearchSection } from "./search-section";
@@ -187,12 +187,11 @@ export function AssetSearchPanel({
               />
             )}
 
-            <InsertButton
+            <InsertSection
               disabled={!flow.selectedVariantId}
               isInserting={isInserting}
               label={mode === "web" ? "Add to canvas" : "Insert"}
               insertingLabel={mode === "web" ? "Adding..." : "Inserting..."}
-              showShortcut={!isInserting && !!flow.selectedVariantId}
               onClick={handleInsert}
             />
           </div>

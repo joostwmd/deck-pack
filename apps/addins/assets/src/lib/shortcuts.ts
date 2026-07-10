@@ -158,6 +158,15 @@ export const VARIANT_SHORTCUTS: ShortcutDef[] = [
 
 export const INSERT_SHORTCUT: ShortcutDef = SHORTCUTS.insert;
 
+/** Display row for insert section — matches Figma insert-section hints */
+export const INSERT_SECTION_DISPLAY: ShortcutDef = {
+  ...SHORTCUTS.insert,
+  keys: [CMD, t("I")],
+  description: "Insert Selected Variant",
+};
+
+export const INSERT_SECTION_SHORTCUTS: ShortcutDef[] = [INSERT_SECTION_DISPLAY];
+
 export const ALL_SHORTCUTS: ShortcutDef[] = [
   SHORTCUTS.logos,
   SHORTCUTS.flags,
