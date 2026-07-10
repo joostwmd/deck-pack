@@ -26,11 +26,7 @@ export function InsertSection({
     <section className={cn("sticky bottom-0 flex flex-col gap-[7px] bg-background pt-2", className)}>
       <ShortcutHints defs={INSERT_SECTION_SHORTCUTS} />
 
-      <Button
-        className="h-9 w-full rounded-lg text-sm font-semibold tracking-[0.07px]"
-        disabled={disabled || isInserting}
-        onClick={() => void onClick()}
-      >
+      <Button className="w-full" disabled={disabled || isInserting} onClick={() => void onClick()}>
         {isInserting ? (
           <>
             <Loader2 className="size-4 animate-spin" />
