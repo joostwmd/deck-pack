@@ -76,7 +76,7 @@ export function AssetSearchPanel({
 
       try {
         webCanvas.addToCanvas({
-          id: variant.id,
+          variantId: variant.id,
           name: flow.details.name,
           imageUrl: variant.imageUrl,
           insert: variant.insert,
