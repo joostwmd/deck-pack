@@ -2,12 +2,12 @@ import { Loader2, type LucideIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
-import { ShortcutHints, ShortcutKeys } from "@/components/shortcut-hint";
+import { ShortcutKeys } from "@/components/shortcut-hint";
 import { useWebCanvasOptional } from "@/contexts/web-canvas-context";
 import { useAssetSearchFlow } from "@/hooks/use-asset-search-flow";
 import { useAssetSearchHotkeys } from "@/hooks/use-asset-search-hotkeys";
 import type { AssetDetailsResponse, AssetListItem, AssetPanelMode } from "@/lib/asset-types";
-import { SHORTCUTS, VARIANT_SHORTCUTS } from "@/lib/shortcuts";
+import { SHORTCUTS } from "@/lib/shortcuts";
 
 import { EmptyState } from "./empty-state";
 import { InsertButton } from "./insert-button";
@@ -16,6 +16,7 @@ import { SearchResults } from "./search-results";
 import { SearchSection } from "./search-section";
 import { SelectedEntityHeader } from "./selected-entity-header";
 import { VariantGrid } from "./variant-grid";
+import { VariantsSection } from "./variants-section";
 
 interface InsertContext {
   details: AssetDetailsResponse;
@@ -160,34 +161,31 @@ export function AssetSearchPanel({
         </SearchSection>
       </div>
 
-      <div className="mt-4 flex flex-1 flex-col px-4 pb-4">
+      <div className="flex flex-1 flex-col px-4 pb-4">
         {flow.selectedEntity ? (
-          <div className="mt-4 border-t pt-4">
+          <div className="mt-6 flex flex-col gap-6">
             <SelectedEntityHeader entity={flow.selectedEntity} />
 
-            <div className="mt-4">
-              {flow.isFetchingVariants ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="size-8 animate-spin" />
-                </div>
-              ) : flow.variants.length > 0 ? (
-                <>
-                  <VariantGrid
-                    variants={flow.variants}
-                    highlightedId={flow.highlightedVariantId}
-                    selectedId={flow.selectedVariantId}
-                    onSelect={flow.selectVariant}
-                  />
-                  <ShortcutHints defs={VARIANT_SHORTCUTS} className="mt-3" />
-                </>
-              ) : (
-                <EmptyState
-                  icon={Icon}
-                  title="No variants available"
-                  description={noVariantsDescription}
+            {flow.isFetchingVariants ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="size-8 animate-spin" />
+              </div>
+            ) : flow.variants.length > 0 ? (
+              <VariantsSection>
+                <VariantGrid
+                  variants={flow.variants}
+                  highlightedId={flow.highlightedVariantId}
+                  selectedId={flow.selectedVariantId}
+                  onSelect={flow.selectVariant}
                 />
-              )}
-            </div>
+              </VariantsSection>
+            ) : (
+              <EmptyState
+                icon={Icon}
+                title="No variants available"
+                description={noVariantsDescription}
+              />
+            )}
 
             <InsertButton
               disabled={!flow.selectedVariantId}

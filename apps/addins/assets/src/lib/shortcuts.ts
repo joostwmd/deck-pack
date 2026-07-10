@@ -132,12 +132,14 @@ export const SELECT_RESULT_DISPLAY: ShortcutDef = {
   description: "Select Result",
 };
 
-/** Combined display row for left/right navigation */
+/** Combined display row for variant navigation — matches Figma results-section hints */
 export const NAVIGATE_VARIANTS_DISPLAY: ShortcutDef = {
   ...SHORTCUTS.navigateVariantsLeft,
-  keys: [LEFT, RIGHT],
-  description: "Navigate variants",
+  keys: [CMD, UP, LEFT, RIGHT, DOWN],
+  description: "Navigate Variants",
 };
+
+export const VARIANT_NAVIGATION_SHORTCUTS: ShortcutDef[] = [NAVIGATE_VARIANTS_DISPLAY];
 
 export const SEARCH_NAVIGATION_SHORTCUTS: ShortcutDef[] = [
   NAVIGATE_RESULTS_DISPLAY,

@@ -1,3 +1,5 @@
+import { cn } from "@deck-pack/ui/lib/utils";
+
 import type { AssetListItem } from "@/lib/asset-types";
 
 import { VariantItem } from "./variant-item";
@@ -7,6 +9,7 @@ interface VariantGridProps {
   highlightedId?: string | null;
   selectedId?: string | null;
   onSelect: (id: string) => void;
+  className?: string;
 }
 
 export function VariantGrid({
@@ -14,9 +17,10 @@ export function VariantGrid({
   highlightedId = null,
   selectedId = null,
   onSelect,
+  className,
 }: VariantGridProps) {
   return (
-    <div className="grid grid-cols-2 gap-2">
+    <div className={cn("grid w-full grid-cols-2 gap-4", className)}>
       {variants.map((variant) => (
         <VariantItem
           key={variant.id}
