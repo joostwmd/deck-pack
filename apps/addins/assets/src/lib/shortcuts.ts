@@ -132,10 +132,10 @@ export const SELECT_RESULT_DISPLAY: ShortcutDef = {
   description: "Select Result",
 };
 
-/** Combined display row for variant navigation — matches Figma results-section hints */
+/** Combined display row for variant navigation */
 export const NAVIGATE_VARIANTS_DISPLAY: ShortcutDef = {
   ...SHORTCUTS.navigateVariantsLeft,
-  keys: [CMD, UP, LEFT, RIGHT, DOWN],
+  keys: [LEFT, RIGHT],
   description: "Navigate Variants",
 };
 
@@ -158,10 +158,9 @@ export const VARIANT_SHORTCUTS: ShortcutDef[] = [
 
 export const INSERT_SHORTCUT: ShortcutDef = SHORTCUTS.insert;
 
-/** Display row for insert section — matches Figma insert-section hints */
+/** Display row for insert section */
 export const INSERT_SECTION_DISPLAY: ShortcutDef = {
   ...SHORTCUTS.insert,
-  keys: [CMD, t("I")],
   description: "Insert Selected Variant",
 };
 
@@ -176,7 +175,7 @@ export const ALL_SHORTCUTS: ShortcutDef[] = [
   SELECT_RESULT_DISPLAY,
   NAVIGATE_VARIANTS_DISPLAY,
   SHORTCUTS.selectVariant,
-  SHORTCUTS.insert,
+  INSERT_SECTION_DISPLAY,
   SHORTCUTS.back,
   SHORTCUTS.openHelp,
 ];
