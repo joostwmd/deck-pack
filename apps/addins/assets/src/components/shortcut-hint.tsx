@@ -20,14 +20,20 @@ function ShortcutKey({ token }: { token: KeyToken }) {
   return <Kbd className="rounded-sm border border-border">{token.value}</Kbd>;
 }
 
-export function ShortcutKeys({ tokens }: { tokens: KeyToken[] }) {
+export function ShortcutKeys({
+  tokens,
+  className,
+}: {
+  tokens: KeyToken[];
+  className?: string;
+}) {
   return (
-    <>
+    <KbdGroup className={cn("pointer-events-none", className)}>
       {tokens.map((token, idx) => (
         // eslint-disable-next-line react/no-array-index-key
         <ShortcutKey key={idx} token={token} />
       ))}
-    </>
+    </KbdGroup>
   );
 }
 

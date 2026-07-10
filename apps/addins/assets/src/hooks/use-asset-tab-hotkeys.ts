@@ -1,6 +1,6 @@
 import { useHotkeys } from "@tanstack/react-hotkeys";
 
-import type { AssetTab } from "@/components/asset-tabs";
+import type { AssetTab } from "@/lib/asset-types";
 import { SHORTCUTS } from "@/lib/shortcuts";
 
 interface UseAssetTabHotkeysOptions {
