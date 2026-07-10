@@ -12,7 +12,7 @@ import {
   SidebarSeparator,
 } from "@deck-pack/ui/components/system/sidebar";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Building2, UserRound, Users } from "lucide-react";
+import { Buildings, Moon, Sun, UserCircle, Users } from "@phosphor-icons/react";
 
 export function OrgSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -30,7 +30,7 @@ export function OrgSidebar() {
                   isActive={pathname === "/org/dashboard" || pathname === "/org"}
                   render={<Link to="/org/dashboard" />}
                 >
-                  <Building2 className="size-4" />
+                  <Buildings className="size-4" />
                   <span>Dashboard</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -56,7 +56,7 @@ export function OrgSidebar() {
                   isActive={pathname === "/account"}
                   render={<Link to="/account" />}
                 >
-                  <UserRound className="size-4" />
+                  <UserCircle className="size-4" />
                   <span>Personal account</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>

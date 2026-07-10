@@ -1,4 +1,4 @@
-import { Shapes } from "lucide-react";
+import { Shapes } from "@phosphor-icons/react";
 
 import { AssetSearchPanel } from "@/components/asset-picker/asset-search-panel";
 import { addinApi } from "@/lib/api";

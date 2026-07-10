@@ -1,12 +1,12 @@
 import {
-  ArrowBigDown,
-  ArrowBigUp,
+  ArrowBendDownLeft,
+  ArrowFatDown,
+  ArrowFatUp,
   ArrowLeft,
   ArrowRight,
-  CornerDownLeft,
-} from "lucide-react";
+  type Icon,
+} from "@phosphor-icons/react";
 import type { Hotkey } from "@tanstack/react-hotkeys";
-import type { LucideIcon } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Primitive types
@@ -14,7 +14,7 @@ import type { LucideIcon } from "lucide-react";
 
 export type KeyToken =
   | { type: "text"; value: string }
-  | { type: "icon"; icon: LucideIcon; label: string };
+  | { type: "icon"; icon: Icon; label: string };
 
 export type ShortcutGroup = "tabs" | "search" | "variants" | "actions" | "help";
 
@@ -48,7 +48,7 @@ export type ShortcutId =
 // ---------------------------------------------------------------------------
 
 const t = (value: string): KeyToken => ({ type: "text", value });
-const i = (icon: LucideIcon, label: string): KeyToken => ({ type: "icon", icon, label });
+const i = (icon: Icon, label: string): KeyToken => ({ type: "icon", icon, label });
 const def = (
   id: ShortcutId,
   hotkey: Hotkey,
@@ -58,11 +58,11 @@ const def = (
   ignoreInputs?: boolean,
 ): ShortcutDef => ({ id, hotkey, keys, description, group, ignoreInputs });
 
-const UP = i(ArrowBigUp, "↑");
-const DOWN = i(ArrowBigDown, "↓");
+const UP = i(ArrowFatUp, "↑");
+const DOWN = i(ArrowFatDown, "↓");
 const LEFT = i(ArrowLeft, "←");
 const RIGHT = i(ArrowRight, "→");
-const ENTER = i(CornerDownLeft, "↵");
+const ENTER = i(ArrowBendDownLeft, "↵");
 const CMD = t("⌘");
 const ESC = t("Esc");
 

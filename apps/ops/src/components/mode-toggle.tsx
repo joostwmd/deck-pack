@@ -5,7 +5,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@deck-pack/ui/components/system/dropdown-menu";
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun } from "@phosphor-icons/react";
 
 import { useTheme } from "@/components/theme-provider";
 

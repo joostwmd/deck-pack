@@ -1,4 +1,4 @@
-import { ImageIcon } from "lucide-react";
+import { Image } from "@phosphor-icons/react";
 
 import { AssetSearchPanel } from "@/components/asset-picker/asset-search-panel";
 import { addinApi } from "@/lib/api";
@@ -16,7 +16,7 @@ export function LogosPanel({ mode }: LogosPanelProps) {
       assetLabel="Logo"
       headerText="Search and insert brand logos into your presentation."
       searchPlaceholder="Search logos..."
-      icon={ImageIcon}
+      icon={Image}
       noResultsDescription="Try searching for a different brand or company name."
       noVariantsDescription="This brand has no logo variants."
       search={(query) => addinApi.searchLogos(query).then((r: AssetSearchResponse) => r.results)}

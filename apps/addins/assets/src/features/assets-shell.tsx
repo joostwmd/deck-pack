@@ -51,12 +51,17 @@ export function AssetsShell({ mode }: AssetsShellProps) {
         onValueChange={(value) => setActiveTab(value as AssetTab)}
         className="flex h-full min-h-0 w-full flex-col gap-2"
       >
-        <TabsList className="mx-4 mt-4 w-[calc(100%-2rem)]">
+        <TabsList className="mx-4 mt-4 w-[calc(100%-2rem)] gap-1 px-2 py-1">
           {tabs.map((tab) => (
             <TabsTrigger
               key={tab.id}
               value={tab.id}
-              shortcut={<ShortcutKeys tokens={tab.shortcut.keys} className="opacity-60" />}
+              shortcut={
+                <ShortcutKeys
+                  tokens={tab.shortcut.keys}
+                  className="opacity-60 [&_kbd]:h-4 [&_kbd]:min-w-4 [&_kbd]:px-1 [&_kbd]:text-[10px] [&_svg]:size-2.5"
+                />
+              }
             >
               {tab.label}
             </TabsTrigger>

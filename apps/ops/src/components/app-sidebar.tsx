@@ -10,7 +10,7 @@ import {
   SidebarMenuItem,
 } from "@deck-pack/ui/components/system/sidebar";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Building2, LayoutDashboard } from "lucide-react";
+import { Buildings, SquaresFour } from "@phosphor-icons/react";
 
 export default function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -28,7 +28,7 @@ export default function AppSidebar() {
                   isActive={pathname === "/dashboard"}
                   render={<Link to="/dashboard" />}
                 >
-                  <LayoutDashboard className="size-4" />
+                  <SquaresFour className="size-4" />
                   <span>Dashboard</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -37,7 +37,7 @@ export default function AppSidebar() {
                   isActive={pathname.startsWith("/organizations")}
                   render={<Link to="/organizations" />}
                 >
-                  <Building2 className="size-4" />
+                  <Buildings className="size-4" />
                   <span>Organizations</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>

@@ -1,4 +1,4 @@
-import { FlagIcon } from "lucide-react";
+import { Flag } from "@phosphor-icons/react";
 
 import { AssetSearchPanel } from "@/components/asset-picker/asset-search-panel";
 import { addinApi } from "@/lib/api";
@@ -16,7 +16,7 @@ export function FlagsPanel({ mode }: FlagsPanelProps) {
       assetLabel="Flag"
       headerText="Search and insert country flags into your presentation."
       searchPlaceholder="Search flags..."
-      icon={FlagIcon}
+      icon={Flag}
       noResultsDescription="Try searching for a different country name or code."
       noVariantsDescription="This flag has no variants."
       search={(query) => addinApi.searchFlags(query).then((r: AssetSearchResponse) => r.results)}

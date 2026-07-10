@@ -10,7 +10,7 @@ import {
   SidebarMenuItem,
 } from "@deck-pack/ui/components/system/sidebar";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { UserRound } from "lucide-react";
+import { UserCircle } from "@phosphor-icons/react";
 
 export function IndividualSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -28,7 +28,7 @@ export function IndividualSidebar() {
                   isActive={pathname === "/account"}
                   render={<Link to="/account" />}
                 >
-                  <UserRound className="size-4" />
+                  <UserCircle className="size-4" />
                   <span>Account</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>

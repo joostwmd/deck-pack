@@ -1,4 +1,4 @@
-import { Loader2, type LucideIcon } from "lucide-react";
+import { CircleNotch, type Icon } from "@phosphor-icons/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -29,7 +29,7 @@ interface AssetSearchPanelProps {
   assetLabel: string;
   headerText: string;
   searchPlaceholder: string;
-  icon: LucideIcon;
+  icon: Icon;
   noResultsDescription: string;
   noVariantsDescription: string;
   search: (query: string) => Promise<AssetListItem[]>;
@@ -168,7 +168,7 @@ export function AssetSearchPanel({
 
             {flow.isFetchingVariants ? (
               <div className="flex items-center justify-center py-8">
-                <Loader2 className="size-8 animate-spin" />
+                <CircleNotch className="size-8 animate-spin" />
               </div>
             ) : flow.variants.length > 0 ? (
               <VariantsSection>

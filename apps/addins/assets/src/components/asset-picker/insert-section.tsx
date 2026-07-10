@@ -1,6 +1,6 @@
 import { Button } from "@deck-pack/ui/components/system/button";
 import { cn } from "@deck-pack/ui/lib/utils";
-import { Loader2 } from "lucide-react";
+import { CircleNotch } from "@phosphor-icons/react";
 
 import { ShortcutHints } from "@/components/shortcut-hint";
 import { INSERT_SECTION_SHORTCUTS } from "@/lib/shortcuts";
@@ -29,7 +29,7 @@ export function InsertSection({
       <Button className="w-full" disabled={disabled || isInserting} onClick={() => void onClick()}>
         {isInserting ? (
           <>
-            <Loader2 className="size-4 animate-spin" />
+            <CircleNotch className="size-4 animate-spin" />
             {insertingLabel}
           </>
         ) : (

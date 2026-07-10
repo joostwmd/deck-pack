@@ -8,7 +8,7 @@ import {
   SheetTrigger,
 } from "@deck-pack/ui/components/system/sheet";
 import { formatForDisplay } from "@tanstack/react-hotkeys";
-import { Keyboard } from "lucide-react";
+import { Keyboard } from "@phosphor-icons/react";
 
 import { ShortcutRow } from "@/components/shortcut-hint";
 import { SHORTCUT_GROUPS, getShortcutsByGroup } from "@/lib/shortcuts";

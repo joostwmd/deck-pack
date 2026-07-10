@@ -1,5 +1,5 @@
 import { cn } from "@deck-pack/ui/lib/utils";
-import { Loader2, Search } from "lucide-react";
+import { CircleNotch, MagnifyingGlass } from "@phosphor-icons/react";
 import { forwardRef, type ReactNode } from "react";
 
 interface SearchBarProps {
@@ -24,9 +24,9 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(function S
     >
       <div className="flex size-5 shrink-0 items-center justify-center text-muted-foreground">
         {isSearching ? (
-          <Loader2 className="size-4 animate-spin" aria-label="Searching" />
+          <CircleNotch className="size-4 animate-spin" aria-label="Searching" />
         ) : (
-          <Search className="size-4" aria-hidden />
+          <MagnifyingGlass className="size-4" aria-hidden />
         )}
       </div>
 
