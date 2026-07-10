@@ -11,13 +11,13 @@ function ShortcutKey({ token }: { token: KeyToken }) {
   if (token.type === "icon") {
     const Icon = token.icon;
     return (
-      <Kbd className="rounded-sm border border-border">
+      <Kbd className="rounded-sm border-[0.5px] border-border shadow-xs">
         <Icon aria-label={token.label} />
       </Kbd>
     );
   }
 
-  return <Kbd className="rounded-sm border border-border">{token.value}</Kbd>;
+  return <Kbd className="rounded-sm border-[0.5px] border-border shadow-xs">{token.value}</Kbd>;
 }
 
 export function ShortcutKeys({
@@ -28,7 +28,7 @@ export function ShortcutKeys({
   className?: string;
 }) {
   return (
-    <KbdGroup className={cn("pointer-events-none", className)}>
+    <KbdGroup className={cn("pointer-events-none gap-0.5", className)}>
       {tokens.map((token, idx) => (
         // eslint-disable-next-line react/no-array-index-key
         <ShortcutKey key={idx} token={token} />
@@ -55,7 +55,7 @@ export function ShortcutRow({ def, className }: ShortcutRowProps) {
         className,
       )}
     >
-      <KbdGroup>
+      <KbdGroup className="gap-0.5">
         <ShortcutKeys tokens={def.keys} />
       </KbdGroup>
 

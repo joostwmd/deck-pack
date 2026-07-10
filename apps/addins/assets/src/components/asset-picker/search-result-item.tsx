@@ -1,25 +1,23 @@
+import { cn } from "@deck-pack/ui/lib/utils";
+
 import type { AssetListItem } from "@/lib/asset-types";
 
 interface SearchResultItemProps {
   result: AssetListItem;
-  isSelected?: boolean;
 }
 
-export function SearchResultItem({ result, isSelected = false }: SearchResultItemProps) {
+export function SearchResultItem({ result }: SearchResultItemProps) {
   return (
-    <div
-      className={`flex w-full items-center gap-3 ${isSelected ? "opacity-100" : "opacity-90"}`}
-    >
-      {result.imageUrl ? (
-        <img
-          src={result.imageUrl}
-          alt={result.name}
-          className="h-10 w-10 rounded object-contain"
-        />
-      ) : (
-        <div className="h-10 w-10 rounded bg-muted" />
-      )}
-      <p className="font-medium">{result.name}</p>
+    <div className="flex w-full items-center gap-2">
+      <div className="flex size-12 shrink-0 items-center justify-center rounded-sm border border-border bg-background p-1 shadow-md">
+        {result.imageUrl ? (
+          <img src={result.imageUrl} alt={result.name} className="size-full object-contain" />
+        ) : (
+          <div className="size-full rounded-sm bg-muted" />
+        )}
+      </div>
+
+      <p className="text-base font-medium text-foreground">{result.name}</p>
     </div>
   );
 }

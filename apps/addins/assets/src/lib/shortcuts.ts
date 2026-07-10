@@ -118,11 +118,18 @@ export const SHORTCUTS = {
 // Grouped sets used in the panel UI
 // ---------------------------------------------------------------------------
 
-/** Combined display row for up/down navigation */
+/** Combined display row for up/down navigation — matches Figma search-section hints */
 export const NAVIGATE_RESULTS_DISPLAY: ShortcutDef = {
   ...SHORTCUTS.navigateResultsUp,
-  keys: [UP, DOWN],
-  description: "Navigate results",
+  keys: [CMD, UP, DOWN],
+  description: "Navigate Search Results",
+};
+
+/** Display row for select — matches Figma search-section hints */
+export const SELECT_RESULT_DISPLAY: ShortcutDef = {
+  ...SHORTCUTS.selectResult,
+  keys: [CMD, ENTER],
+  description: "Select Result",
 };
 
 /** Combined display row for left/right navigation */
@@ -132,10 +139,14 @@ export const NAVIGATE_VARIANTS_DISPLAY: ShortcutDef = {
   description: "Navigate variants",
 };
 
+export const SEARCH_NAVIGATION_SHORTCUTS: ShortcutDef[] = [
+  NAVIGATE_RESULTS_DISPLAY,
+  SELECT_RESULT_DISPLAY,
+];
+
 export const SEARCH_SHORTCUTS: ShortcutDef[] = [
   SHORTCUTS.focusSearch,
-  NAVIGATE_RESULTS_DISPLAY,
-  SHORTCUTS.selectResult,
+  ...SEARCH_NAVIGATION_SHORTCUTS,
 ];
 
 export const VARIANT_SHORTCUTS: ShortcutDef[] = [
@@ -151,7 +162,7 @@ export const ALL_SHORTCUTS: ShortcutDef[] = [
   SHORTCUTS.icons,
   SHORTCUTS.focusSearch,
   NAVIGATE_RESULTS_DISPLAY,
-  SHORTCUTS.selectResult,
+  SELECT_RESULT_DISPLAY,
   NAVIGATE_VARIANTS_DISPLAY,
   SHORTCUTS.selectVariant,
   SHORTCUTS.insert,

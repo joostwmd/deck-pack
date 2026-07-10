@@ -2,18 +2,18 @@ import { Loader2, type LucideIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
-import { ShortcutHints } from "@/components/shortcut-hint";
+import { ShortcutHints, ShortcutKeys } from "@/components/shortcut-hint";
 import { useWebCanvasOptional } from "@/contexts/web-canvas-context";
 import { useAssetSearchFlow } from "@/hooks/use-asset-search-flow";
 import { useAssetSearchHotkeys } from "@/hooks/use-asset-search-hotkeys";
 import type { AssetDetailsResponse, AssetListItem, AssetPanelMode } from "@/lib/asset-types";
-import { SEARCH_SHORTCUTS, VARIANT_SHORTCUTS } from "@/lib/shortcuts";
+import { SHORTCUTS, VARIANT_SHORTCUTS } from "@/lib/shortcuts";
 
 import { EmptyState } from "./empty-state";
 import { InsertButton } from "./insert-button";
 import { ScreenHeader } from "./screen-header";
-import { SearchBar } from "./search-bar";
 import { SearchResults } from "./search-results";
+import { SearchSection } from "./search-section";
 import { SelectedEntityHeader } from "./selected-entity-header";
 import { VariantGrid } from "./variant-grid";
 
@@ -139,28 +139,28 @@ export function AssetSearchPanel({
       <ScreenHeader title={`${assetLabel}s`} text={headerText} />
 
       <div className="px-4 pt-4">
-        <SearchBar
-          ref={searchInputRef}
+        <SearchSection
+          searchRef={searchInputRef}
           value={flow.searchValue}
           onChange={flow.setSearchValue}
           isSearching={flow.isSearching}
           placeholder={searchPlaceholder}
-        />
-        <ShortcutHints defs={SEARCH_SHORTCUTS} className="mt-2" />
+          searchRightSlot={<ShortcutKeys tokens={SHORTCUTS.focusSearch.keys} className="opacity-70" />}
+        >
+          {flow.results.length > 0 ? (
+            <SearchResults
+              results={flow.results}
+              highlightedId={flow.highlightedResultId}
+              selectedId={flow.selectedEntity?.id}
+              onSelect={(id) => void flow.selectEntity(id)}
+            />
+          ) : flow.hasSearched && !flow.isSearching ? (
+            <EmptyState icon={Icon} title={`No ${label}s found`} description={noResultsDescription} />
+          ) : null}
+        </SearchSection>
       </div>
 
       <div className="mt-4 flex flex-1 flex-col px-4 pb-4">
-        {flow.results.length > 0 ? (
-          <SearchResults
-            results={flow.results}
-            highlightedId={flow.highlightedResultId}
-            selectedId={flow.selectedEntity?.id}
-            onSelect={(id) => void flow.selectEntity(id)}
-          />
-        ) : flow.hasSearched && !flow.isSearching ? (
-          <EmptyState icon={Icon} title={`No ${label}s found`} description={noResultsDescription} />
-        ) : null}
-
         {flow.selectedEntity ? (
           <div className="mt-4 border-t pt-4">
             <SelectedEntityHeader entity={flow.selectedEntity} />

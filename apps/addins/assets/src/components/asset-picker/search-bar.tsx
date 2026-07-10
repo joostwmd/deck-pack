@@ -1,30 +1,47 @@
-import { Input } from "@deck-pack/ui/components/system/input";
+import { cn } from "@deck-pack/ui/lib/utils";
 import { Loader2, Search } from "lucide-react";
-import { forwardRef } from "react";
+import { forwardRef, type ReactNode } from "react";
 
 interface SearchBarProps {
   value: string;
   onChange: (value: string) => void;
   isSearching?: boolean;
   placeholder?: string;
+  rightSlot?: ReactNode;
+  className?: string;
 }
 
 export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(function SearchBar(
-  { value, onChange, isSearching = false, placeholder = "Search..." },
+  { value, onChange, isSearching = false, placeholder = "Search...", rightSlot, className },
   ref,
 ) {
   return (
-    <div className="relative">
-      <Input
+    <div
+      className={cn(
+        "flex w-full items-center gap-2 rounded-lg border border-border bg-background px-2 py-1 shadow-xs",
+        className,
+      )}
+    >
+      <div className="flex size-5 shrink-0 items-center justify-center text-muted-foreground">
+        {isSearching ? (
+          <Loader2 className="size-4 animate-spin" aria-label="Searching" />
+        ) : (
+          <Search className="size-4" aria-hidden />
+        )}
+      </div>
+
+      <input
         ref={ref}
+        type="text"
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="pr-9"
+        className="min-w-0 flex-1 bg-transparent text-base leading-6 outline-none placeholder:text-muted-foreground"
       />
-      <div className="pointer-events-none absolute top-1/2 right-2.5 -translate-y-1/2 text-muted-foreground">
-        {isSearching ? <Loader2 className="size-4 animate-spin" /> : <Search className="size-4" />}
-      </div>
+
+      {rightSlot ? (
+        <div className="flex h-5 shrink-0 items-center justify-center gap-0.5">{rightSlot}</div>
+      ) : null}
     </div>
   );
 });
