@@ -27,6 +27,7 @@ export function createApp() {
   const appRouter = createAppRouter({
     brandfetchApiKey: "dummy-key-for-now",
     icons8ApiKey: "dummy-key-for-now",
+    pexelsApiKey: env.PEXELS_API_KEY,
   });
 
   app.use("*", corsMiddleware);

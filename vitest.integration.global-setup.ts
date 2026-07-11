@@ -12,5 +12,6 @@ export default function (): void {
   process.env.CORS_ORIGINS ??= "http://127.0.0.1:5173";
   process.env.EMAIL_API_KEY ??= "test-integration-key";
   process.env.EMAIL_FROM ??= "integration@test.local";
+  process.env.PEXELS_API_KEY ??= "test-integration-pexels-key";
   process.env.NODE_ENV ??= "test";
 }

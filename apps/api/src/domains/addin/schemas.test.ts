@@ -5,6 +5,11 @@ import {
   assetExternalIdSchema,
   assetSearchQuerySchema,
   assetTypeSchema,
+  photoColorSchema,
+  photoLocaleSchema,
+  photoOrientationSchema,
+  photoSearchInputSchema,
+  photoSizeSchema,
   trackAssetInsertionInputSchema,
 } from "./schemas";
 
@@ -22,10 +27,11 @@ describe("addin schemas", () => {
     expect(assetTypeSchema.parse("flag")).toBe("flag");
     expect(assetTypeSchema.parse("icon")).toBe("icon");
     expect(assetTypeSchema.parse("harvey_ball")).toBe("harvey_ball");
+    expect(assetTypeSchema.parse("photo")).toBe("photo");
   });
 
   it("rejects unsupported asset types", () => {
-    expect(() => assetTypeSchema.parse("photo")).toThrow();
+    expect(() => assetTypeSchema.parse("video")).toThrow();
   });
 
   it("accepts supported clients", () => {
@@ -70,6 +76,55 @@ describe("addin schemas", () => {
     expect(parsed.metadata).toEqual({
       TYPE: "HARVEY_BALL",
       PERCENTAGE: "75",
+    });
+  });
+
+  it("accepts photo search filters and pagination defaults", () => {
+    const parsed = photoSearchInputSchema.parse({
+      query: "ocean",
+      orientation: "landscape",
+      color: "#112233",
+      locale: "en-US",
+    });
+
+    expect(parsed).toEqual({
+      query: "ocean",
+      orientation: "landscape",
+      color: "#112233",
+      locale: "en-US",
+      page: 1,
+      perPage: 24,
+    });
+  });
+
+  it("rejects invalid photo filter values", () => {
+    expect(() => photoOrientationSchema.parse("panorama")).toThrow();
+    expect(() => photoSizeSchema.parse("huge")).toThrow();
+    expect(() => photoColorSchema.parse("#12")).toThrow();
+    expect(() => photoLocaleSchema.parse("en-GB")).toThrow();
+    expect(() =>
+      photoSearchInputSchema.parse({
+        query: "ocean",
+        page: 0,
+      }),
+    ).toThrow();
+  });
+
+  it("accepts photo tracking payloads", () => {
+    const parsed = trackAssetInsertionInputSchema.parse({
+      assetType: "photo",
+      externalId: "2014422",
+      client: "office",
+      metadata: {
+        PHOTOGRAPHER: "Joey Farina",
+        INSERT_SOURCE: "large2x",
+      },
+    });
+
+    expect(parsed.assetType).toBe("photo");
+    expect(parsed.metadata).toEqual({
+      PHOTOGRAPHER: "Joey Farina",
+      INSERT_SOURCE: "large2x",
     });
   });
 });

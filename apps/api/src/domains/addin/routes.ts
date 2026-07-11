@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
+import { PexelsRateLimitError } from "@deck-pack/pexels";
 import { insertAssetInsertion } from "@deck-pack/db/queries/insertAssetInsertion";
 
 import { protectedProcedure } from "../../api/procedures";
@@ -10,6 +11,8 @@ import {
   assetExternalIdSchema,
   assetSearchQuerySchema,
   assetSearchResponseSchema,
+  photoSearchInputSchema,
+  photoSearchResponseSchema,
   trackAssetInsertionInputSchema,
   trackAssetInsertionOutputSchema,
 } from "./schemas";
@@ -121,6 +124,30 @@ export function createAddinRoutes(addinAssetService: AddinAssetService) {
             throw new TRPCError({
               code: "INTERNAL_SERVER_ERROR",
               message: "Failed to get icon details",
+            });
+          }
+        }),
+    },
+
+    photos: {
+      search: protectedProcedure
+        .input(photoSearchInputSchema)
+        .output(photoSearchResponseSchema)
+        .query(async ({ input }) => {
+          try {
+            return await addinAssetService.searchPhotos(input);
+          } catch (error) {
+            if (error instanceof PexelsRateLimitError) {
+              throw new TRPCError({
+                code: "TOO_MANY_REQUESTS",
+                message: error.message,
+              });
+            }
+
+            console.error("Photo search error:", error);
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: "Failed to search photos",
             });
           }
         }),

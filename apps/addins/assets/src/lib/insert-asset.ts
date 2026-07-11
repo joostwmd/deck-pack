@@ -4,6 +4,31 @@ import type { AssetDetailsResponse, AssetType } from "@/lib/asset-types";
 import { trackAssetInsertion } from "@/lib/track-asset-insertion";
 import { urlToBase64 } from "@/lib/url-to-base64";
 
+export async function insertDirectImage({
+  imageUrl,
+  metadata,
+  assetType,
+  externalId,
+  extraMetadata = {},
+}: {
+  imageUrl: string;
+  metadata: Record<string, string>;
+  assetType: AssetType;
+  externalId: string;
+  extraMetadata?: Record<string, string>;
+}) {
+  const combinedMetadata = { ...metadata, ...extraMetadata };
+  const base64 = await urlToBase64(imageUrl);
+  await officeClient.insertImageWithMetadata(base64, combinedMetadata);
+
+  trackAssetInsertion({
+    assetType,
+    externalId,
+    client: "office",
+    metadata: combinedMetadata,
+  });
+}
+
 export async function insertAssetVariant(
   details: AssetDetailsResponse,
   variantId: string,
@@ -23,15 +48,21 @@ export async function insertAssetVariant(
       throw new Error("No image URL found");
     }
 
-    const base64 = await urlToBase64(variant.insert.imageUrl);
-    await officeClient.insertImageWithMetadata(base64, metadata);
-  } else {
-    if (!variant.insert.svg) {
-      throw new Error("No SVG found");
-    }
-
-    await officeClient.insertSvgWithMetadata(variant.insert.svg, metadata);
+    await insertDirectImage({
+      imageUrl: variant.insert.imageUrl,
+      metadata,
+      assetType,
+      externalId: details.id,
+      extraMetadata: { variantId },
+    });
+    return;
   }
+
+  if (!variant.insert.svg) {
+    throw new Error("No SVG found");
+  }
+
+  await officeClient.insertSvgWithMetadata(variant.insert.svg, metadata);
 
   trackAssetInsertion({
     assetType,

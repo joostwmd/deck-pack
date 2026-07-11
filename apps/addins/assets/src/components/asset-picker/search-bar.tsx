@@ -11,6 +11,7 @@ interface SearchBarProps {
   resultsId?: string;
   activeDescendantId?: string;
   isExpanded?: boolean;
+  onSubmit?: () => void;
   className?: string;
 }
 
@@ -24,6 +25,7 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(function S
     resultsId,
     activeDescendantId,
     isExpanded = false,
+    onSubmit,
     className,
   },
   ref,
@@ -54,6 +56,12 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(function S
         aria-expanded={isExpanded}
         value={value}
         onChange={(event) => onChange(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" && onSubmit) {
+            event.preventDefault();
+            onSubmit();
+          }
+        }}
         placeholder={placeholder}
         className="min-w-0 flex-1 bg-transparent text-base leading-6 outline-none placeholder:text-muted-foreground"
       />

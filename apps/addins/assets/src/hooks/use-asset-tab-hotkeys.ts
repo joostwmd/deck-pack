@@ -32,6 +32,13 @@ export function useAssetTabHotkeys({ onTabChange, onOpenHelp }: UseAssetTabHotke
       },
     },
     {
+      hotkey: SHORTCUTS.images.hotkey,
+      callback: () => onTabChange("images"),
+      options: {
+        meta: { name: SHORTCUTS.images.id, description: SHORTCUTS.images.description },
+      },
+    },
+    {
       hotkey: SHORTCUTS.harveyBalls.hotkey,
       callback: () => onTabChange("harvey-balls"),
       options: {

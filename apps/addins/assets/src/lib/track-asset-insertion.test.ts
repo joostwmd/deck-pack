@@ -21,6 +21,7 @@ import { trackAssetInsertion } from "./track-asset-insertion";
 describe("trackAssetInsertion", () => {
   beforeEach(() => {
     mutate.mockReset();
+    mutate.mockResolvedValue({ id: "event-1" });
   });
 
   it("sends canonical tracking fields without awaiting the mutation", () => {
@@ -68,5 +69,27 @@ describe("trackAssetInsertion", () => {
     );
 
     consoleError.mockRestore();
+  });
+
+  it("accepts photo tracking payloads", () => {
+    trackAssetInsertion({
+      assetType: "photo",
+      externalId: "2014422",
+      client: "web",
+      metadata: {
+        PHOTOGRAPHER: "Joey Farina",
+        INSERT_SOURCE: "large2x",
+      },
+    });
+
+    expect(mutate).toHaveBeenCalledWith({
+      assetType: "photo",
+      externalId: "2014422",
+      client: "web",
+      metadata: {
+        PHOTOGRAPHER: "Joey Farina",
+        INSERT_SOURCE: "large2x",
+      },
+    });
   });
 });

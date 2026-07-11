@@ -35,6 +35,8 @@ export const env = createEnv({
     /** Microsoft Entra app registration; both required to enable Microsoft OAuth on app auth. */
     MICROSOFT_CLIENT_ID: z.string().min(1).optional(),
     MICROSOFT_CLIENT_SECRET: z.string().min(1).optional(),
+    /** Pexels API key for stock photo search in the assets add-in. */
+    PEXELS_API_KEY: z.string().min(1),
   },
   runtimeEnv: process.env,
   emptyStringAsUndefined: true,

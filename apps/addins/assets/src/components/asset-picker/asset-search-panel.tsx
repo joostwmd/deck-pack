@@ -1,10 +1,11 @@
 import { CircleNotch, type Icon } from "@phosphor-icons/react";
-import { useCallback, useId, useRef, useState } from "react";
+import { useCallback, useId, useRef } from "react";
 import { toast } from "sonner";
 
 import { ShortcutKeys } from "@/components/shortcut-hint";
 import { useWebCanvasOptional } from "@/contexts/web-canvas-context";
 import { useAssetSearchFlow } from "@/hooks/use-asset-search-flow";
+import { useAssetInsertion } from "@/hooks/use-asset-insertion";
 import { useAssetSearchHotkeys } from "@/hooks/use-asset-search-hotkeys";
 import type { AssetDetailsResponse, AssetListItem, AssetPanelMode, AssetType } from "@/lib/asset-types";
 import { trackAssetInsertion } from "@/lib/track-asset-insertion";
@@ -57,8 +58,7 @@ export function AssetSearchPanel({
   const webCanvas = useWebCanvasOptional();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchResultsId = useId();
-  const insertingRef = useRef(false);
-  const [isInserting, setIsInserting] = useState(false);
+  const { isInserting, runInsertion } = useAssetInsertion();
 
   const label = assetLabel.toLowerCase();
   const showsSearchResults = !flow.selectedEntity && !flow.searchError && flow.results.length > 0;
@@ -68,74 +68,56 @@ export function AssetSearchPanel({
       : undefined;
 
   const handleInsert = useCallback(async () => {
-    if (insertingRef.current || !flow.selectedEntity || !flow.selectedVariantId || !flow.details) {
+    if (!flow.selectedEntity || !flow.selectedVariantId || !flow.details) {
       return;
     }
 
-    if (mode === "web") {
-      const variant = flow.details.variants.find((item) => item.id === flow.selectedVariantId);
+    await runInsertion(async () => {
+      if (mode === "web") {
+        const variant = flow.details!.variants.find((item) => item.id === flow.selectedVariantId);
 
-      if (!variant) {
-        toast.error("Variant not found");
-        return;
-      }
+        if (!variant) {
+          toast.error("Variant not found");
+          return;
+        }
 
-      if (!webCanvas) {
-        toast.error("Canvas not available");
-        return;
-      }
+        if (!webCanvas) {
+          toast.error("Canvas not available");
+          return;
+        }
 
-      insertingRef.current = true;
-      setIsInserting(true);
-
-      try {
         webCanvas.addToCanvas({
           variantId: variant.id,
-          name: flow.details.name,
+          name: flow.details!.name,
           imageUrl: variant.imageUrl,
           insert: variant.insert,
-          metadata: flow.details.metadata,
+          metadata: flow.details!.metadata,
         });
 
         trackAssetInsertion({
           assetType,
-          externalId: flow.details.id,
+          externalId: flow.details!.id,
           client: "web",
           metadata: {
             variantId: variant.id,
-            ...flow.details.metadata,
+            ...flow.details!.metadata,
           },
         });
 
         toast.success(`${assetLabel} added to canvas`);
-      } catch (error) {
-        console.error(`Error adding ${label} to canvas:`, error);
-        toast.error(error instanceof Error ? error.message : `Error adding ${label} to canvas`);
-      } finally {
-        insertingRef.current = false;
-        setIsInserting(false);
+        return;
       }
 
-      return;
-    }
-
-    insertingRef.current = true;
-    setIsInserting(true);
-
-    try {
       await onInsert({
-        details: flow.details,
-        variantId: flow.selectedVariantId,
+        details: flow.details!,
+        variantId: flow.selectedVariantId!,
       });
 
       toast.success(`${assetLabel} inserted`);
-    } catch (error) {
+    }).catch((error) => {
       console.error(`Error inserting ${label}:`, error);
       toast.error(error instanceof Error ? error.message : `Error inserting ${label}`);
-    } finally {
-      insertingRef.current = false;
-      setIsInserting(false);
-    }
+    });
   }, [
     assetLabel,
     assetType,
@@ -145,6 +127,7 @@ export function AssetSearchPanel({
     label,
     mode,
     onInsert,
+    runInsertion,
     webCanvas,
   ]);
 

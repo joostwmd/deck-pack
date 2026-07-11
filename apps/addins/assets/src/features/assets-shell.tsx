@@ -15,6 +15,7 @@ import { FlagsPanel } from "@/features/flags/flags-panel";
 import { HarveyBallsPanel } from "@/features/harvey-balls/harvey-balls-panel";
 import { IconsPanel } from "@/features/icons/icons-panel";
 import { LogosPanel } from "@/features/logos/logos-panel";
+import { PhotosPanel } from "@/features/photos/photos-panel";
 import { useAssetTabHotkeys } from "@/hooks/use-asset-tab-hotkeys";
 import type { AssetPanelMode, AssetTab } from "@/lib/asset-types";
 import { SHORTCUTS } from "@/lib/shortcuts";
@@ -23,6 +24,7 @@ const tabs = [
   { id: "logos" as const, label: "Logos", shortcut: SHORTCUTS.logos },
   { id: "flags" as const, label: "Flags", shortcut: SHORTCUTS.flags },
   { id: "icons" as const, label: "Icons", shortcut: SHORTCUTS.icons },
+  { id: "images" as const, label: "Images", shortcut: SHORTCUTS.images },
   { id: "harvey-balls" as const, label: "Balls", shortcut: SHORTCUTS.harveyBalls },
 ];
 
@@ -91,6 +93,12 @@ export function AssetsShell({ mode }: AssetsShellProps) {
           className={cn("min-h-0 flex-1 overflow-y-auto", !isOffice && "mx-4")}
         >
           {activeTab === "icons" ? <IconsPanel mode={mode} /> : null}
+        </TabsContent>
+        <TabsContent
+          value="images"
+          className={cn("min-h-0 flex-1 overflow-y-auto", !isOffice && "mx-4")}
+        >
+          {activeTab === "images" ? <PhotosPanel mode={mode} /> : null}
         </TabsContent>
         <TabsContent
           value="harvey-balls"
