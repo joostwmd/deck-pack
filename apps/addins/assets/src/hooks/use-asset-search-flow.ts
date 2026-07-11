@@ -81,6 +81,10 @@ export function useAssetSearchFlow({ search, getDetails }: UseAssetSearchFlowCon
       const entity = results.find((result) => result.id === id);
       if (!entity) return;
 
+      // Align searchValue with the current debounced query so any pending debounce
+      // timer is cancelled. Without this, a debounce firing after selection would
+      // change `query`, making `selectionQuery !== query` and clearing the selection.
+      setSearchValue(query);
       setSelectionQuery(query);
       setSelectedEntity({ id: entity.id, name: entity.name, icon: entity.imageUrl });
       setSelectedVariantId(null);
