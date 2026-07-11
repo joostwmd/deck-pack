@@ -3,7 +3,7 @@
  * Integration tests import `@deck-pack/env/server`; CI / local should set DATABASE_URL when non-default.
  *
  * Default matches `packages/db/docker-compose.yml` (user `postgres`, password `password`, db `deck-pack`).
- * Start DB: `pnpm db:start` then `pnpm db:push` once. Or: `pnpm test:integration:with-db`.
+ * Start DB: `pnpm db:start` then run integration tests. Or: `pnpm test:integration:with-db`.
  */
 export default function (): void {
   process.env.DATABASE_URL ??= "postgresql://postgres:password@127.0.0.1:5432/deck-pack";

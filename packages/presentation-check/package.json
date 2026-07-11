@@ -1,5 +1,5 @@
 {
-  "name": "@deck-pack/office-js",
+  "name": "@deck-pack/presentation-check",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -15,11 +15,11 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
-    "@deck-pack/presentation-check": "workspace:*"
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@deck-pack/config": "workspace:*",
-    "@types/office-js": "^1.0.514",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

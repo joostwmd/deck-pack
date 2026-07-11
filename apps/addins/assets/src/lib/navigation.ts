@@ -20,7 +20,8 @@ export type NavigationPageId =
   | "slides"
   | "agenda"
   | "check"
-  | "format";
+  | "format"
+  | "themes";
 
 export interface NavigationPage {
   id: NavigationPageId;
@@ -99,6 +100,13 @@ export const NAVIGATION_PAGES: NavigationPage[] = [
     path: "format",
     shortcut: SHORTCUTS.format,
   },
+  {
+    id: "themes",
+    label: "Themes",
+    section: "utilities",
+    path: "themes",
+    shortcut: SHORTCUTS.themes,
+  },
 ];
 
 export const DEFAULT_NAVIGATION_PAGE_ID: NavigationPageId = "logos";
@@ -125,6 +133,7 @@ export const PAGE_ROUTE_TO = {
   agenda: "/$environment/agenda",
   check: "/$environment/check",
   format: "/$environment/format",
+  themes: "/$environment/themes",
 } as const satisfies Record<NavigationPageId, string>;
 
 export function getPageRouteTo(pageId: NavigationPageId) {

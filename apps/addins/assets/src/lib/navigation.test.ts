@@ -23,7 +23,7 @@ describe("navigation registry", () => {
   it("includes every planned page in the utilities group", () => {
     const utilityIds = getNavigationPagesBySection("utilities").map((page) => page.id);
 
-    expect(utilityIds).toEqual(["agenda", "check", "format"]);
+    expect(utilityIds).toEqual(["agenda", "check", "format", "themes"]);
   });
 
   it("uses unique paths and shortcut ids", () => {

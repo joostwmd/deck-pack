@@ -38,6 +38,7 @@ export type ShortcutId =
   | "agenda"
   | "check"
   | "format"
+  | "themes"
   | "openMenu"
   | "focusSearch"
   | "navigateResultsUp"
@@ -90,6 +91,7 @@ export const SHORTCUTS = {
   agenda: def("agenda", "Mod+Shift+A", [CMD, SHIFT, t("A")], "Agenda", "navigation"),
   check: def("check", "Mod+Shift+C", [CMD, SHIFT, t("C")], "Check", "navigation"),
   format: def("format", "Mod+Shift+O", [CMD, SHIFT, t("O")], "Format", "navigation"),
+  themes: def("themes", "Mod+Shift+T", [CMD, SHIFT, t("T")], "Themes", "navigation"),
   openMenu: def("openMenu", "Mod+Shift+M", [CMD, SHIFT, t("M")], "Open navigation menu", "navigation"),
   focusSearch: def("focusSearch", "Mod+K", [CMD, t("K")], "Focus search", "search"),
   navigateResultsUp: def(
@@ -210,6 +212,7 @@ export const ALL_SHORTCUTS: ShortcutDef[] = [
   SHORTCUTS.agenda,
   SHORTCUTS.check,
   SHORTCUTS.format,
+  SHORTCUTS.themes,
   SHORTCUTS.focusSearch,
   NAVIGATE_RESULTS_DISPLAY,
   SELECT_RESULT_DISPLAY,

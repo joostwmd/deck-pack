@@ -1,16 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { PlaceholderPage } from "@/features/placeholder-page";
+import { CheckPanel } from "@/features/check/check-panel";
+import { toAssetPanelMode } from "@/lib/route-environment";
 
 export const Route = createFileRoute("/_protected/$environment/check")({
   component: CheckPage,
 });
 
 function CheckPage() {
-  return (
-    <PlaceholderPage
-      title="Check"
-      description="Review presentation quality, consistency, and common issues."
-    />
-  );
+  const { environment } = Route.useParams();
+
+  return <CheckPanel mode={toAssetPanelMode(environment)} />;
 }
