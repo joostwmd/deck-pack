@@ -92,4 +92,26 @@ describe("trackAssetInsertion", () => {
       },
     });
   });
+
+  it("accepts slide tracking payloads", () => {
+    trackAssetInsertion({
+      assetType: "slide",
+      externalId: "slide-title-hero",
+      client: "office",
+      metadata: {
+        CATEGORY: "Intro",
+        ASPECT_RATIO: "16:9",
+      },
+    });
+
+    expect(mutate).toHaveBeenCalledWith({
+      assetType: "slide",
+      externalId: "slide-title-hero",
+      client: "office",
+      metadata: {
+        CATEGORY: "Intro",
+        ASPECT_RATIO: "16:9",
+      },
+    });
+  });
 });

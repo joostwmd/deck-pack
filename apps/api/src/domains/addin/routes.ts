@@ -13,6 +13,8 @@ import {
   assetSearchResponseSchema,
   photoSearchInputSchema,
   photoSearchResponseSchema,
+  slideSearchInputSchema,
+  slideSearchResponseSchema,
   trackAssetInsertionInputSchema,
   trackAssetInsertionOutputSchema,
 } from "./schemas";
@@ -148,6 +150,23 @@ export function createAddinRoutes(addinAssetService: AddinAssetService) {
             throw new TRPCError({
               code: "INTERNAL_SERVER_ERROR",
               message: "Failed to search photos",
+            });
+          }
+        }),
+    },
+
+    slides: {
+      search: protectedProcedure
+        .input(slideSearchInputSchema)
+        .output(slideSearchResponseSchema)
+        .query(async ({ input }) => {
+          try {
+            return await addinAssetService.searchSlides(input);
+          } catch (error) {
+            console.error("Slide search error:", error);
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: "Failed to search slides",
             });
           }
         }),

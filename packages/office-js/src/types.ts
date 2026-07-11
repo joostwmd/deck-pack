@@ -12,6 +12,12 @@ export interface ShapeGeometry extends ShapePosition, ShapeSize {}
 
 export interface InsertImageOptions extends Partial<ShapeGeometry> {}
 
+export interface InsertSlidesOptions {
+  /** When omitted, inserts after the currently selected slide. */
+  targetSlideId?: string;
+  formatting?: PowerPoint.InsertSlideFormatting;
+}
+
 export interface ShapeMetadata {
   [key: string]: string;
 }

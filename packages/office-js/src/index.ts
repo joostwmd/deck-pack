@@ -1,6 +1,7 @@
 export { OfficeClient, officeClient } from "./client";
 export type {
   InsertImageOptions,
+  InsertSlidesOptions,
   OfficeReadyInfo,
   ShapeGeometry,
   ShapeMetadata,

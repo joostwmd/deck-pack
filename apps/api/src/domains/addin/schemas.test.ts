@@ -10,6 +10,9 @@ import {
   photoOrientationSchema,
   photoSearchInputSchema,
   photoSizeSchema,
+  slideAspectRatioSchema,
+  slideSearchInputSchema,
+  slideSortSchema,
   trackAssetInsertionInputSchema,
 } from "./schemas";
 
@@ -28,6 +31,7 @@ describe("addin schemas", () => {
     expect(assetTypeSchema.parse("icon")).toBe("icon");
     expect(assetTypeSchema.parse("harvey_ball")).toBe("harvey_ball");
     expect(assetTypeSchema.parse("photo")).toBe("photo");
+    expect(assetTypeSchema.parse("slide")).toBe("slide");
   });
 
   it("rejects unsupported asset types", () => {
@@ -125,6 +129,59 @@ describe("addin schemas", () => {
     expect(parsed.metadata).toEqual({
       PHOTOGRAPHER: "Joey Farina",
       INSERT_SOURCE: "large2x",
+    });
+  });
+
+  it("accepts slide search filters and defaults", () => {
+    const parsed = slideSearchInputSchema.parse({
+      query: "agenda",
+      category: "Agenda",
+      tags: ["outline"],
+      aspectRatio: "16:9",
+    });
+
+    expect(parsed).toEqual({
+      query: "agenda",
+      category: "Agenda",
+      tags: ["outline"],
+      aspectRatio: "16:9",
+      sort: "relevance",
+    });
+  });
+
+  it("allows blank slide browsing", () => {
+    const parsed = slideSearchInputSchema.parse({});
+
+    expect(parsed).toEqual({
+      sort: "relevance",
+    });
+  });
+
+  it("rejects invalid slide filter values", () => {
+    expect(() => slideAspectRatioSchema.parse("21:9")).toThrow();
+    expect(() => slideSortSchema.parse("popular")).toThrow();
+    expect(() =>
+      slideSearchInputSchema.parse({
+        query: "a".repeat(101),
+      }),
+    ).toThrow();
+  });
+
+  it("accepts slide tracking payloads", () => {
+    const parsed = trackAssetInsertionInputSchema.parse({
+      assetType: "slide",
+      externalId: "slide-title-hero",
+      client: "office",
+      metadata: {
+        CATEGORY: "Intro",
+        ASPECT_RATIO: "16:9",
+      },
+    });
+
+    expect(parsed.assetType).toBe("slide");
+    expect(parsed.metadata).toEqual({
+      CATEGORY: "Intro",
+      ASPECT_RATIO: "16:9",
     });
   });
 });

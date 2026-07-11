@@ -1,8 +1,9 @@
-import type { InsertImageOptions, ShapeMetadata } from "./types";
+import type { InsertImageOptions, InsertSlidesOptions, ShapeMetadata } from "./types";
 import {
   detectOffice,
   isOfficeDocumentAvailable,
   isOfficeReady,
+  isPowerPointApiAvailable,
   runOfficeAsync,
   runPowerPoint,
 } from "./utils";
@@ -110,6 +111,37 @@ export class OfficeClient {
 
     await this.addMetadataToShapeById(newShapeId, metadata);
     return newShapeId;
+  }
+
+  async insertSlidesFromBase64(
+    base64: string,
+    options: InsertSlidesOptions = {},
+  ): Promise<void> {
+    if (!isPowerPointApiAvailable("1.2")) {
+      throw new Error(
+        "Slide insertion requires PowerPointApi 1.2 or later. Update your Office client and try again.",
+      );
+    }
+
+    return runPowerPoint(async (context) => {
+      const selectedSlides = context.presentation.getSelectedSlides();
+      selectedSlides.load("items/id");
+      await context.sync();
+
+      if (selectedSlides.items.length === 0) {
+        throw new Error("Select a slide in your presentation before inserting a library slide.");
+      }
+
+      const targetSlideId = options.targetSlideId ?? selectedSlides.items[0]!.id;
+
+      context.presentation.insertSlidesFromBase64(base64, {
+        formatting:
+          options.formatting ?? PowerPoint.InsertSlideFormatting.keepSourceFormatting,
+        targetSlideId,
+      });
+
+      await context.sync();
+    });
   }
 
   private async getShapeIdsOnCurrentSlide(): Promise<string[]> {
