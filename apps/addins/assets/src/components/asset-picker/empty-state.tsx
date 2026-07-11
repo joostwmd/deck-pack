@@ -10,11 +10,11 @@ export function EmptyState({ title, description, icon: Icon }: EmptyStateProps) 
   return (
     <div className="flex flex-col items-center justify-center gap-3 py-8 text-center">
       <div className="flex size-10 items-center justify-center rounded-full bg-muted">
-        <Icon className="size-5 text-muted-foreground" />
+        <Icon className="size-5 text-muted-foreground" aria-hidden />
       </div>
-      <div className="space-y-1">
+      <div className="max-w-64 space-y-1">
         <p className="text-sm font-medium">{title}</p>
-        <p className="text-sm text-muted-foreground">{description}</p>
+        <p className="text-sm text-muted-foreground [overflow-wrap:anywhere]">{description}</p>
       </div>
     </div>
   );

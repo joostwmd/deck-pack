@@ -20,13 +20,7 @@ function ShortcutKey({ token }: { token: KeyToken }) {
   return <Kbd className="rounded-sm border-[0.5px] border-border shadow-xs">{token.value}</Kbd>;
 }
 
-export function ShortcutKeys({
-  tokens,
-  className,
-}: {
-  tokens: KeyToken[];
-  className?: string;
-}) {
+export function ShortcutKeys({ tokens, className }: { tokens: KeyToken[]; className?: string }) {
   return (
     <KbdGroup className={cn("pointer-events-none gap-0.5", className)}>
       {tokens.map((token, idx) => (
@@ -49,17 +43,12 @@ interface ShortcutRowProps {
 
 export function ShortcutRow({ def, className }: ShortcutRowProps) {
   return (
-    <div
-      className={cn(
-        "flex h-8 items-center justify-between rounded-md bg-secondary px-2 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]",
-        className,
-      )}
-    >
+    <div className={cn("flex min-h-6 items-center justify-between gap-3 px-0.5", className)}>
       <KbdGroup className="gap-0.5">
         <ShortcutKeys tokens={def.keys} />
       </KbdGroup>
 
-      <span className="text-[11px] tracking-[0.18px] text-muted-foreground">{def.description}</span>
+      <span className="text-[11px] tracking-[0.12px] text-muted-foreground">{def.description}</span>
     </div>
   );
 }

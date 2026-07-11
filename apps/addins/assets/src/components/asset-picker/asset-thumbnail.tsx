@@ -11,16 +11,23 @@ export function AssetThumbnail({ src, alt, size = 48, className }: AssetThumbnai
   return (
     <div
       className={cn(
-        "flex shrink-0 items-center justify-center rounded-sm border border-border bg-background p-1 shadow-md",
+        "relative flex shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted/60 p-1.5",
         className,
       )}
       style={{ width: size, height: size }}
     >
+      <div className="absolute inset-1.5 rounded-sm bg-muted" aria-hidden />
       {src ? (
-        <img src={src} alt={alt} className="size-full object-contain" />
-      ) : (
-        <div className="size-full rounded-sm bg-muted" />
-      )}
+        <img
+          src={src}
+          alt={alt}
+          decoding="async"
+          className="relative size-full object-contain"
+          onError={(event) => {
+            event.currentTarget.hidden = true;
+          }}
+        />
+      ) : null}
     </div>
   );
 }

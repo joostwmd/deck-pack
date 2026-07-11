@@ -13,6 +13,9 @@ interface SearchSectionProps {
   placeholder?: string;
   searchRef?: Ref<HTMLInputElement>;
   searchRightSlot?: ReactNode;
+  resultsId?: string;
+  activeDescendantId?: string;
+  isExpanded?: boolean;
   children?: ReactNode;
   className?: string;
 }
@@ -24,11 +27,14 @@ export function SearchSection({
   placeholder,
   searchRef,
   searchRightSlot,
+  resultsId,
+  activeDescendantId,
+  isExpanded = false,
   children,
   className,
 }: SearchSectionProps) {
   return (
-    <section className={cn("flex flex-col gap-6", className)}>
+    <section className={cn("flex flex-col gap-4", className)}>
       <SearchBar
         ref={searchRef}
         value={value}
@@ -36,6 +42,9 @@ export function SearchSection({
         isSearching={isSearching}
         placeholder={placeholder}
         rightSlot={searchRightSlot}
+        resultsId={resultsId}
+        activeDescendantId={activeDescendantId}
+        isExpanded={isExpanded}
       />
 
       <ShortcutHints defs={SEARCH_NAVIGATION_SHORTCUTS} className="gap-1" />

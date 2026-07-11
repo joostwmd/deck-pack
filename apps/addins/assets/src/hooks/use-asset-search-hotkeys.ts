@@ -71,6 +71,30 @@ export function useAssetSearchHotkeys({
       },
     },
     {
+      hotkey: SHORTCUTS.navigateVariantsUp.hotkey,
+      callback: () => flow.navigateVariants("up"),
+      options: {
+        enabled: inVariantPhase && hasVariants && !flow.isFetchingVariants,
+        ignoreInputs: false,
+        meta: {
+          name: SHORTCUTS.navigateVariantsUp.id,
+          description: SHORTCUTS.navigateVariantsUp.description,
+        },
+      },
+    },
+    {
+      hotkey: SHORTCUTS.navigateVariantsDown.hotkey,
+      callback: () => flow.navigateVariants("down"),
+      options: {
+        enabled: inVariantPhase && hasVariants && !flow.isFetchingVariants,
+        ignoreInputs: false,
+        meta: {
+          name: SHORTCUTS.navigateVariantsDown.id,
+          description: SHORTCUTS.navigateVariantsDown.description,
+        },
+      },
+    },
+    {
       hotkey: SHORTCUTS.navigateVariantsLeft.hotkey,
       callback: () => flow.navigateVariants("left"),
       options: {
@@ -116,7 +140,14 @@ export function useAssetSearchHotkeys({
     },
     {
       hotkey: SHORTCUTS.back.hotkey,
-      callback: () => flow.goBack(),
+      callback: () => {
+        const returnsToSearch = !!flow.selectedEntity && !flow.selectedVariantId;
+        flow.goBack();
+
+        if (returnsToSearch) {
+          requestAnimationFrame(() => searchInputRef.current?.focus());
+        }
+      },
       options: {
         enabled: canGoBack,
         meta: { name: SHORTCUTS.back.id, description: SHORTCUTS.back.description },

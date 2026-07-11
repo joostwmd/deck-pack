@@ -36,6 +36,8 @@ export type ShortcutId =
   | "navigateResultsUp"
   | "navigateResultsDown"
   | "selectResult"
+  | "navigateVariantsUp"
+  | "navigateVariantsDown"
   | "navigateVariantsLeft"
   | "navigateVariantsRight"
   | "selectVariant"
@@ -92,6 +94,22 @@ export const SHORTCUTS = {
     false,
   ),
   selectResult: def("selectResult", "Enter", [ENTER], "Select result", "search", false),
+  navigateVariantsUp: def(
+    "navigateVariantsUp",
+    "ArrowUp",
+    [UP],
+    "Navigate variants up",
+    "variants",
+    false,
+  ),
+  navigateVariantsDown: def(
+    "navigateVariantsDown",
+    "ArrowDown",
+    [DOWN],
+    "Navigate variants down",
+    "variants",
+    false,
+  ),
   navigateVariantsLeft: def(
     "navigateVariantsLeft",
     "ArrowLeft",
@@ -121,22 +139,22 @@ export const SHORTCUTS = {
 /** Combined display row for up/down navigation — matches Figma search-section hints */
 export const NAVIGATE_RESULTS_DISPLAY: ShortcutDef = {
   ...SHORTCUTS.navigateResultsUp,
-  keys: [CMD, UP, DOWN],
-  description: "Navigate Search Results",
+  keys: [UP, DOWN],
+  description: "Navigate results",
 };
 
 /** Display row for select — matches Figma search-section hints */
 export const SELECT_RESULT_DISPLAY: ShortcutDef = {
   ...SHORTCUTS.selectResult,
-  keys: [CMD, ENTER],
-  description: "Select Result",
+  keys: [ENTER],
+  description: "Select result",
 };
 
 /** Combined display row for variant navigation */
 export const NAVIGATE_VARIANTS_DISPLAY: ShortcutDef = {
   ...SHORTCUTS.navigateVariantsLeft,
-  keys: [LEFT, RIGHT],
-  description: "Navigate Variants",
+  keys: [UP, DOWN, LEFT, RIGHT],
+  description: "Navigate variants",
 };
 
 export const VARIANT_NAVIGATION_SHORTCUTS: ShortcutDef[] = [NAVIGATE_VARIANTS_DISPLAY];

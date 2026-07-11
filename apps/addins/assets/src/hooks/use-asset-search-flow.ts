@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import type { AssetDetailsResponse, AssetListItem, SelectedAssetEntity } from "@/lib/asset-types";
@@ -31,50 +31,39 @@ export function useAssetSearchFlow({ search, getDetails }: UseAssetSearchFlowCon
   const debouncedQuery = useDebouncedValue(searchValue, 500);
   const query = debouncedQuery.trim();
 
-  const { results, isSearching, hasSearched, error: searchError } = useAssetSearch(
-    debouncedQuery,
-    stableSearch,
-  );
+  const {
+    results,
+    isSearching,
+    hasSearched,
+    error: searchError,
+    retry: retrySearch,
+  } = useAssetSearch(debouncedQuery, stableSearch);
   const {
     variants,
     details,
     isLoading: isFetchingVariants,
     error: variantsError,
     loadVariants,
+    reset: resetVariants,
   } = useAssetVariants(stableGetDetails);
 
   const [selectedEntity, setSelectedEntity] = useState<SelectedAssetEntity | null>(null);
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
   const [selectionQuery, setSelectionQuery] = useState("");
-  const [highlightedResultIndex, setHighlightedResultIndex] = useState(-1);
-  const [highlightedVariantIndex, setHighlightedVariantIndex] = useState(-1);
+  const [highlightedResultIndex, setHighlightedResultIndex] = useState(0);
+  const [highlightedVariantIndex, setHighlightedVariantIndex] = useState(0);
 
   const activeEntity = selectionQuery === query ? selectedEntity : null;
   const activeVariantId = selectionQuery === query ? selectedVariantId : null;
+  const activeHighlightedResultIndex =
+    results.length > 0 ? Math.min(highlightedResultIndex, results.length - 1) : -1;
+  const activeHighlightedVariantIndex =
+    variants.length > 0 ? Math.min(highlightedVariantIndex, variants.length - 1) : -1;
 
-  useEffect(() => {
-    if (results.length > 0) {
-      setHighlightedResultIndex(0);
-      return;
-    }
-
-    setHighlightedResultIndex(-1);
-  }, [results]);
-
-  useEffect(() => {
-    if (variants.length === 0) {
-      setHighlightedVariantIndex(-1);
-      return;
-    }
-
-    if (activeVariantId) {
-      const index = variants.findIndex((variant) => variant.id === activeVariantId);
-      setHighlightedVariantIndex(index >= 0 ? index : 0);
-      return;
-    }
-
-    setHighlightedVariantIndex(0);
-  }, [variants, activeVariantId]);
+  const updateSearchValue = useCallback((value: string) => {
+    setSearchValue(value);
+    setHighlightedResultIndex(0);
+  }, []);
 
   const selectEntity = useCallback(
     async (id: string) => {
@@ -88,6 +77,7 @@ export function useAssetSearchFlow({ search, getDetails }: UseAssetSearchFlowCon
       setSelectionQuery(query);
       setSelectedEntity({ id: entity.id, name: entity.name, icon: entity.imageUrl });
       setSelectedVariantId(null);
+      setHighlightedVariantIndex(0);
       await loadVariants(id);
     },
     [results, loadVariants, query],
@@ -98,7 +88,7 @@ export function useAssetSearchFlow({ search, getDetails }: UseAssetSearchFlowCon
       if (results.length === 0) return;
 
       setHighlightedResultIndex((current) => {
-        const start = current < 0 ? 0 : current;
+        const start = Math.min(Math.max(current, 0), results.length - 1);
 
         if (direction === "down") {
           return Math.min(start + 1, results.length - 1);
@@ -113,26 +103,37 @@ export function useAssetSearchFlow({ search, getDetails }: UseAssetSearchFlowCon
   const selectHighlightedResult = useCallback(() => {
     if (results.length === 0) return;
 
-    const index = highlightedResultIndex >= 0 ? highlightedResultIndex : 0;
+    const index = activeHighlightedResultIndex >= 0 ? activeHighlightedResultIndex : 0;
     const result = results[index];
 
     if (result) {
       void selectEntity(result.id);
     }
-  }, [highlightedResultIndex, results, selectEntity]);
+  }, [activeHighlightedResultIndex, results, selectEntity]);
 
   const navigateVariants = useCallback(
-    (direction: "left" | "right") => {
+    (direction: "up" | "down" | "left" | "right") => {
       if (variants.length === 0) return;
 
       setHighlightedVariantIndex((current) => {
-        const start = current < 0 ? 0 : current;
+        const start = Math.min(Math.max(current, 0), variants.length - 1);
+        const columnCount = 2;
+        const column = start % columnCount;
 
-        if (direction === "right") {
-          return Math.min(start + 1, variants.length - 1);
+        if (direction === "up") {
+          return Math.max(start - columnCount, 0);
         }
 
-        return Math.max(start - 1, 0);
+        if (direction === "down") {
+          const target = start + columnCount;
+          return target < variants.length ? target : start;
+        }
+
+        if (direction === "right") {
+          return column < columnCount - 1 ? Math.min(start + 1, variants.length - 1) : start;
+        }
+
+        return column > 0 ? start - 1 : start;
       });
     },
     [variants.length],
@@ -141,13 +142,31 @@ export function useAssetSearchFlow({ search, getDetails }: UseAssetSearchFlowCon
   const confirmHighlightedVariant = useCallback(() => {
     if (variants.length === 0) return;
 
-    const index = highlightedVariantIndex >= 0 ? highlightedVariantIndex : 0;
+    const index = activeHighlightedVariantIndex >= 0 ? activeHighlightedVariantIndex : 0;
     const variant = variants[index];
 
     if (variant) {
       setSelectedVariantId(variant.id);
     }
-  }, [highlightedVariantIndex, variants]);
+  }, [activeHighlightedVariantIndex, variants]);
+
+  const selectVariant = useCallback(
+    (id: string) => {
+      const index = variants.findIndex((variant) => variant.id === id);
+
+      if (index >= 0) {
+        setHighlightedVariantIndex(index);
+      }
+
+      setSelectedVariantId(id);
+    },
+    [variants],
+  );
+
+  const retryVariants = useCallback(() => {
+    if (!activeEntity) return;
+    return loadVariants(activeEntity.id);
+  }, [activeEntity, loadVariants]);
 
   const goBack = useCallback(() => {
     if (activeVariantId) {
@@ -156,39 +175,44 @@ export function useAssetSearchFlow({ search, getDetails }: UseAssetSearchFlowCon
     }
 
     if (activeEntity) {
+      resetVariants();
       setSelectedEntity(null);
       setSelectionQuery("");
-      setHighlightedResultIndex(results.length > 0 ? 0 : -1);
+      setHighlightedResultIndex(0);
       return;
     }
 
     if (searchValue) {
       setSearchValue("");
     }
-  }, [activeEntity, activeVariantId, results.length, searchValue]);
+  }, [activeEntity, activeVariantId, resetVariants, searchValue]);
 
   const highlightedResultId =
-    highlightedResultIndex >= 0 ? (results[highlightedResultIndex]?.id ?? null) : null;
+    activeHighlightedResultIndex >= 0 ? (results[activeHighlightedResultIndex]?.id ?? null) : null;
   const highlightedVariantId =
-    highlightedVariantIndex >= 0 ? (variants[highlightedVariantIndex]?.id ?? null) : null;
+    activeHighlightedVariantIndex >= 0
+      ? (variants[activeHighlightedVariantIndex]?.id ?? null)
+      : null;
 
   return {
     searchValue,
-    setSearchValue,
+    setSearchValue: updateSearchValue,
     results,
     isSearching,
     hasSearched,
     searchError,
+    retrySearch,
     variants,
     details: activeEntity ? details : null,
     isFetchingVariants,
     variantsError,
+    retryVariants,
     selectedEntity: activeEntity,
     selectedVariantId: activeVariantId,
     highlightedResultId,
     highlightedVariantId,
     selectEntity,
-    selectVariant: setSelectedVariantId,
+    selectVariant,
     navigateResults,
     selectHighlightedResult,
     navigateVariants,

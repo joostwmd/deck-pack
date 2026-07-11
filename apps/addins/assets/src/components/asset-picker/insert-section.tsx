@@ -23,13 +23,18 @@ export function InsertSection({
   className,
 }: InsertSectionProps) {
   return (
-    <section className={cn("sticky bottom-0 flex flex-col gap-[7px] bg-background pt-2", className)}>
+    <section className={cn("sticky bottom-0 flex flex-col gap-2 bg-background pt-2", className)}>
       <ShortcutHints defs={INSERT_SECTION_SHORTCUTS} />
 
-      <Button className="w-full" disabled={disabled || isInserting} onClick={() => void onClick()}>
+      <Button
+        className="w-full"
+        disabled={disabled || isInserting}
+        aria-busy={isInserting}
+        onClick={() => void onClick()}
+      >
         {isInserting ? (
           <>
-            <CircleNotch className="size-4 animate-spin" />
+            <CircleNotch className="size-4 animate-spin motion-reduce:animate-none" aria-hidden />
             {insertingLabel}
           </>
         ) : (

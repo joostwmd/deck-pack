@@ -1,5 +1,3 @@
-import { cn } from "@deck-pack/ui/lib/utils";
-
 import type { AssetListItem } from "@/lib/asset-types";
 
 interface SearchResultItemProps {
@@ -9,15 +7,28 @@ interface SearchResultItemProps {
 export function SearchResultItem({ result }: SearchResultItemProps) {
   return (
     <div className="flex w-full items-center gap-2">
-      <div className="flex size-12 shrink-0 items-center justify-center rounded-sm border border-border bg-background p-1 shadow-md">
+      <div className="relative flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted/60 p-1.5">
+        <div className="absolute inset-1.5 rounded-sm bg-muted" aria-hidden />
         {result.imageUrl ? (
-          <img src={result.imageUrl} alt={result.name} className="size-full object-contain" />
-        ) : (
-          <div className="size-full rounded-sm bg-muted" />
-        )}
+          <img
+            src={result.imageUrl}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="relative size-full object-contain"
+            onError={(event) => {
+              event.currentTarget.hidden = true;
+            }}
+          />
+        ) : null}
       </div>
 
-      <p className="text-base font-medium text-foreground">{result.name}</p>
+      <p
+        className="min-w-0 flex-1 truncate text-sm font-medium text-foreground"
+        title={result.name}
+      >
+        {result.name}
+      </p>
     </div>
   );
 }

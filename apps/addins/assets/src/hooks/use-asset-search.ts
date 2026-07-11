@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import type { AssetListItem } from "@/lib/asset-types";
 
@@ -11,6 +11,7 @@ export function useAssetSearch(
   const [isSearching, setIsSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [retryAttempt, setRetryAttempt] = useState(0);
 
   useEffect(() => {
     if (!query) return;
@@ -44,13 +45,18 @@ export function useAssetSearch(
     return () => {
       cancelled = true;
     };
-  }, [query, searchFn]);
+  }, [query, retryAttempt, searchFn]);
+
+  const retry = useCallback(() => {
+    setRetryAttempt((attempt) => attempt + 1);
+  }, []);
 
   return {
     results: query ? results : [],
     isSearching: query ? isSearching : false,
     hasSearched: query ? hasSearched : false,
     error: query ? error : null,
+    retry,
     clearResults: () => {
       setResults([]);
       setHasSearched(false);

@@ -11,7 +11,7 @@ interface VariantsSectionProps {
 
 export function VariantsSection({ children, className }: VariantsSectionProps) {
   return (
-    <section className={cn("flex w-full flex-col gap-6", className)}>
+    <section className={cn("flex w-full flex-col gap-4", className)}>
       <ShortcutHints defs={VARIANT_NAVIGATION_SHORTCUTS} />
       {children}
     </section>

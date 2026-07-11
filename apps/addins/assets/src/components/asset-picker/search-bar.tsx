@@ -8,17 +8,30 @@ interface SearchBarProps {
   isSearching?: boolean;
   placeholder?: string;
   rightSlot?: ReactNode;
+  resultsId?: string;
+  activeDescendantId?: string;
+  isExpanded?: boolean;
   className?: string;
 }
 
 export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(function SearchBar(
-  { value, onChange, isSearching = false, placeholder = "Search...", rightSlot, className },
+  {
+    value,
+    onChange,
+    isSearching = false,
+    placeholder = "Search...",
+    rightSlot,
+    resultsId,
+    activeDescendantId,
+    isExpanded = false,
+    className,
+  },
   ref,
 ) {
   return (
     <div
       className={cn(
-        "flex w-full items-center gap-2 rounded-lg border border-border bg-background px-2 py-1 shadow-xs",
+        "flex w-full items-center gap-2 rounded-md border border-border/80 bg-background px-2 py-1 transition-[border-color,box-shadow] focus-within:border-primary/60 focus-within:ring-2 focus-within:ring-primary/15",
         className,
       )}
     >
@@ -33,6 +46,12 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(function S
       <input
         ref={ref}
         type="text"
+        role="combobox"
+        aria-label={placeholder}
+        aria-autocomplete="list"
+        aria-controls={resultsId}
+        aria-activedescendant={activeDescendantId}
+        aria-expanded={isExpanded}
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
