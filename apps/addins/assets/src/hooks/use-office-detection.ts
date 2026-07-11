@@ -6,7 +6,6 @@ export function useOfficeDetection() {
   return {
     environment,
     isOfficeAvailable,
-    isLoading: environment === "loading",
     isWeb: environment === "web",
   };
 }

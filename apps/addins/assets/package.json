@@ -7,8 +7,14 @@
     "dev": "vite dev",
     "build": "vite build",
     "serve": "vite preview",
-    "start": "vite",
-    "check-types": "vite build && tsc --noEmit"
+    "check-types": "vite build && tsc --noEmit",
+    "sideload": "office-addin-debugging start ./manifests/manifest.dev.xml",
+    "sideload:staging": "office-addin-debugging start ./manifests/manifest.staging.xml",
+    "sideload:prod": "office-addin-debugging start ./manifests/manifest.prod.xml",
+    "sideload:stop": "office-addin-debugging stop ./manifests/manifest.dev.xml",
+    "validate": "office-addin-manifest validate ./manifests/manifest.dev.xml",
+    "validate:staging": "office-addin-manifest validate ./manifests/manifest.staging.xml",
+    "validate:prod": "office-addin-manifest validate ./manifests/manifest.prod.xml"
   },
   "dependencies": {
     "@deck-pack/office-js": "workspace:*",
@@ -32,6 +38,9 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "catalog:",
     "@vitejs/plugin-react": "^6.0.1",
+    "office-addin-debugging": "^6.0.3",
+    "office-addin-dev-certs": "^2.0.3",
+    "office-addin-manifest": "^2.0.3",
     "postcss": "^8.5.10",
     "tailwindcss": "^4.2.2",
     "typescript": "catalog:",

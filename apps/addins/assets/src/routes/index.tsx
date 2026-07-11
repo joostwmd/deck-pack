@@ -1,6 +1,5 @@
-import { createFileRoute, Navigate } from "@tanstack/react-router";
+import { Navigate, createFileRoute } from "@tanstack/react-router";
 
-import Loader from "@/components/loader";
 import { useOfficeDetection } from "@/hooks/use-office-detection";
 
 export const Route = createFileRoute("/")({
@@ -8,11 +7,14 @@ export const Route = createFileRoute("/")({
 });
 
 function HomeComponent() {
-  const { environment, isLoading } = useOfficeDetection();
+  const { environment } = useOfficeDetection();
 
-  if (isLoading) {
-    return <Loader />;
-  }
-
-  return <Navigate to={environment === "office" ? "/office" : "/web"} replace />;
+  return (
+    <div style={{ padding: "12px", fontFamily: "monospace", fontSize: "12px" }}>
+      <div>React is rendering.</div>
+      <div>environment: {environment}</div>
+      <div>Redirecting to: {environment === "office" ? "/office" : "/web"}</div>
+      <Navigate to={environment === "office" ? "/office" : "/web"} replace />
+    </div>
+  );
 }

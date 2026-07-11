@@ -1,13 +1,7 @@
-import { detectOffice } from "@deck-pack/office-js";
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react";
+import { isOfficeDocumentAvailable } from "@deck-pack/office-js";
+import { createContext, useContext, type ReactNode } from "react";
 
-export type EnvironmentType = "loading" | "office" | "web";
+export type EnvironmentType = "office" | "web";
 
 interface EnvironmentContextValue {
   environment: EnvironmentType;
@@ -17,29 +11,15 @@ interface EnvironmentContextValue {
 const EnvironmentContext = createContext<EnvironmentContextValue | null>(null);
 
 export function EnvironmentProvider({ children }: { children: ReactNode }) {
-  const [environment, setEnvironment] = useState<EnvironmentType>("loading");
-
-  useEffect(() => {
-    let mounted = true;
-
-    detectOffice().then((available) => {
-      if (mounted) {
-        setEnvironment(available ? "office" : "web");
-      }
-    });
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  const value: EnvironmentContextValue = {
-    environment,
-    isOfficeAvailable: environment === "office",
-  };
+  // By the time this mounts, OfficeProvider has already awaited Office.onReady,
+  // so isOfficeDocumentAvailable() is a reliable synchronous check.
+  const isOfficeAvailable = isOfficeDocumentAvailable();
+  const environment: EnvironmentType = isOfficeAvailable ? "office" : "web";
 
   return (
-    <EnvironmentContext.Provider value={value}>{children}</EnvironmentContext.Provider>
+    <EnvironmentContext.Provider value={{ environment, isOfficeAvailable }}>
+      {children}
+    </EnvironmentContext.Provider>
   );
 }
 

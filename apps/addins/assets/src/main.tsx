@@ -1,13 +1,16 @@
-import { RouterProvider, createRouter } from "@tanstack/react-router";
+import { RouterProvider, createMemoryHistory, createRouter } from "@tanstack/react-router";
 import ReactDOM from "react-dom/client";
 
 import Loader from "./components/loader";
 import { routeTree } from "./routeTree.gen";
 
+// Office add-in webviews block window.history.replaceState/pushState entirely.
+// Memory history keeps all navigation state in JS — no browser history API needed.
 const router = createRouter({
   routeTree,
+  history: createMemoryHistory({ initialEntries: ["/"] }),
   defaultPreload: "intent",
-  scrollRestoration: true,
+  scrollRestoration: false,
   defaultPendingComponent: () => <Loader />,
 });
 

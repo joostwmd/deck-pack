@@ -138,12 +138,52 @@ pnpm db:push
 pnpm dev:api      # API — default http://localhost:3000 · tRPC http://localhost:3000/trpc
 pnpm dev:ops      # Ops — typically http://localhost:3001
 pnpm dev:portal   # Portal — Vite port 3002
-pnpm dev:addin-one  # Add-in assets — Vite port 3003
+pnpm dev:assets   # Add-in assets — HTTPS Vite port 3003
 ```
 
 **CORS and auth:** set **`CORS_ORIGINS`** on the API to a **comma-separated** list of browser origins (same list feeds Better Auth **trusted origins**), for example:
 
-`CORS_ORIGINS=http://localhost:3001,http://localhost:3002,http://localhost:3003`
+`CORS_ORIGINS=http://localhost:3001,http://localhost:3002,https://localhost:3003`
+
+### PowerPoint add-in sideloading
+
+Manifests live in `apps/addins/assets/manifests/` (dev, staging, prod). Sideload scripts use Microsoft's `office-addin-debugging` CLI.
+
+**Local dev** (two terminals):
+
+```bash
+pnpm dev:assets        # Terminal 1 — HTTPS dev server at https://localhost:3003
+pnpm sideload:assets   # Terminal 2 — register dev manifest + launch PowerPoint
+```
+
+**Test against deployed builds** (no local Vite needed):
+
+```bash
+pnpm sideload:assets:staging   # sideload against staging SWA
+pnpm sideload:assets:prod      # sideload against production SWA
+```
+
+**Other commands:**
+
+```bash
+pnpm -F @deck-pack/assets sideload:stop      # stop dev sideload
+pnpm -F @deck-pack/assets validate           # validate dev manifest
+pnpm -F @deck-pack/assets validate:staging   # validate staging manifest
+pnpm -F @deck-pack/assets validate:prod      # validate prod manifest
+```
+
+**First-time HTTPS certs** (auto-installed on first `pnpm dev:assets`; manual fallback):
+
+```bash
+npx office-addin-dev-certs install
+```
+
+**Stale sideload cache** (if the add-in does not update):
+
+- macOS: `~/Library/Containers/com.microsoft.Powerpoint/Data/Documents/wef`
+- Windows: `%LOCALAPPDATA%\Microsoft\Office\16.0\Wef\`
+
+`dev:addin-one` is an alias for `dev:assets`.
 
 ---
 

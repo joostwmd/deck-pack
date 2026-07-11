@@ -33,6 +33,9 @@
 !.env.example
 .DS_Store
 *.pem
+*.pfx
+*.p12
+certs/
 *.local
 
 # Logs
