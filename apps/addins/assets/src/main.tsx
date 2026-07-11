@@ -5,11 +5,16 @@ import Loader from "./components/loader";
 import { routeTree } from "./routeTree.gen";
 import { authClient } from "./utils/auth";
 
+function getInitialEntry() {
+  const path = window.location.pathname === "/index.html" ? "/" : window.location.pathname;
+  return `${path}${window.location.search}${window.location.hash}`;
+}
+
 // Office add-in webviews block window.history.replaceState/pushState entirely.
-// Memory history keeps all navigation state in JS — no browser history API needed.
+// Seed memory history from the requested URL so /, /office, and /web remain distinct.
 const router = createRouter({
   routeTree,
-  history: createMemoryHistory({ initialEntries: ["/"] }),
+  history: createMemoryHistory({ initialEntries: [getInitialEntry()] }),
   defaultPreload: "intent",
   scrollRestoration: false,
   defaultPendingComponent: () => <Loader />,

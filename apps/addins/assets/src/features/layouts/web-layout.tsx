@@ -6,7 +6,7 @@ import { WebCanvas } from "./web-canvas";
 export function WebLayout() {
   return (
     <WebCanvasProvider>
-      <div className="flex h-svh overflow-hidden">
+      <div className="flex h-svh w-full min-w-0 flex-1 overflow-hidden">
         <WebCanvas />
         <aside className="flex h-svh w-[380px] shrink-0 flex-col border-l bg-background">
           <AssetsShell mode="web" />
