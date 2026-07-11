@@ -13,6 +13,14 @@ const authDeps = {
   sendOtp: async ({ email, otp, type }: { email: string; otp: string; type: any }) => {
     await sendOtpEmail({ to: email, otp, type });
   },
+  ...(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET
+    ? {
+        microsoftOAuth: {
+          clientId: env.MICROSOFT_CLIENT_ID,
+          clientSecret: env.MICROSOFT_CLIENT_SECRET,
+        },
+      }
+    : {}),
 };
 
 export const opsAuth = createOpsAuth(authDeps);

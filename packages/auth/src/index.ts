@@ -21,6 +21,10 @@ export interface AuthDeps {
   baseURL: string;
   trustedOrigins: string[];
   sendOtp: SendOtp;
+  microsoftOAuth?: {
+    clientId: string;
+    clientSecret: string;
+  };
 }
 
 function baseAuthOptions(
@@ -168,7 +172,7 @@ export function createOpsAuth(deps: AuthDeps) {
  * admin plugin.
  */
 export function createAppAuth(deps: AuthDeps) {
-  const { sendOtp } = deps;
+  const { sendOtp, microsoftOAuth } = deps;
 
   return betterAuth(
     baseAuthOptions(deps, {
@@ -181,6 +185,18 @@ export function createAppAuth(deps: AuthDeps) {
         },
         cookiePrefix: "app",
       },
+      ...(microsoftOAuth
+        ? {
+            socialProviders: {
+              microsoft: {
+                clientId: microsoftOAuth.clientId,
+                clientSecret: microsoftOAuth.clientSecret,
+                tenantId: "common",
+                prompt: "select_account",
+              },
+            },
+          }
+        : {}),
       plugins: [
         emailOTP({
           async sendVerificationOTP({ email, otp, type }) {

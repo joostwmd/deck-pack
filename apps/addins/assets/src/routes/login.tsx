@@ -3,6 +3,7 @@ import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { authClient } from "@/utils/auth";
 
 const OTP_LENGTH = 6;
@@ -12,7 +13,7 @@ export const Route = createFileRoute("/login")({
     const session = await context.authClient.getSession();
     if (session.data) {
       redirect({
-        to: "/account",
+        to: "/",
         throw: true,
       });
     }
@@ -30,12 +31,16 @@ function displayNameFromEmail(email: string): string {
 
 function LoginComponent() {
   const navigate = useNavigate();
+  const { environment } = useEnvironment();
 
   const [step, setStep] = useState<OtpSignupStep>("email");
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [sending, setSending] = useState(false);
   const [verifying, setVerifying] = useState(false);
+  const [microsoftSigningIn, setMicrosoftSigningIn] = useState(false);
+
+  const postAuthPath = environment === "office" ? "/office" : "/web";
 
   const handleSendCode = async () => {
     const trimmed = email.trim().toLowerCase();
@@ -78,15 +83,31 @@ function LoginComponent() {
         return;
       }
       toast.success("You're signed in");
-      void navigate({ to: "/account" });
+      void navigate({ to: postAuthPath });
     } finally {
       setVerifying(false);
     }
   };
 
+  const handleMicrosoftSignIn = async () => {
+    setMicrosoftSigningIn(true);
+    try {
+      const { error } = await authClient.signIn.social({
+        provider: "microsoft",
+        callbackURL: `${window.location.origin}${postAuthPath}`,
+      });
+      if (error) {
+        toast.error(error.message ?? "Could not start Microsoft sign-in.");
+      }
+    } finally {
+      setMicrosoftSigningIn(false);
+    }
+  };
+
   return (
-    <div className="container flex min-h-[min(100dvh,48rem)] flex-col items-center justify-center px-2 py-8">
+    <div className="flex h-svh w-full items-center justify-center bg-background px-4 py-6">
       <OtpSignup
+        className="w-full max-w-[400px]"
         step={step}
         email={email}
         onEmailChange={setEmail}
@@ -98,9 +119,14 @@ function LoginComponent() {
           setStep("email");
           setOtp("");
         }}
+        onMicrosoftSignIn={() => void handleMicrosoftSignIn()}
+        microsoftSigningIn={microsoftSigningIn}
         sending={sending}
         verifying={verifying}
         otpLength={OTP_LENGTH}
+        logo={
+          <span className="text-sm font-semibold tracking-tight text-foreground">DeckPack</span>
+        }
         emailHelperText="We'll email a one-time code to this address."
         titleEmailStep="Sign in to DeckPack"
         descriptionEmailStep="We'll email you a one-time code. It expires in a few minutes."
