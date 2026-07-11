@@ -4,6 +4,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@deck-pack/ui/components/system/tabs";
+import { cn } from "@deck-pack/ui/lib/utils";
 import { useEffect, useRef, useState } from "react";
 
 import { ShortcutHelp } from "@/components/shortcut-help";
@@ -31,6 +32,7 @@ export function AssetsShell({ mode }: AssetsShellProps) {
   const [activeTab, setActiveTab] = useState<AssetTab>("logos");
   const [helpOpen, setHelpOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
+  const isOffice = mode === "office";
 
   useAssetTabHotkeys({
     onTabChange: setActiveTab,
@@ -70,13 +72,22 @@ export function AssetsShell({ mode }: AssetsShellProps) {
           ))}
         </TabsList>
 
-        <TabsContent value="logos" className="mx-4 min-h-0 flex-1 overflow-y-auto">
+        <TabsContent
+          value="logos"
+          className={cn("min-h-0 flex-1 overflow-y-auto", !isOffice && "mx-4")}
+        >
           {activeTab === "logos" ? <LogosPanel mode={mode} /> : null}
         </TabsContent>
-        <TabsContent value="flags" className="mx-4 min-h-0 flex-1 overflow-y-auto">
+        <TabsContent
+          value="flags"
+          className={cn("min-h-0 flex-1 overflow-y-auto", !isOffice && "mx-4")}
+        >
           {activeTab === "flags" ? <FlagsPanel mode={mode} /> : null}
         </TabsContent>
-        <TabsContent value="icons" className="mx-4 min-h-0 flex-1 overflow-y-auto">
+        <TabsContent
+          value="icons"
+          className={cn("min-h-0 flex-1 overflow-y-auto", !isOffice && "mx-4")}
+        >
           {activeTab === "icons" ? <IconsPanel mode={mode} /> : null}
         </TabsContent>
 
