@@ -13,16 +13,18 @@ export const corsMiddleware: MiddlewareHandler = async (c, next) => {
   // Access-Control-Allow-Credentials: true is valid per the CORS spec.
   // Wildcards (*) cannot be combined with credentials.
   const allowedOrigins = env.CORS_ORIGINS;
-  const matchedOrigin = requestOrigin && allowedOrigins.includes(requestOrigin)
-    ? requestOrigin
-    : allowedOrigins[0] ?? "*";
+  const matchedOrigin =
+    requestOrigin && allowedOrigins.includes(requestOrigin) ? requestOrigin : null;
 
-  c.header("Access-Control-Allow-Origin", matchedOrigin);
+  if (matchedOrigin) {
+    c.header("Access-Control-Allow-Origin", matchedOrigin);
+    c.header("Access-Control-Allow-Credentials", "true");
+    c.header("Vary", "Origin");
+  }
+
   c.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   c.header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
-  c.header("Access-Control-Allow-Credentials", "true");
   c.header("Access-Control-Expose-Headers", "X-Request-Id");
-  c.header("Vary", "Origin");
 
   if (c.req.method === "OPTIONS") {
     return c.text("", 204 as ContentfulStatusCode);

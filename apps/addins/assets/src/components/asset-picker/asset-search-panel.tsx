@@ -6,7 +6,8 @@ import { ShortcutKeys } from "@/components/shortcut-hint";
 import { useWebCanvasOptional } from "@/contexts/web-canvas-context";
 import { useAssetSearchFlow } from "@/hooks/use-asset-search-flow";
 import { useAssetSearchHotkeys } from "@/hooks/use-asset-search-hotkeys";
-import type { AssetDetailsResponse, AssetListItem, AssetPanelMode } from "@/lib/asset-types";
+import type { AssetDetailsResponse, AssetListItem, AssetPanelMode, AssetType } from "@/lib/asset-types";
+import { trackAssetInsertion } from "@/lib/track-asset-insertion";
 import { SHORTCUTS } from "@/lib/shortcuts";
 
 import { EmptyState } from "./empty-state";
@@ -26,6 +27,7 @@ interface InsertContext {
 
 interface AssetSearchPanelProps {
   mode: AssetPanelMode;
+  assetType: AssetType;
   /** Singular, capitalized noun used to derive titles and messages, e.g. "Logo". */
   assetLabel: string;
   headerText: string;
@@ -40,6 +42,7 @@ interface AssetSearchPanelProps {
 
 export function AssetSearchPanel({
   mode,
+  assetType,
   assetLabel,
   headerText,
   searchPlaceholder,
@@ -94,6 +97,16 @@ export function AssetSearchPanel({
           metadata: flow.details.metadata,
         });
 
+        trackAssetInsertion({
+          assetType,
+          externalId: flow.details.id,
+          client: "web",
+          metadata: {
+            variantId: variant.id,
+            ...flow.details.metadata,
+          },
+        });
+
         toast.success(`${assetLabel} added to canvas`);
       } catch (error) {
         console.error(`Error adding ${label} to canvas:`, error);
@@ -125,6 +138,7 @@ export function AssetSearchPanel({
     }
   }, [
     assetLabel,
+    assetType,
     flow.details,
     flow.selectedEntity,
     flow.selectedVariantId,

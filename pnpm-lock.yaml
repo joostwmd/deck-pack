@@ -93,6 +93,9 @@ importers:
 
   apps/addins/assets:
     dependencies:
+      '@deck-pack/api':
+        specifier: workspace:*
+        version: link:../../api
       '@deck-pack/auth':
         specifier: workspace:*
         version: link:../../../packages/auth
@@ -102,6 +105,9 @@ importers:
       '@deck-pack/office-js':
         specifier: workspace:*
         version: link:../../../packages/office-js
+      '@deck-pack/trpc-client':
+        specifier: workspace:*
+        version: link:../../../packages/trpc-client
       '@deck-pack/ui':
         specifier: workspace:*
         version: link:../../../packages/ui

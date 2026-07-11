@@ -35,3 +35,5 @@ export interface SelectedAssetEntity {
 export type AssetPanelMode = "office" | "web";
 
 export type AssetTab = "logos" | "flags" | "icons";
+
+export type AssetType = "logo" | "flag" | "icon";
