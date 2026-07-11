@@ -10,6 +10,9 @@ import { useCallback, useRef } from "react";
 import { useWebCanvas } from "@/contexts/web-canvas-context";
 import { clampCanvasPosition, deltaPxToFraction } from "@/lib/canvas-position";
 
+import { WaitlistBanner } from "@/features/waitlist/waitlist-banner";
+
+import { CanvasDownloadButton } from "./canvas-download-button";
 import { CanvasItem } from "./canvas-item";
 
 /** Canvas is 16:9; square item height as fraction of canvas height */
@@ -60,28 +63,34 @@ export function WebCanvas() {
   );
 
   return (
-    <main className="flex min-w-0 flex-1 items-center justify-center bg-muted/40 p-6 md:p-10">
-      <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-        <div
-          ref={canvasRef}
-          className="relative aspect-[16/9] w-full max-w-5xl overflow-hidden rounded-sm border bg-white shadow-sm"
-        >
-          {items.length === 0 ? (
-            <div className="flex h-full items-center justify-center px-8 text-center text-sm text-muted-foreground">
-              Your slide preview will appear here. Search for an asset in the sidebar and add it to
-              the canvas.
-            </div>
-          ) : null}
+    <main className="relative flex min-w-0 flex-1 flex-col bg-muted/40">
+      <WaitlistBanner />
 
-          {items.map((item) => (
-            <CanvasItem
-              key={item.instanceId}
-              item={item}
-              heightFraction={getHeightFraction(item.width)}
-            />
-          ))}
-        </div>
-      </DndContext>
+      <div className="flex flex-1 items-center justify-center p-6 md:p-10">
+        <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+          <div
+            ref={canvasRef}
+            className="relative aspect-[16/9] w-full max-w-5xl overflow-hidden rounded-sm border bg-white shadow-sm"
+          >
+            {items.length === 0 ? (
+              <div className="flex h-full items-center justify-center px-8 text-center text-sm text-muted-foreground">
+                Your slide preview will appear here. Search for an asset in the sidebar and add it to
+                the canvas.
+              </div>
+            ) : null}
+
+            {items.map((item) => (
+              <CanvasItem
+                key={item.instanceId}
+                item={item}
+                heightFraction={getHeightFraction(item.width)}
+              />
+            ))}
+          </div>
+        </DndContext>
+      </div>
+
+      <CanvasDownloadButton />
     </main>
   );
 }
