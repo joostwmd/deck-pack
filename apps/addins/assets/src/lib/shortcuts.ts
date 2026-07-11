@@ -32,6 +32,7 @@ export type ShortcutId =
   | "logos"
   | "flags"
   | "icons"
+  | "harveyBalls"
   | "focusSearch"
   | "navigateResultsUp"
   | "navigateResultsDown"
@@ -76,6 +77,7 @@ export const SHORTCUTS = {
   logos: def("logos", "Mod+L", [CMD, t("L")], "Logos", "tabs"),
   flags: def("flags", "Mod+F", [CMD, t("F")], "Flags", "tabs"),
   icons: def("icons", "Mod+I", [CMD, t("I")], "Icons", "tabs"),
+  harveyBalls: def("harveyBalls", "Mod+B", [CMD, t("B")], "Harvey Balls", "tabs"),
   focusSearch: def("focusSearch", "Mod+K", [CMD, t("K")], "Focus search", "search"),
   navigateResultsUp: def(
     "navigateResultsUp",
@@ -188,6 +190,7 @@ export const ALL_SHORTCUTS: ShortcutDef[] = [
   SHORTCUTS.logos,
   SHORTCUTS.flags,
   SHORTCUTS.icons,
+  SHORTCUTS.harveyBalls,
   SHORTCUTS.focusSearch,
   NAVIGATE_RESULTS_DISPLAY,
   SELECT_RESULT_DISPLAY,

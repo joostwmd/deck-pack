@@ -4,7 +4,7 @@ export const assetSearchQuerySchema = z.string().trim().min(1).max(100);
 
 export const assetExternalIdSchema = z.string().trim().min(1);
 
-export const assetTypeSchema = z.enum(["logo", "flag", "icon"]);
+export const assetTypeSchema = z.enum(["logo", "flag", "icon", "harvey_ball"]);
 
 export const assetClientSchema = z.enum(["office", "web"]);
 

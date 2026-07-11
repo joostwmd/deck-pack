@@ -2,6 +2,7 @@ import { useDraggable } from "@dnd-kit/core";
 import { memo } from "react";
 
 import type { PlacedCanvasItem } from "@/contexts/web-canvas-context";
+import { getCanvasItemPreviewSrc } from "@/lib/canvas-item-src";
 
 interface CanvasItemProps {
   item: PlacedCanvasItem;
@@ -35,7 +36,7 @@ export const CanvasItem = memo(function CanvasItem({ item, heightFraction }: Can
       {...attributes}
     >
       <img
-        src={item.imageUrl}
+        src={getCanvasItemPreviewSrc(item)}
         alt={item.name}
         draggable={false}
         className="pointer-events-none size-full object-contain"

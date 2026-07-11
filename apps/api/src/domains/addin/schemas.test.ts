@@ -21,6 +21,7 @@ describe("addin schemas", () => {
     expect(assetTypeSchema.parse("logo")).toBe("logo");
     expect(assetTypeSchema.parse("flag")).toBe("flag");
     expect(assetTypeSchema.parse("icon")).toBe("icon");
+    expect(assetTypeSchema.parse("harvey_ball")).toBe("harvey_ball");
   });
 
   it("rejects unsupported asset types", () => {
@@ -51,6 +52,24 @@ describe("addin schemas", () => {
     expect(parsed.metadata).toEqual({
       variantId: "ios7",
       ICON_PLATFORM: "ios7",
+    });
+  });
+
+  it("accepts harvey ball tracking payloads", () => {
+    const parsed = trackAssetInsertionInputSchema.parse({
+      assetType: "harvey_ball",
+      externalId: "harvey-ball",
+      client: "web",
+      metadata: {
+        TYPE: "HARVEY_BALL",
+        PERCENTAGE: "75",
+      },
+    });
+
+    expect(parsed.assetType).toBe("harvey_ball");
+    expect(parsed.metadata).toEqual({
+      TYPE: "HARVEY_BALL",
+      PERCENTAGE: "75",
     });
   });
 });

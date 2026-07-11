@@ -2,6 +2,7 @@ import PptxGenJS from "pptxgenjs";
 
 import type { PlacedCanvasItem } from "@/contexts/web-canvas-context";
 
+import { svgToDataUri } from "./canvas-item-src";
 import { urlToBase64 } from "./url-to-base64";
 
 /** Canvas is 16:9; square item height as fraction of canvas height */
@@ -33,11 +34,6 @@ export function toSlideCoordinates(item: PlacedCanvasItem): SlideImagePlacement 
     w: item.width * SLIDE_WIDTH_IN,
     h: heightFraction * SLIDE_HEIGHT_IN,
   };
-}
-
-function svgToDataUri(svg: string) {
-  const encoded = encodeURIComponent(svg.trim());
-  return `data:image/svg+xml;charset=utf-8,${encoded}`;
 }
 
 async function resolveImageData(item: PlacedCanvasItem): Promise<string> {
