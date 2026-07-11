@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 
 import Loader from "./components/loader";
 import { routeTree } from "./routeTree.gen";
+import { authClient } from "./utils/auth";
 
 // Office add-in webviews block window.history.replaceState/pushState entirely.
 // Memory history keeps all navigation state in JS — no browser history API needed.
@@ -12,6 +13,7 @@ const router = createRouter({
   defaultPreload: "intent",
   scrollRestoration: false,
   defaultPendingComponent: () => <Loader />,
+  context: { authClient },
 });
 
 declare module "@tanstack/react-router" {

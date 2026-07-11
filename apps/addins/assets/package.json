@@ -17,6 +17,8 @@
     "validate:prod": "office-addin-manifest validate ./manifests/manifest.prod.xml"
   },
   "dependencies": {
+    "@deck-pack/auth": "workspace:*",
+    "@deck-pack/env": "workspace:*",
     "@deck-pack/office-js": "workspace:*",
     "@deck-pack/ui": "workspace:*",
     "@dnd-kit/core": "^6.3.1",

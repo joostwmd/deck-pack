@@ -1,5 +1,6 @@
+import type { createAppAuthClient } from "@deck-pack/auth/client";
 import { Toaster } from "@deck-pack/ui/components/system/sonner";
-import { HeadContent, Outlet, createRootRoute } from "@tanstack/react-router";
+import { HeadContent, Outlet, createRootRouteWithContext } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
 import { ErrorBoundary } from "@/components/error-boundary";
@@ -10,7 +11,11 @@ import { AppHotkeysProvider } from "@/providers/app-hotkeys-provider";
 
 import "../index.css";
 
-export const Route = createRootRoute({
+export interface RouterAddinContext {
+  authClient: ReturnType<typeof createAppAuthClient>;
+}
+
+export const Route = createRootRouteWithContext<RouterAddinContext>()({
   component: RootComponent,
   head: () => ({
     meta: [

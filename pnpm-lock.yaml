@@ -93,6 +93,12 @@ importers:
 
   apps/addins/assets:
     dependencies:
+      '@deck-pack/auth':
+        specifier: workspace:*
+        version: link:../../../packages/auth
+      '@deck-pack/env':
+        specifier: workspace:*
+        version: link:../../../packages/env
       '@deck-pack/office-js':
         specifier: workspace:*
         version: link:../../../packages/office-js
