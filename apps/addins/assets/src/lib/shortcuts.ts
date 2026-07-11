@@ -16,7 +16,7 @@ export type KeyToken =
   | { type: "text"; value: string }
   | { type: "icon"; icon: Icon; label: string };
 
-export type ShortcutGroup = "tabs" | "search" | "variants" | "actions" | "help";
+export type ShortcutGroup = "navigation" | "search" | "variants" | "actions" | "help";
 
 export interface ShortcutDef {
   id: ShortcutId;
@@ -32,8 +32,13 @@ export type ShortcutId =
   | "logos"
   | "flags"
   | "icons"
-  | "images"
-  | "harveyBalls"
+  | "photos"
+  | "balls"
+  | "slides"
+  | "agenda"
+  | "check"
+  | "format"
+  | "openMenu"
   | "focusSearch"
   | "navigateResultsUp"
   | "navigateResultsDown"
@@ -68,6 +73,7 @@ const LEFT = i(ArrowLeft, "←");
 const RIGHT = i(ArrowRight, "→");
 const ENTER = i(ArrowBendDownLeft, "↵");
 const CMD = t("⌘");
+const SHIFT = t("⇧");
 const ESC = t("Esc");
 
 // ---------------------------------------------------------------------------
@@ -75,11 +81,16 @@ const ESC = t("Esc");
 // ---------------------------------------------------------------------------
 
 export const SHORTCUTS = {
-  logos: def("logos", "Mod+L", [CMD, t("L")], "Logos", "tabs"),
-  flags: def("flags", "Mod+F", [CMD, t("F")], "Flags", "tabs"),
-  icons: def("icons", "Mod+I", [CMD, t("I")], "Icons", "tabs"),
-  images: def("images", "Mod+P", [CMD, t("P")], "Images", "tabs"),
-  harveyBalls: def("harveyBalls", "Mod+B", [CMD, t("B")], "Harvey Balls", "tabs"),
+  logos: def("logos", "Mod+Shift+L", [CMD, SHIFT, t("L")], "Logos", "navigation"),
+  flags: def("flags", "Mod+Shift+F", [CMD, SHIFT, t("F")], "Flags", "navigation"),
+  icons: def("icons", "Mod+Shift+I", [CMD, SHIFT, t("I")], "Icons", "navigation"),
+  photos: def("photos", "Mod+Shift+P", [CMD, SHIFT, t("P")], "Photos", "navigation"),
+  balls: def("balls", "Mod+Shift+B", [CMD, SHIFT, t("B")], "Balls", "navigation"),
+  slides: def("slides", "Mod+Shift+S", [CMD, SHIFT, t("S")], "Slides", "navigation"),
+  agenda: def("agenda", "Mod+Shift+A", [CMD, SHIFT, t("A")], "Agenda", "navigation"),
+  check: def("check", "Mod+Shift+C", [CMD, SHIFT, t("C")], "Check", "navigation"),
+  format: def("format", "Mod+Shift+O", [CMD, SHIFT, t("O")], "Format", "navigation"),
+  openMenu: def("openMenu", "Mod+Shift+M", [CMD, SHIFT, t("M")], "Open navigation menu", "navigation"),
   focusSearch: def("focusSearch", "Mod+K", [CMD, t("K")], "Focus search", "search"),
   navigateResultsUp: def(
     "navigateResultsUp",
@@ -189,11 +200,16 @@ export const INSERT_SECTION_DISPLAY: ShortcutDef = {
 export const INSERT_SECTION_SHORTCUTS: ShortcutDef[] = [INSERT_SECTION_DISPLAY];
 
 export const ALL_SHORTCUTS: ShortcutDef[] = [
+  SHORTCUTS.openMenu,
   SHORTCUTS.logos,
   SHORTCUTS.flags,
   SHORTCUTS.icons,
-  SHORTCUTS.images,
-  SHORTCUTS.harveyBalls,
+  SHORTCUTS.photos,
+  SHORTCUTS.balls,
+  SHORTCUTS.slides,
+  SHORTCUTS.agenda,
+  SHORTCUTS.check,
+  SHORTCUTS.format,
   SHORTCUTS.focusSearch,
   NAVIGATE_RESULTS_DISPLAY,
   SELECT_RESULT_DISPLAY,
@@ -205,7 +221,7 @@ export const ALL_SHORTCUTS: ShortcutDef[] = [
 ];
 
 export const SHORTCUT_GROUPS: { id: ShortcutGroup; label: string }[] = [
-  { id: "tabs", label: "Tabs" },
+  { id: "navigation", label: "Navigation" },
   { id: "search", label: "Search" },
   { id: "variants", label: "Variants" },
   { id: "actions", label: "Actions" },

@@ -36,7 +36,7 @@ export function ShortcutHelp({ open, onOpenChange, showTrigger = true }: Shortcu
         <SheetHeader>
           <SheetTitle>Keyboard shortcuts</SheetTitle>
           <SheetDescription>
-            Navigate the asset panel without leaving the keyboard. Shortcuts are scoped to this
+            Navigate between pages without leaving the keyboard. Shortcuts are scoped to this
             panel and won&apos;t fire while typing in the search field unless noted.
           </SheetDescription>
         </SheetHeader>

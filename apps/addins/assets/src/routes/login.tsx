@@ -4,6 +4,11 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { useEnvironment } from "@/contexts/EnvironmentContext";
+import {
+  DEFAULT_NAVIGATION_PAGE_ID,
+  getPageRouteParams,
+  getPageRouteTo,
+} from "@/lib/navigation";
 import { authClient } from "@/utils/auth";
 
 const OTP_LENGTH = 6;
@@ -40,7 +45,8 @@ function LoginComponent() {
   const [verifying, setVerifying] = useState(false);
   const [microsoftSigningIn, setMicrosoftSigningIn] = useState(false);
 
-  const postAuthPath = environment === "office" ? "/office" : "/web";
+  const postAuthPath = getPageRouteTo(DEFAULT_NAVIGATION_PAGE_ID);
+  const postAuthParams = getPageRouteParams(environment);
 
   const handleSendCode = async () => {
     const trimmed = email.trim().toLowerCase();
@@ -83,7 +89,7 @@ function LoginComponent() {
         return;
       }
       toast.success("You're signed in");
-      void navigate({ to: postAuthPath });
+      void navigate({ to: postAuthPath, params: postAuthParams });
     } finally {
       setVerifying(false);
     }
@@ -94,7 +100,7 @@ function LoginComponent() {
     try {
       const { error } = await authClient.signIn.social({
         provider: "microsoft",
-        callbackURL: `${window.location.origin}${postAuthPath}`,
+        callbackURL: `${window.location.origin}${postAuthPath.replace("$environment", environment)}`,
       });
       if (error) {
         toast.error(error.message ?? "Could not start Microsoft sign-in.");

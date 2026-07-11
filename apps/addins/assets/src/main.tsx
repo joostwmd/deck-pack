@@ -11,7 +11,7 @@ function getInitialEntry() {
 }
 
 // Office add-in webviews block window.history.replaceState/pushState entirely.
-// Seed memory history from the requested URL so /, /office, and /web remain distinct.
+// Seed memory history from the requested URL so /, /office/*, and /web/* remain distinct.
 const router = createRouter({
   routeTree,
   history: createMemoryHistory({ initialEntries: [getInitialEntry()] }),
