@@ -8,6 +8,8 @@ import { useEffect, useRef, useState } from "react";
 
 import { ShortcutHelp } from "@/components/shortcut-help";
 import { ShortcutKeys } from "@/components/shortcut-hint";
+import { ThemeSelector } from "@/components/theme-selector";
+import { UserMenu } from "@/components/user-menu";
 import { FlagsPanel } from "@/features/flags/flags-panel";
 import { IconsPanel } from "@/features/icons/icons-panel";
 import { LogosPanel } from "@/features/logos/logos-panel";
@@ -78,8 +80,12 @@ export function AssetsShell({ mode }: AssetsShellProps) {
           {activeTab === "icons" ? <IconsPanel mode={mode} /> : null}
         </TabsContent>
 
-        <footer className="flex shrink-0 items-center justify-end border-t px-4 py-3">
-          <ShortcutHelp open={helpOpen} onOpenChange={setHelpOpen} />
+        <footer className="flex shrink-0 items-center justify-between border-t px-4 py-3">
+          <UserMenu />
+          <div className="flex items-center gap-1">
+            <ShortcutHelp open={helpOpen} onOpenChange={setHelpOpen} />
+            <ThemeSelector />
+          </div>
         </footer>
       </Tabs>
     </div>
