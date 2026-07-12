@@ -118,6 +118,23 @@ describe("WebMicrosoftSignInStrategy", () => {
 });
 
 describe("OfficeNaaMicrosoftSignInStrategy", () => {
+  it("prefers the captured signed bearer token over the raw response body token", async () => {
+    const authClient = createMockAuthClient();
+    vi.mocked(authClient.signIn.social).mockResolvedValue({
+      data: { token: "raw-session-token" },
+      error: null,
+    });
+
+    const strategy = new OfficeNaaMicrosoftSignInStrategy(
+      authClient,
+      "client-id",
+      () => "signed-bearer-token",
+    );
+    const result = await strategy.signIn();
+
+    expect(result).toEqual({ ok: true, bearerToken: "signed-bearer-token" });
+  });
+
   it("uses the captured bearer token when the response body omits token", async () => {
     const authClient = createMockAuthClient();
     vi.mocked(authClient.signIn.social).mockResolvedValue({ data: {}, error: null });

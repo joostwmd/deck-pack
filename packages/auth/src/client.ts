@@ -28,19 +28,10 @@ export function createOpsAuthClient(config: { baseURL: string }) {
 function captureBearerTokenFromResponse(
   store: BearerSessionStore,
   response: Response,
-  data: unknown,
 ): void {
   const headerToken = response.headers.get("set-auth-token");
   if (headerToken) {
     store.setToken(headerToken);
-    return;
-  }
-
-  if (data && typeof data === "object" && "token" in data) {
-    const bodyToken = (data as { token?: unknown }).token;
-    if (typeof bodyToken === "string" && bodyToken.length > 0) {
-      store.setToken(bodyToken);
-    }
   }
 }
 
@@ -67,7 +58,7 @@ export function createAppAuthClient(config: AppAuthClientOptions) {
             token: () => bearerStore.getToken() ?? "",
           },
           onSuccess: (ctx) => {
-            captureBearerTokenFromResponse(bearerStore, ctx.response, ctx.data);
+            captureBearerTokenFromResponse(bearerStore, ctx.response);
           },
         }
       : undefined,

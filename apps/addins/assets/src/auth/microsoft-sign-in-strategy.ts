@@ -81,7 +81,6 @@ export class OfficeNaaMicrosoftSignInStrategy implements MicrosoftSignInStrategy
       };
     }
 
-    let data: unknown;
     let error: { message?: string } | null = null;
 
     try {
@@ -92,7 +91,6 @@ export class OfficeNaaMicrosoftSignInStrategy implements MicrosoftSignInStrategy
           accessToken: authenticationResult.accessToken,
         },
       });
-      data = response.data;
       error = response.error;
     } catch (signInError) {
       return {
@@ -108,10 +106,7 @@ export class OfficeNaaMicrosoftSignInStrategy implements MicrosoftSignInStrategy
       };
     }
 
-    const bearerToken =
-      data && typeof data === "object" && "token" in data && typeof data.token === "string"
-        ? data.token
-        : this.getCapturedBearerToken();
+    const bearerToken = this.getCapturedBearerToken();
     if (!bearerToken) {
       return {
         ok: false,

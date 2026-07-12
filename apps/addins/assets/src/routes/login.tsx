@@ -102,7 +102,7 @@ function LoginComponent() {
     const trimmed = email.trim().toLowerCase();
     setVerifying(true);
     try {
-      const { data, error } = await authClient.signIn.emailOtp({
+      const { error } = await authClient.signIn.emailOtp({
         email: trimmed,
         otp,
         name: displayNameFromEmail(trimmed),
@@ -113,7 +113,7 @@ function LoginComponent() {
       }
 
       if (environment === "office") {
-        const bearerToken = data?.token ?? getBearerToken();
+        const bearerToken = getBearerToken();
         if (!bearerToken) {
           toast.error("Could not sign in. Try again.");
           return;
