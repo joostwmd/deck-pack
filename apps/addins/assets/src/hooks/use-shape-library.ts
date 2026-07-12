@@ -6,6 +6,7 @@ import type {
   ShapeSearchResponse,
   ShapeSearchResult,
 } from "@/features/shapes/types";
+import { getUserFacingApiErrorMessage } from "@/lib/user-facing-api-error";
 
 const EMPTY_FACETS: ShapeSearchFacets = {
   categories: [],
@@ -66,7 +67,7 @@ export function useShapeLibrary(
 
         setResults([]);
         setTotal(0);
-        setError(err instanceof Error ? err.message : "Error loading shapes");
+        setError(getUserFacingApiErrorMessage(err, "Error loading shapes"));
       } finally {
         if (!cancelled) {
           setIsLoading(false);

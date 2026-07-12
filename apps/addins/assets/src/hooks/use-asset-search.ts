@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import type { AssetListItem } from "@/lib/asset-types";
+import { getUserFacingApiErrorMessage } from "@/lib/user-facing-api-error";
 
 export function useAssetSearch(
   debouncedQuery: string,
@@ -32,7 +33,7 @@ export function useAssetSearch(
       } catch (err) {
         if (cancelled) return;
         setResults([]);
-        setError(err instanceof Error ? err.message : "Error searching");
+        setError(getUserFacingApiErrorMessage(err, "Error searching"));
       } finally {
         if (!cancelled) {
           setIsSearching(false);

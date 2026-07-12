@@ -1,6 +1,7 @@
 import type { BrandProfileConfiguration } from "@deck-pack/presentation-check";
 import { useCallback, useEffect, useState } from "react";
 
+import { getUserFacingApiErrorMessage } from "@/lib/user-facing-api-error";
 import { trpcClient } from "@/utils/trpc";
 
 export interface BrandProfileSummary {
@@ -45,7 +46,7 @@ export function useBrandProfiles() {
       const rows = await trpcClient.brandProfiles.list.query();
       setProfiles(rows as BrandProfileSummary[]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load themes");
+      setError(getUserFacingApiErrorMessage(err, "Failed to load themes"));
     } finally {
       setLoading(false);
     }

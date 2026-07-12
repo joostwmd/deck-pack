@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { getUserFacingApiErrorMessage } from "@/lib/user-facing-api-error";
 
 import type {
   SlideFilters,
@@ -84,7 +85,7 @@ export function useSlideSearch(
 
         setResults([]);
         setTotal(0);
-        setError(err instanceof Error ? err.message : "Error searching slides");
+        setError(getUserFacingApiErrorMessage(err, "Error searching slides"));
       } finally {
         if (!cancelled) {
           setIsSearching(false);

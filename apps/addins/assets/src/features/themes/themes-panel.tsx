@@ -20,6 +20,7 @@ import {
   setDefaultBrandProfile,
   useBrandProfiles,
 } from "@/hooks/use-brand-profiles";
+import { getUserFacingApiErrorMessage } from "@/lib/user-facing-api-error";
 
 type ThemesView = "list" | "create" | "edit" | "import-review";
 
@@ -56,7 +57,7 @@ export function ThemesPanel() {
       resetEditor();
       toast.success("Theme saved");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to save theme");
+      toast.error(getUserFacingApiErrorMessage(err, "Failed to save theme"));
     } finally {
       setSaving(false);
     }
@@ -218,7 +219,7 @@ export function ThemesPanel() {
                       .then(refresh)
                       .then(() => toast.success("Theme duplicated"))
                       .catch((err) =>
-                        toast.error(err instanceof Error ? err.message : "Duplicate failed"),
+                        toast.error(getUserFacingApiErrorMessage(err, "Duplicate failed")),
                       )
                   }
                 >

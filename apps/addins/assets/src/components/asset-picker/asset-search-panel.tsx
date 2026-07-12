@@ -146,7 +146,7 @@ export function AssetSearchPanel({
             flow.searchError ? (
               <ErrorState
                 title={`Could not search for ${label}s`}
-                description="Check your connection and try again."
+                description={flow.searchError}
                 onRetry={flow.retrySearch}
               />
             ) : flow.results.length > 0 ? (
@@ -183,7 +183,7 @@ export function AssetSearchPanel({
             ) : flow.variantsError ? (
               <ErrorState
                 title="Could not load variants"
-                description="Check your connection and try again."
+                description={flow.variantsError}
                 onRetry={flow.retryVariants}
               />
             ) : flow.variants.length > 0 ? (

@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { getUserFacingApiErrorMessage } from "@/lib/user-facing-api-error";
+
 import type {
   PhotoFilters,
   PhotoSearchRequest,
@@ -101,7 +103,7 @@ export function usePhotoSearch(
         setResults([]);
         setHasNextPage(false);
         setTotalResults(0);
-        setError(err instanceof Error ? err.message : "Error searching photos");
+        setError(getUserFacingApiErrorMessage(err, "Error searching photos"));
       } finally {
         if (!cancelled) {
           setIsSearching(false);
@@ -137,7 +139,7 @@ export function usePhotoSearch(
       setHasNextPage(response.hasNextPage);
       setTotalResults(response.totalResults);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error loading more photos");
+      setError(getUserFacingApiErrorMessage(err, "Error loading more photos"));
     } finally {
       setIsLoadingMore(false);
     }

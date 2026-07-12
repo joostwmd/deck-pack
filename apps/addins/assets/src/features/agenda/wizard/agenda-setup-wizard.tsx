@@ -20,6 +20,10 @@ import { EmptyState } from "@/components/asset-picker/empty-state";
 import { InsertSection } from "@/components/asset-picker/insert-section";
 import { ScreenHeader } from "@/components/asset-picker/screen-header";
 import { queueAgendaCloudEvent, syncAgendaToCloud } from "@/lib/sync-agenda";
+import {
+  AUTHENTICATION_REQUIRED_MESSAGE,
+  isAuthenticationError,
+} from "@/lib/user-facing-api-error";
 
 type WizardStep = "structure" | "template" | "mapping" | "review";
 
@@ -186,9 +190,13 @@ export function AgendaSetupWizard({ onComplete }: AgendaSetupWizardProps) {
           eventId,
           Math.round(performance.now() - startedAt),
         );
-      } catch {
+      } catch (error) {
         queueAgendaCloudEvent(config, eventId);
-        toast.warning("Agenda created. Cloud sync is pending.");
+        if (isAuthenticationError(error)) {
+          toast.error(AUTHENTICATION_REQUIRED_MESSAGE);
+        } else {
+          toast.warning("Agenda created. Cloud sync is pending.");
+        }
       }
 
       toast.success("Agenda created.");

@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 
 import type { AssetListItem } from "@/lib/asset-types";
+import { getUserFacingApiErrorMessage } from "@/lib/user-facing-api-error";
 
 export interface AssetVariantsResult<TDetails = any> {
   variants: AssetListItem[];
@@ -35,7 +36,7 @@ export function useAssetVariants<TDetails = any>(
       } catch (err) {
         if (requestId !== requestIdRef.current) return;
 
-        setError(err instanceof Error ? err.message : "Error fetching variants");
+        setError(getUserFacingApiErrorMessage(err, "Error fetching variants"));
         setVariants([]);
         setDetails(null);
       } finally {

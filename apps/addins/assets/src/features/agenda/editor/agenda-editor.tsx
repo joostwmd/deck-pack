@@ -22,6 +22,10 @@ import { EmptyState } from "@/components/asset-picker/empty-state";
 import { InsertSection } from "@/components/asset-picker/insert-section";
 import { ScreenHeader } from "@/components/asset-picker/screen-header";
 import { queueAgendaCloudEvent, retryPendingAgendaSync, syncAgendaToCloud } from "@/lib/sync-agenda";
+import {
+  AUTHENTICATION_REQUIRED_MESSAGE,
+  isAuthenticationError,
+} from "@/lib/user-facing-api-error";
 
 import type { AgendaChangePreview, AgendaDraftSection, AgendaEditorStatus } from "../types";
 
@@ -171,11 +175,15 @@ export function AgendaEditor({ initialConfig, onConfigChange }: AgendaEditorProp
         );
         setConfig(synced);
         onConfigChange(synced);
-      } catch {
+      } catch (error) {
         const queued = queueAgendaCloudEvent(nextConfig, eventId);
         setConfig(queued);
         onConfigChange(queued);
-        toast.warning("Agenda updated. Cloud sync is pending.");
+        if (isAuthenticationError(error)) {
+          toast.error(AUTHENTICATION_REQUIRED_MESSAGE);
+        } else {
+          toast.warning("Agenda updated. Cloud sync is pending.");
+        }
       }
 
       toast.success("Agenda updated.");
