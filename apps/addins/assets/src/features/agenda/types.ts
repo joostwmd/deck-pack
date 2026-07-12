@@ -2,7 +2,6 @@ import type { AgendaConfigV1, AgendaSection, ReconcileIssue } from "@deck-pack/a
 
 export type AgendaPanelView =
   | "loading"
-  | "unsupported"
   | "corrupt"
   | "setup"
   | "editor";

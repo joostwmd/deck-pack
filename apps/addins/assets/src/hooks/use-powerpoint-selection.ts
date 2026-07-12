@@ -3,7 +3,7 @@ import { formattingCommandRegistry } from "@deck-pack/presentation-formatting";
 import { readSelectedShapes, subscribeToSelectionChanges, type OfficeContextPort } from "@deck-pack/office-js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import type { AssetPanelMode } from "@/lib/asset-types";
+import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { getDefaultCommandParams } from "@/lib/get-default-command-params";
 
 export type SelectionState =
@@ -19,8 +19,9 @@ export type CommandApplicability = {
   applicability: Applicability;
 };
 
-export function usePowerPointSelection(mode: AssetPanelMode) {
-  const enabled = mode === "office";
+export function usePowerPointSelection() {
+  const { isOfficeAvailable } = useEnvironment();
+  const enabled = isOfficeAvailable;
   const [state, setState] = useState<SelectionState>(enabled ? { status: "loading" } : { status: "unavailable" });
   const requestTokenRef = useRef(0);
 

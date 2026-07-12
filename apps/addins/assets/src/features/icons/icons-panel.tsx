@@ -1,18 +1,11 @@
 import { Shapes } from "@phosphor-icons/react";
 
 import { AssetSearchPanel } from "@/components/asset-picker/asset-search-panel";
-import { insertAssetVariant } from "@/lib/insert-asset";
 import { trpcClient } from "@/utils/trpc";
-import type { AssetPanelMode } from "@/lib/asset-types";
 
-interface IconsPanelProps {
-  mode: AssetPanelMode;
-}
-
-export function IconsPanel({ mode }: IconsPanelProps) {
+export function IconsPanel() {
   return (
     <AssetSearchPanel
-      mode={mode}
       assetType="icon"
       assetLabel="Icon"
       headerText="Search and insert icons into your presentation."
@@ -24,9 +17,7 @@ export function IconsPanel({ mode }: IconsPanelProps) {
         trpcClient.addin.icons.search.query({ query }).then((response) => response.results)
       }
       getDetails={(id) => trpcClient.addin.icons.getDetails.query({ externalId: id })}
-      onInsert={({ details, variantId }) =>
-        insertAssetVariant(details, variantId, "icon", { ICON_PLATFORM: variantId })
-      }
+      getInsertionMetadata={(_, variantId) => ({ ICON_PLATFORM: variantId })}
     />
   );
 }

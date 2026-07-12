@@ -1,46 +1,23 @@
 import type { AgendaConfigV1 } from "@deck-pack/agenda";
 import { MIN_AGENDA_API_VERSION } from "@deck-pack/agenda";
-import {
-  getPowerPointCapabilitySummary,
-  isPowerPointApiAvailable,
-  loadAgendaConfig,
-} from "@deck-pack/office-js";
+import { loadAgendaConfig } from "@deck-pack/office-js";
 import { CircleNotch, FileText, WarningCircle } from "@phosphor-icons/react";
 import { useCallback, useEffect, useState } from "react";
 
 import { EmptyState } from "@/components/asset-picker/empty-state";
-import type { AssetPanelMode } from "@/lib/asset-types";
+import { ScreenHeader } from "@/components/asset-picker/screen-header";
+import { PowerPointGuard } from "@/components/power-point-guard";
 
 import { AgendaEditor } from "./editor/agenda-editor";
 import type { AgendaPanelView } from "./types";
 import { AgendaSetupWizard } from "./wizard/agenda-setup-wizard";
 
-interface AgendaPanelProps {
-  mode: AssetPanelMode;
-}
-
-export function AgendaPanel({ mode }: AgendaPanelProps) {
+function AgendaPanelContent() {
   const [view, setView] = useState<AgendaPanelView>("loading");
   const [config, setConfig] = useState<AgendaConfigV1 | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
 
   const load = useCallback(async () => {
-    if (mode !== "office") {
-      setView("unsupported");
-      return;
-    }
-
-    if (!isPowerPointApiAvailable(MIN_AGENDA_API_VERSION)) {
-      setView("unsupported");
-      return;
-    }
-
-    const capabilities = getPowerPointCapabilitySummary();
-    if (!capabilities.baselineMet) {
-      setView("unsupported");
-      return;
-    }
-
     const state = await loadAgendaConfig();
     if (state.status === "not_configured") {
       setConfig(null);
@@ -55,7 +32,7 @@ export function AgendaPanel({ mode }: AgendaPanelProps) {
 
     setConfig(state.config);
     setView("editor");
-  }, [mode]);
+  }, []);
 
   useEffect(() => {
     void load();
@@ -67,16 +44,6 @@ export function AgendaPanel({ mode }: AgendaPanelProps) {
         <CircleNotch className="size-4 animate-spin" />
         Loading agenda...
       </div>
-    );
-  }
-
-  if (view === "unsupported") {
-    return (
-      <EmptyState
-        icon={WarningCircle}
-        title="Agenda requires PowerPoint"
-        description="Open this add-in inside PowerPoint with API 1.8 or later to build and maintain agendas."
-      />
     );
   }
 
@@ -125,5 +92,19 @@ export function AgendaPanel({ mode }: AgendaPanelProps) {
       initialConfig={config}
       onConfigChange={setConfig}
     />
+  );
+}
+
+export function AgendaPanel() {
+  return (
+    <div className="flex min-h-0 flex-1 flex-col">
+      <ScreenHeader
+        title="Agenda"
+        text="Build and maintain a table of contents and section dividers for your presentation."
+      />
+      <PowerPointGuard powerpointRequired minApi={MIN_AGENDA_API_VERSION}>
+        <AgendaPanelContent />
+      </PowerPointGuard>
+    </div>
   );
 }

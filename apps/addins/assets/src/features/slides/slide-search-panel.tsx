@@ -7,10 +7,11 @@ import { ErrorState } from "@/components/asset-picker/error-state";
 import { InsertSection } from "@/components/asset-picker/insert-section";
 import { ScreenHeader } from "@/components/asset-picker/screen-header";
 import { SearchBar } from "@/components/asset-picker/search-bar";
+import { PowerPointGuard } from "@/components/power-point-guard";
 import { ShortcutKeys } from "@/components/shortcut-hint";
+import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { useAssetInsertion } from "@/hooks/use-asset-insertion";
 import { useSlideSearch } from "@/hooks/use-slide-search";
-import type { AssetPanelMode } from "@/lib/asset-types";
 import { insertSlide } from "@/lib/insert-slide";
 import { SHORTCUTS } from "@/lib/shortcuts";
 
@@ -20,16 +21,15 @@ import type { SlideSearchRequest, SlideSearchResponse } from "./types";
 import { useSlideSearchHotkeys } from "./use-slide-search-hotkeys";
 
 interface SlideSearchPanelProps {
-  mode: AssetPanelMode;
   search: (input: SlideSearchRequest) => Promise<SlideSearchResponse>;
 }
 
-export function SlideSearchPanel({ mode, search }: SlideSearchPanelProps) {
+function SlideSearchPanelContent({ search }: SlideSearchPanelProps) {
+  const { isOfficeAvailable } = useEnvironment();
   const flow = useSlideSearch(search);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const resultsId = useId();
   const { isInserting, runInsertion } = useAssetInsertion();
-  const isOffice = mode === "office";
 
   const showsResults = !flow.error && flow.results.length > 0;
   const activeResultId = showsResults && flow.highlightedSlideId ? flow.highlightedSlideId : undefined;
@@ -37,7 +37,7 @@ export function SlideSearchPanel({ mode, search }: SlideSearchPanelProps) {
   const handleInsert = useCallback(async () => {
     const slide = flow.selectedSlide;
 
-    if (!slide || !isOffice) {
+    if (!slide) {
       return;
     }
 
@@ -48,14 +48,14 @@ export function SlideSearchPanel({ mode, search }: SlideSearchPanelProps) {
       console.error("Error inserting slide:", error);
       toast.error(error instanceof Error ? error.message : "Error inserting slide");
     });
-  }, [flow.selectedSlide, isOffice, runInsertion]);
+  }, [flow.selectedSlide, runInsertion]);
 
   useSlideSearchHotkeys({
     searchInputRef,
     flow,
     onInsert: handleInsert,
     isInserting,
-    canInsert: isOffice && Boolean(flow.selectedSlide),
+    canInsert: isOfficeAvailable && Boolean(flow.selectedSlide),
   });
 
   return (
@@ -67,11 +67,6 @@ export function SlideSearchPanel({ mode, search }: SlideSearchPanelProps) {
             ? `${flow.results.length} slides loaded`
             : ""}
       </div>
-
-      <ScreenHeader
-        title="Slides"
-        text="Browse and insert slide templates into your presentation."
-      />
 
       <div className="px-4 pt-3">
         <section className="flex flex-col gap-3">
@@ -129,21 +124,29 @@ export function SlideSearchPanel({ mode, search }: SlideSearchPanelProps) {
 
       <div className="flex flex-1 flex-col px-4 pb-3">
         <div className="mt-auto flex flex-col gap-2 pt-3">
-          {!isOffice ? (
-            <p className="text-center text-xs text-muted-foreground">
-              Slide insertion is available in PowerPoint. Open this add-in in Office to insert a
-              selected slide.
-            </p>
-          ) : null}
           <InsertSection
-            disabled={!isOffice || !flow.selectedSlide}
+            disabled={!flow.selectedSlide}
             isInserting={isInserting}
-            label={isOffice ? "Insert" : "Open in PowerPoint to insert"}
+            label="Insert"
             insertingLabel="Inserting..."
             onClick={handleInsert}
           />
         </div>
       </div>
+    </div>
+  );
+}
+
+export function SlideSearchPanel({ search }: SlideSearchPanelProps) {
+  return (
+    <div className="flex flex-1 flex-col">
+      <ScreenHeader
+        title="Slides"
+        text="Browse and insert slide templates into your presentation."
+      />
+      <PowerPointGuard powerpointRequired>
+        <SlideSearchPanelContent search={search} />
+      </PowerPointGuard>
     </div>
   );
 }

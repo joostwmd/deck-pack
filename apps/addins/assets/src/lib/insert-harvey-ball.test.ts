@@ -1,14 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { insertSvgWithMetadata, mutate } = vi.hoisted(() => ({
+const { insertSvgWithMetadata, insertImageWithMetadata, mutate } = vi.hoisted(() => ({
   insertSvgWithMetadata: vi.fn(),
+  insertImageWithMetadata: vi.fn(),
   mutate: vi.fn(),
 }));
 
 vi.mock("@deck-pack/office-js", () => ({
   officeClient: {
     insertSvgWithMetadata,
+    insertImageWithMetadata,
   },
+}));
+
+vi.mock("@/lib/url-to-base64", () => ({
+  urlToBase64: vi.fn().mockResolvedValue("base64-image"),
 }));
 
 vi.mock("@/utils/trpc", () => ({
@@ -24,85 +30,86 @@ vi.mock("@/utils/trpc", () => ({
 }));
 
 import { DEFAULT_HARVEY_BALL_CONFIG } from "./harvey-ball-svg";
-import { HARVEY_BALL_EXTERNAL_ID, insertHarveyBall } from "./insert-harvey-ball";
+import { HARVEY_BALL_EXTERNAL_ID } from "./insert-harvey-ball";
+import {
+  createCanvasStrategy,
+  officeInsertionStrategy,
+  type InsertionItem,
+} from "./insertion-strategy";
 
-describe("insertHarveyBall", () => {
+function createHarveyBallItem(percentage = 75): InsertionItem {
+  return {
+    variantId: `harvey-ball-${percentage}`,
+    name: `Harvey ball ${percentage}%`,
+    imageUrl: "",
+    insert: {
+      type: "svg",
+      svg: `<svg data-percentage="${percentage}"></svg>`,
+    },
+    metadata: {
+      TYPE: "HARVEY_BALL",
+      PERCENTAGE: String(percentage),
+      FILL_COLOR: DEFAULT_HARVEY_BALL_CONFIG.fillColor,
+      BACKGROUND_COLOR: DEFAULT_HARVEY_BALL_CONFIG.backgroundColor,
+      OUTLINE_COLOR: DEFAULT_HARVEY_BALL_CONFIG.outlineColor,
+      OUTLINE_WIDTH: String(DEFAULT_HARVEY_BALL_CONFIG.outlineWidth),
+    },
+    assetType: "harvey_ball",
+    externalId: HARVEY_BALL_EXTERNAL_ID,
+  };
+}
+
+describe("insertion strategy", () => {
   beforeEach(() => {
     insertSvgWithMetadata.mockReset();
+    insertImageWithMetadata.mockReset();
     mutate.mockReset();
     insertSvgWithMetadata.mockResolvedValue("shape-1");
     mutate.mockResolvedValue({ id: "event-1" });
   });
 
-  it("inserts SVG with metadata in office mode", async () => {
-    await insertHarveyBall({
-      mode: "office",
-      config: { ...DEFAULT_HARVEY_BALL_CONFIG, percentage: 75 },
-    });
+  it("inserts SVG with metadata via office strategy", async () => {
+    const item = createHarveyBallItem(75);
+
+    await officeInsertionStrategy.insert(item);
 
     expect(insertSvgWithMetadata).toHaveBeenCalledTimes(1);
-
-    const [svg, metadata] = insertSvgWithMetadata.mock.calls[0] ?? [];
-
-    expect(svg).toContain("<svg");
-    expect(metadata).toEqual({
-      TYPE: "HARVEY_BALL",
-      PERCENTAGE: "75",
-      FILL_COLOR: DEFAULT_HARVEY_BALL_CONFIG.fillColor,
-      BACKGROUND_COLOR: DEFAULT_HARVEY_BALL_CONFIG.backgroundColor,
-      OUTLINE_COLOR: DEFAULT_HARVEY_BALL_CONFIG.outlineColor,
-      OUTLINE_WIDTH: String(DEFAULT_HARVEY_BALL_CONFIG.outlineWidth),
-    });
+    expect(insertSvgWithMetadata).toHaveBeenCalledWith(item.insert.svg, item.metadata);
 
     expect(mutate).toHaveBeenCalledWith({
       assetType: "harvey_ball",
       externalId: HARVEY_BALL_EXTERNAL_ID,
       client: "office",
-      metadata,
+      metadata: item.metadata,
     });
   });
 
-  it("adds the SVG to the web canvas in web mode", async () => {
+  it("adds items to the web canvas via canvas strategy", async () => {
     const addToCanvas = vi.fn();
-
-    await insertHarveyBall({
-      mode: "web",
-      config: { ...DEFAULT_HARVEY_BALL_CONFIG, percentage: 25 },
-      webCanvas: { addToCanvas },
+    const strategy = createCanvasStrategy({
+      items: [],
+      addToCanvas,
+      updateItemPosition: vi.fn(),
+      removeItem: vi.fn(),
+      clearCanvas: vi.fn(),
     });
 
+    const item = createHarveyBallItem(25);
+    await strategy.insert(item);
+
     expect(addToCanvas).toHaveBeenCalledWith({
-      variantId: "harvey-ball-25",
-      name: "Harvey ball 25%",
-      imageUrl: "",
-      insert: {
-        type: "svg",
-        svg: expect.stringContaining("<svg"),
-      },
-      metadata: expect.objectContaining({
-        TYPE: "HARVEY_BALL",
-        PERCENTAGE: "25",
-      }),
+      variantId: item.variantId,
+      name: item.name,
+      imageUrl: item.imageUrl,
+      insert: item.insert,
+      metadata: item.metadata,
     });
 
     expect(mutate).toHaveBeenCalledWith({
       assetType: "harvey_ball",
       externalId: HARVEY_BALL_EXTERNAL_ID,
       client: "web",
-      metadata: expect.objectContaining({
-        TYPE: "HARVEY_BALL",
-        PERCENTAGE: "25",
-      }),
+      metadata: item.metadata,
     });
-  });
-
-  it("throws when web canvas is unavailable in web mode", async () => {
-    await expect(
-      insertHarveyBall({
-        mode: "web",
-        config: DEFAULT_HARVEY_BALL_CONFIG,
-        webCanvas: null,
-      }),
-    ).rejects.toThrow("Canvas not available");
   });
 });

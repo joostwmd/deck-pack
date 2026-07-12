@@ -8,21 +8,18 @@ import {
   SelectValue,
 } from "@deck-pack/ui/components/system/select";
 import type { CheckFinding, CheckResult, IssueSeverity } from "@deck-pack/presentation-check";
-import {
-  getPowerPointCapabilitySummary,
-  navigateToFinding,
-  persistFindingIgnoreForPresentation,
-} from "@deck-pack/office-js";
+import { getPowerPointCapabilitySummary, MIN_TEXT_API, navigateToFinding, persistFindingIgnoreForPresentation } from "@deck-pack/office-js";
 import { CircleNotch, WarningCircle } from "@phosphor-icons/react";
 import { useNavigate } from "@tanstack/react-router";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { EmptyState } from "@/components/asset-picker/empty-state";
 import { InsertSection } from "@/components/asset-picker/insert-section";
 import { ScreenHeader } from "@/components/asset-picker/screen-header";
+import { PowerPointGuard } from "@/components/power-point-guard";
 import { useBrandProfiles } from "@/hooks/use-brand-profiles";
-import type { AssetPanelMode } from "@/lib/asset-types";
+import { useEnvironment } from "@/contexts/EnvironmentContext";
 import {
   filterFindings,
   getSafeFixableFindings,
@@ -33,18 +30,25 @@ import {
   type ScanScope,
 } from "@/lib/run-presentation-check";
 import { getPageRouteParams, getPageRouteTo } from "@/lib/navigation";
-import type { AppEnvironment } from "@/lib/navigation";
 
 type CheckView = "setup" | "scanning" | "results" | "detail";
 type GroupBy = "none" | "rule" | "slide";
 type SeverityFilter = "all" | IssueSeverity;
 
-interface CheckPanelProps {
-  mode: AssetPanelMode;
+export function CheckPanel() {
+  return <CheckPanelContent />;
 }
 
-export function CheckPanel({ mode }: CheckPanelProps) {
-  const environment = mode as AppEnvironment;
+function CheckGuardedContent({ children }: { children: ReactNode }) {
+  return (
+    <PowerPointGuard powerpointRequired minApi={MIN_TEXT_API}>
+      {children}
+    </PowerPointGuard>
+  );
+}
+
+function CheckPanelContent() {
+  const { environment } = useEnvironment();
   const navigate = useNavigate();
   const { profiles, loading } = useBrandProfiles();
   const [view, setView] = useState<CheckView>("setup");
@@ -63,10 +67,7 @@ export function CheckPanel({ mode }: CheckPanelProps) {
   const [presentationIgnores, setPresentationIgnores] = useState<Set<string>>(new Set());
   const abortRef = useRef<AbortController | null>(null);
 
-  const capabilitySummary = useMemo(
-    () => (mode === "office" ? getPowerPointCapabilitySummary() : null),
-    [mode],
-  );
+  const capabilitySummary = useMemo(() => getPowerPointCapabilitySummary(), []);
 
   const selectedProfile = useMemo(() => {
     if (selectedProfileId === "universal") return null;
@@ -112,11 +113,6 @@ export function CheckPanel({ mode }: CheckPanelProps) {
   const activeIndex = activeFinding ? visibleFindings.indexOf(activeFinding) : -1;
 
   const handleScan = useCallback(async () => {
-    if (mode !== "office") {
-      toast.error("Presentation Check is only available inside PowerPoint.");
-      return;
-    }
-
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
@@ -159,7 +155,7 @@ export function CheckPanel({ mode }: CheckPanelProps) {
     } finally {
       setScanning(false);
     }
-  }, [activeConfiguration, mode, scope]);
+  }, [activeConfiguration, scope]);
 
   const handleNavigate = useCallback(async (finding: CheckFinding) => {
     try {
@@ -211,7 +207,8 @@ export function CheckPanel({ mode }: CheckPanelProps) {
     return (
       <div className="flex flex-1 flex-col">
         <ScreenHeader title="Issue detail" text={activeFinding.message} />
-        <div className="flex flex-col gap-4 px-4 py-4">
+        <CheckGuardedContent>
+          <div className="flex flex-col gap-4 px-4 py-4">
           <div className="rounded-xl border p-4 text-sm">
             <p>
               <span className="font-medium">Actual:</span> {activeFinding.actual}
@@ -295,14 +292,21 @@ export function CheckPanel({ mode }: CheckPanelProps) {
               Next
             </Button>
           </div>
-        </div>
+          </div>
+        </CheckGuardedContent>
       </div>
     );
   }
 
   if (view === "scanning") {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-3 px-4 py-8">
+      <div className="flex flex-1 flex-col">
+        <ScreenHeader
+          title="Presentation Check"
+          text="Scanning the open presentation against your selected theme."
+        />
+        <CheckGuardedContent>
+          <div className="flex flex-1 flex-col items-center justify-center gap-3 px-4 py-8">
         <CircleNotch className="size-6 animate-spin text-muted-foreground" />
         <p className="text-sm font-medium">Scanning presentation...</p>
         <p className="text-xs text-muted-foreground">{progressText}</p>
@@ -317,6 +321,8 @@ export function CheckPanel({ mode }: CheckPanelProps) {
         >
           Cancel
         </Button>
+          </div>
+        </CheckGuardedContent>
       </div>
     );
   }
@@ -330,7 +336,8 @@ export function CheckPanel({ mode }: CheckPanelProps) {
           title="Check results"
           text={`${result.summary.errors} errors · ${result.summary.warnings} warnings · ${result.summary.suggestions} suggestions`}
         />
-        <div className="flex flex-col gap-4 px-4 py-4">
+        <CheckGuardedContent>
+          <div className="flex flex-col gap-4 px-4 py-4">
           {stale ? (
             <p className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-900 dark:text-amber-100">
               The presentation may have changed since this scan. Rescan to verify the results.
@@ -429,7 +436,8 @@ export function CheckPanel({ mode }: CheckPanelProps) {
           <Button type="button" variant="ghost" onClick={() => setView("setup")}>
             Back to setup
           </Button>
-        </div>
+          </div>
+        </CheckGuardedContent>
       </div>
     );
   }
@@ -441,20 +449,8 @@ export function CheckPanel({ mode }: CheckPanelProps) {
         text="Scan the open presentation against a theme and review fixable issues."
       />
 
-      <div className="flex flex-col gap-4 px-4 py-4">
-        {mode !== "office" ? (
-          <div
-            role="alert"
-            className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-900 dark:text-amber-100"
-          >
-            <WarningCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
-            <p>
-              Open this add-in inside PowerPoint to scan and fix presentation issues. Theme
-              management remains available in web mode.
-            </p>
-          </div>
-        ) : null}
-
+      <CheckGuardedContent>
+        <div className="flex flex-col gap-4 px-4 py-4">
         {scanError ? (
           <div
             role="alert"
@@ -465,20 +461,7 @@ export function CheckPanel({ mode }: CheckPanelProps) {
           </div>
         ) : null}
 
-        {mode === "office" && capabilitySummary && !capabilitySummary.baselineMet ? (
-          <div
-            role="alert"
-            className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
-          >
-            <WarningCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
-            <p>
-              This PowerPoint host does not support the minimum API set required for scanning
-              (PowerPointApi 1.4).
-            </p>
-          </div>
-        ) : null}
-
-        {mode === "office" && capabilitySummary?.highest ? (
+        {capabilitySummary.highest ? (
           <p className="text-xs text-muted-foreground">
             PowerPoint API support: {capabilitySummary.supported.join(", ")}
           </p>
@@ -546,15 +529,14 @@ export function CheckPanel({ mode }: CheckPanelProps) {
         </p>
 
         <InsertSection
-          disabled={
-            mode !== "office" || scanning || capabilitySummary?.baselineMet === false
-          }
+          disabled={scanning}
           isInserting={scanning}
           label="Scan presentation"
           insertingLabel="Scanning..."
           onClick={() => void handleScan()}
         />
-      </div>
+        </div>
+      </CheckGuardedContent>
     </div>
   );
 }

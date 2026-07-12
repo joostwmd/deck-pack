@@ -16,15 +16,14 @@ import { RULE_PRESETS, applyRulePreset } from "@deck-pack/presentation-check";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import type { AssetPanelMode } from "@/lib/asset-types";
+import { PowerPointGuard } from "@/components/power-point-guard";
 
 interface BrandProfileEditorProps {
   configuration: BrandProfileConfiguration;
   onChange: (configuration: BrandProfileConfiguration) => void;
-  mode?: AssetPanelMode;
 }
 
-export function BrandProfileEditor({ configuration, onChange, mode }: BrandProfileEditorProps) {
+export function BrandProfileEditor({ configuration, onChange }: BrandProfileEditorProps) {
   const [capturing, setCapturing] = useState(false);
 
   const updateRoleFont = (
@@ -53,11 +52,6 @@ export function BrandProfileEditor({ configuration, onChange, mode }: BrandProfi
   const margins = configuration.layout?.safeMargins ?? { top: 24, right: 24, bottom: 24, left: 24 };
 
   const handleCaptureSelection = async (target: "title-font" | "body-font" | "color") => {
-    if (mode !== "office") {
-      toast.error("Select an object in PowerPoint to capture its style.");
-      return;
-    }
-
     setCapturing(true);
     try {
       const captured = await captureSelectedTextStyle();
@@ -104,15 +98,17 @@ export function BrandProfileEditor({ configuration, onChange, mode }: BrandProfi
               value={configuration.typography.roles.title.allowedFonts.join(", ")}
               onChange={(event) => updateRoleFont("title", event.target.value)}
             />
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={capturing}
-              onClick={() => void handleCaptureSelection("title-font")}
-            >
-              Use selected
-            </Button>
+            <PowerPointGuard powerpointRequired>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={capturing}
+                onClick={() => void handleCaptureSelection("title-font")}
+              >
+                Use selected
+              </Button>
+            </PowerPointGuard>
           </div>
         </div>
         <div className="flex flex-col gap-2">
@@ -123,15 +119,17 @@ export function BrandProfileEditor({ configuration, onChange, mode }: BrandProfi
               value={configuration.typography.roles.body.allowedFonts.join(", ")}
               onChange={(event) => updateRoleFont("body", event.target.value)}
             />
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={capturing}
-              onClick={() => void handleCaptureSelection("body-font")}
-            >
-              Use selected
-            </Button>
+            <PowerPointGuard powerpointRequired>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={capturing}
+                onClick={() => void handleCaptureSelection("body-font")}
+              >
+                Use selected
+              </Button>
+            </PowerPointGuard>
           </div>
         </div>
         <div className="flex flex-col gap-2">
@@ -158,15 +156,17 @@ export function BrandProfileEditor({ configuration, onChange, mode }: BrandProfi
       <section className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold">Colors</h3>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={capturing}
-            onClick={() => void handleCaptureSelection("color")}
-          >
-            Use selected color
-          </Button>
+          <PowerPointGuard powerpointRequired>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={capturing}
+              onClick={() => void handleCaptureSelection("color")}
+            >
+              Use selected color
+            </Button>
+          </PowerPointGuard>
         </div>
         {configuration.colors.palette.map((token, index) => (
           <div key={token.id} className="grid grid-cols-[1fr_auto] items-center gap-2">

@@ -3,13 +3,11 @@ import { useCallback, useId, useRef } from "react";
 import { toast } from "sonner";
 
 import { ShortcutKeys } from "@/components/shortcut-hint";
-import { useWebCanvasOptional } from "@/contexts/web-canvas-context";
 import { useAssetSearchFlow } from "@/hooks/use-asset-search-flow";
 import { useAssetInsertion } from "@/hooks/use-asset-insertion";
 import { useAssetSearchHotkeys } from "@/hooks/use-asset-search-hotkeys";
-import type { AssetDetailsResponse, AssetListItem, AssetPanelMode, AssetType } from "@/lib/asset-types";
-import { trackAssetInsertion } from "@/lib/track-asset-insertion";
-import { SHORTCUTS } from "@/lib/shortcuts";
+import { useInsertionStrategy } from "@/hooks/use-insertion-strategy";
+import type { AssetDetailsResponse, AssetListItem, AssetType } from "@/lib/asset-types";
 
 import { EmptyState } from "./empty-state";
 import { ErrorState } from "./error-state";
@@ -20,14 +18,9 @@ import { SearchSection } from "./search-section";
 import { SelectedEntityHeader } from "./selected-entity-header";
 import { VariantGrid } from "./variant-grid";
 import { VariantsSection } from "./variants-section";
-
-interface InsertContext {
-  details: AssetDetailsResponse;
-  variantId: string;
-}
+import { SHORTCUTS } from "@/lib/shortcuts";
 
 interface AssetSearchPanelProps {
-  mode: AssetPanelMode;
   assetType: AssetType;
   /** Singular, capitalized noun used to derive titles and messages, e.g. "Logo". */
   assetLabel: string;
@@ -38,11 +31,10 @@ interface AssetSearchPanelProps {
   noVariantsDescription: string;
   search: (query: string) => Promise<AssetListItem[]>;
   getDetails: (id: string) => Promise<AssetDetailsResponse>;
-  onInsert: (context: InsertContext) => Promise<void>;
+  getInsertionMetadata?: (details: AssetDetailsResponse, variantId: string) => Record<string, string>;
 }
 
 export function AssetSearchPanel({
-  mode,
   assetType,
   assetLabel,
   headerText,
@@ -52,10 +44,10 @@ export function AssetSearchPanel({
   noVariantsDescription,
   search,
   getDetails,
-  onInsert,
+  getInsertionMetadata,
 }: AssetSearchPanelProps) {
   const flow = useAssetSearchFlow({ search, getDetails });
-  const webCanvas = useWebCanvasOptional();
+  const insertionStrategy = useInsertionStrategy();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchResultsId = useId();
   const { isInserting, runInsertion } = useAssetInsertion();
@@ -68,52 +60,37 @@ export function AssetSearchPanel({
       : undefined;
 
   const handleInsert = useCallback(async () => {
-    if (!flow.selectedEntity || !flow.selectedVariantId || !flow.details) {
+    if (!flow.selectedEntity || !flow.selectedVariantId || !flow.details || !insertionStrategy) {
+      return;
+    }
+
+    const variant = flow.details.variants.find((item) => item.id === flow.selectedVariantId);
+
+    if (!variant) {
+      toast.error("Variant not found");
       return;
     }
 
     await runInsertion(async () => {
-      if (mode === "web") {
-        const variant = flow.details!.variants.find((item) => item.id === flow.selectedVariantId);
-
-        if (!variant) {
-          toast.error("Variant not found");
-          return;
-        }
-
-        if (!webCanvas) {
-          toast.error("Canvas not available");
-          return;
-        }
-
-        webCanvas.addToCanvas({
+      await insertionStrategy.insert({
+        variantId: variant.id,
+        name: flow.details!.name,
+        imageUrl: variant.imageUrl,
+        insert: variant.insert,
+        metadata: {
+          ...flow.details!.metadata,
           variantId: variant.id,
-          name: flow.details!.name,
-          imageUrl: variant.imageUrl,
-          insert: variant.insert,
-          metadata: flow.details!.metadata,
-        });
-
-        trackAssetInsertion({
-          assetType,
-          externalId: flow.details!.id,
-          client: "web",
-          metadata: {
-            variantId: variant.id,
-            ...flow.details!.metadata,
-          },
-        });
-
-        toast.success(`${assetLabel} added to canvas`);
-        return;
-      }
-
-      await onInsert({
-        details: flow.details!,
-        variantId: flow.selectedVariantId!,
+          ...getInsertionMetadata?.(flow.details!, variant.id),
+        },
+        assetType,
+        externalId: flow.details!.id,
       });
 
-      toast.success(`${assetLabel} inserted`);
+      toast.success(
+        insertionStrategy.verb === "Insert"
+          ? `${assetLabel} inserted`
+          : `${assetLabel} added to canvas`,
+      );
     }).catch((error) => {
       console.error(`Error inserting ${label}:`, error);
       toast.error(error instanceof Error ? error.message : `Error inserting ${label}`);
@@ -124,11 +101,10 @@ export function AssetSearchPanel({
     flow.details,
     flow.selectedEntity,
     flow.selectedVariantId,
+    getInsertionMetadata,
+    insertionStrategy,
     label,
-    mode,
-    onInsert,
     runInsertion,
-    webCanvas,
   ]);
 
   useAssetSearchHotkeys({
@@ -137,6 +113,9 @@ export function AssetSearchPanel({
     onInsert: handleInsert,
     isInserting,
   });
+
+  const insertLabel = insertionStrategy?.verb ?? "Insert";
+  const insertingLabel = insertionStrategy?.insertingVerb ?? "Inserting...";
 
   return (
     <div className="flex flex-1 flex-col">
@@ -225,10 +204,10 @@ export function AssetSearchPanel({
             )}
 
             <InsertSection
-              disabled={!flow.selectedVariantId}
+              disabled={!flow.selectedVariantId || !insertionStrategy}
               isInserting={isInserting}
-              label={mode === "web" ? "Add to canvas" : "Insert"}
-              insertingLabel={mode === "web" ? "Adding..." : "Inserting..."}
+              label={insertLabel}
+              insertingLabel={insertingLabel}
               onClick={handleInsert}
             />
           </div>

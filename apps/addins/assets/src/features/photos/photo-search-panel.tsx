@@ -9,11 +9,8 @@ import { InsertSection } from "@/components/asset-picker/insert-section";
 import { ScreenHeader } from "@/components/asset-picker/screen-header";
 import { SearchBar } from "@/components/asset-picker/search-bar";
 import { ShortcutKeys } from "@/components/shortcut-hint";
-import { useWebCanvasOptional } from "@/contexts/web-canvas-context";
 import { useAssetInsertion } from "@/hooks/use-asset-insertion";
-import type { AssetPanelMode } from "@/lib/asset-types";
-import { insertDirectImage } from "@/lib/insert-asset";
-import { trackAssetInsertion } from "@/lib/track-asset-insertion";
+import { useInsertionStrategy } from "@/hooks/use-insertion-strategy";
 import { SHORTCUTS } from "@/lib/shortcuts";
 
 import { PhotoFiltersBar } from "./photo-filters";
@@ -23,13 +20,12 @@ import { usePhotoSearch } from "./use-photo-search";
 import { usePhotoSearchHotkeys } from "./use-photo-search-hotkeys";
 
 interface PhotoSearchPanelProps {
-  mode: AssetPanelMode;
   search: (input: PhotoSearchRequest) => Promise<PhotoSearchResponse>;
 }
 
-export function PhotoSearchPanel({ mode, search }: PhotoSearchPanelProps) {
+export function PhotoSearchPanel({ search }: PhotoSearchPanelProps) {
   const flow = usePhotoSearch(search);
-  const webCanvas = useWebCanvasOptional();
+  const insertionStrategy = useInsertionStrategy();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const resultsId = useId();
   const { isInserting, runInsertion } = useAssetInsertion();
@@ -40,52 +36,32 @@ export function PhotoSearchPanel({ mode, search }: PhotoSearchPanelProps) {
   const handleInsert = useCallback(async () => {
     const photo = flow.selectedPhoto;
 
-    if (!photo) {
+    if (!photo || !insertionStrategy) {
       return;
     }
 
     await runInsertion(async () => {
-      if (mode === "web") {
-        if (!webCanvas) {
-          toast.error("Canvas not available");
-          return;
-        }
-
-        webCanvas.addToCanvas({
-          variantId: photo.id,
-          name: photo.name,
-          imageUrl: photo.insertImageUrl,
-          insert: {
-            type: "image",
-            imageUrl: photo.insertImageUrl,
-          },
-          metadata: photo.metadata,
-        });
-
-        trackAssetInsertion({
-          assetType: "photo",
-          externalId: photo.id,
-          client: "web",
-          metadata: photo.metadata,
-        });
-
-        toast.success("Photo added to canvas");
-        return;
-      }
-
-      await insertDirectImage({
+      await insertionStrategy.insert({
+        variantId: photo.id,
+        name: photo.name,
         imageUrl: photo.insertImageUrl,
+        insert: {
+          type: "image",
+          imageUrl: photo.insertImageUrl,
+        },
         metadata: photo.metadata,
         assetType: "photo",
         externalId: photo.id,
       });
 
-      toast.success("Photo inserted");
+      toast.success(
+        insertionStrategy.verb === "Insert" ? "Photo inserted" : "Photo added to canvas",
+      );
     }).catch((error) => {
       console.error("Error inserting photo:", error);
       toast.error(error instanceof Error ? error.message : "Error inserting photo");
     });
-  }, [flow.selectedPhoto, mode, runInsertion, webCanvas]);
+  }, [flow.selectedPhoto, insertionStrategy, runInsertion]);
 
   usePhotoSearchHotkeys({
     searchInputRef,
@@ -93,6 +69,9 @@ export function PhotoSearchPanel({ mode, search }: PhotoSearchPanelProps) {
     onInsert: handleInsert,
     isInserting,
   });
+
+  const insertLabel = insertionStrategy?.verb ?? "Insert";
+  const insertingLabel = insertionStrategy?.insertingVerb ?? "Inserting...";
 
   return (
     <div className="flex flex-1 flex-col">
@@ -203,10 +182,10 @@ export function PhotoSearchPanel({ mode, search }: PhotoSearchPanelProps) {
             </a>
           </p>
           <InsertSection
-            disabled={!flow.selectedPhoto}
+            disabled={!flow.selectedPhoto || !insertionStrategy}
             isInserting={isInserting}
-            label={mode === "web" ? "Add to canvas" : "Insert"}
-            insertingLabel={mode === "web" ? "Adding..." : "Inserting..."}
+            label={insertLabel}
+            insertingLabel={insertingLabel}
             onClick={handleInsert}
           />
         </div>

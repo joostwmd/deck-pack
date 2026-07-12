@@ -32,7 +32,7 @@ function createDefaultPlacement(index: number): Pick<PlacedCanvasItem, "x" | "y"
   };
 }
 
-interface WebCanvasContextValue {
+export interface WebCanvasContextValue {
   items: PlacedCanvasItem[];
   addToCanvas: (item: NewCanvasItem) => void;
   updateItemPosition: (instanceId: string, position: { x: number; y: number }) => void;

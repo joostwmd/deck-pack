@@ -20,15 +20,10 @@ import {
   setDefaultBrandProfile,
   useBrandProfiles,
 } from "@/hooks/use-brand-profiles";
-import type { AssetPanelMode } from "@/lib/asset-types";
 
 type ThemesView = "list" | "create" | "edit" | "import-review";
 
-interface ThemesPanelProps {
-  mode: AssetPanelMode;
-}
-
-export function ThemesPanel({ mode }: ThemesPanelProps) {
+export function ThemesPanel() {
   const { profiles, loading, error, refresh } = useBrandProfiles();
   const [view, setView] = useState<ThemesView>("list");
   const [createOpen, setCreateOpen] = useState(false);
@@ -132,7 +127,7 @@ export function ThemesPanel({ mode }: ThemesPanelProps) {
             />
           ) : null}
 
-          <BrandProfileEditor configuration={configuration} onChange={setConfiguration} mode={mode} />
+          <BrandProfileEditor configuration={configuration} onChange={setConfiguration} />
 
           <InsertSection
             disabled={!name.trim() || saving}
@@ -256,7 +251,6 @@ export function ThemesPanel({ mode }: ThemesPanelProps) {
       <ThemeCreateDialog
         open={createOpen}
         onOpenChange={setCreateOpen}
-        mode={mode}
         onCreateManual={() => {
           resetEditor();
           setView("create");

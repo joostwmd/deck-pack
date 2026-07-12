@@ -14,12 +14,11 @@ import { extractThemeDraftFromPresentation } from "@deck-pack/office-js";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import type { AssetPanelMode } from "@/lib/asset-types";
+import { PowerPointGuard } from "@/components/power-point-guard";
 
 interface ThemeCreateDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  mode: AssetPanelMode;
   onCreateManual: () => void;
   onCreateFromDraft: (draft: {
     name: string;
@@ -30,18 +29,12 @@ interface ThemeCreateDialogProps {
 export function ThemeCreateDialog({
   open,
   onOpenChange,
-  mode,
   onCreateManual,
   onCreateFromDraft,
 }: ThemeCreateDialogProps) {
   const [importing, setImporting] = useState(false);
 
   const handleImport = async () => {
-    if (mode !== "office") {
-      toast.error("Create from presentation is only available in PowerPoint.");
-      return;
-    }
-
     setImporting(true);
     try {
       const draft = await extractThemeDraftFromPresentation();
@@ -71,14 +64,16 @@ export function ThemeCreateDialog({
           <Button type="button" onClick={onCreateManual}>
             Start from scratch
           </Button>
-          <Button
-            type="button"
-            variant="outline"
-            disabled={mode !== "office" || importing}
-            onClick={() => void handleImport()}
-          >
-            {importing ? "Extracting..." : "Create from current presentation"}
-          </Button>
+          <PowerPointGuard powerpointRequired>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={importing}
+              onClick={() => void handleImport()}
+            >
+              {importing ? "Extracting..." : "Create from current presentation"}
+            </Button>
+          </PowerPointGuard>
         </div>
 
         <DialogFooter>

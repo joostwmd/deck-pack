@@ -1,15 +1,9 @@
 import { SlideSearchPanel } from "@/features/slides/slide-search-panel";
-import type { AssetPanelMode } from "@/lib/asset-types";
 import { trpcClient } from "@/utils/trpc";
 
-interface SlidesPanelProps {
-  mode: AssetPanelMode;
-}
-
-export function SlidesPanel({ mode }: SlidesPanelProps) {
+export function SlidesPanel() {
   return (
     <SlideSearchPanel
-      mode={mode}
       search={({ query, filters, sort }) =>
         trpcClient.addin.slides.search.query({
           query,

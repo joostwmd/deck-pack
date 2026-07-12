@@ -1,15 +1,9 @@
 import { PhotoSearchPanel } from "@/features/photos/photo-search-panel";
-import type { AssetPanelMode } from "@/lib/asset-types";
 import { trpcClient } from "@/utils/trpc";
 
-interface PhotosPanelProps {
-  mode: AssetPanelMode;
-}
-
-export function PhotosPanel({ mode }: PhotosPanelProps) {
+export function PhotosPanel() {
   return (
     <PhotoSearchPanel
-      mode={mode}
       search={({ query, page, filters }) =>
         trpcClient.addin.photos.search.query({
           query,

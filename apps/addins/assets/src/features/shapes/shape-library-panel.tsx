@@ -6,11 +6,9 @@ import { EmptyState } from "@/components/asset-picker/empty-state";
 import { ErrorState } from "@/components/asset-picker/error-state";
 import { InsertSection } from "@/components/asset-picker/insert-section";
 import { ScreenHeader } from "@/components/asset-picker/screen-header";
-import { useWebCanvasOptional } from "@/contexts/web-canvas-context";
 import { useAssetInsertion } from "@/hooks/use-asset-insertion";
+import { useInsertionStrategy } from "@/hooks/use-insertion-strategy";
 import { useShapeLibrary } from "@/hooks/use-shape-library";
-import type { AssetPanelMode } from "@/lib/asset-types";
-import { insertShape } from "@/lib/insert-shape";
 
 import { ShapeCategoryTabs } from "./shape-category-tabs";
 import { ShapeGrid } from "./shape-grid";
@@ -18,42 +16,71 @@ import type { ShapeSearchRequest, ShapeSearchResponse } from "./types";
 import { useShapeLibraryHotkeys } from "./use-shape-library-hotkeys";
 
 interface ShapeLibraryPanelProps {
-  mode: AssetPanelMode;
   search: (input: ShapeSearchRequest) => Promise<ShapeSearchResponse>;
 }
 
-export function ShapeLibraryPanel({ mode, search }: ShapeLibraryPanelProps) {
+async function fetchSvgText(svgUrl: string): Promise<string> {
+  const response = await fetch(svgUrl);
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch shape SVG (${response.status})`);
+  }
+
+  return response.text();
+}
+
+export function ShapeLibraryPanel({ search }: ShapeLibraryPanelProps) {
   const flow = useShapeLibrary(search);
-  const webCanvas = useWebCanvasOptional();
+  const insertionStrategy = useInsertionStrategy();
   const { isInserting, runInsertion } = useAssetInsertion();
-  const isOffice = mode === "office";
 
   const handleInsert = useCallback(async () => {
     const shape = flow.selectedShape;
 
-    if (!shape) {
+    if (!shape || !insertionStrategy) {
       return;
     }
 
     await runInsertion(async () => {
-      await insertShape({ mode, shape, webCanvas });
-      toast.success(mode === "web" ? "Shape added to canvas" : "Shape inserted");
+      const svg = await fetchSvgText(shape.svgUrl);
+      const metadata = {
+        SHAPE_ID: shape.id,
+        CATEGORY: shape.category,
+        TYPE: "SHAPE",
+      };
+
+      await insertionStrategy.insert({
+        variantId: shape.id,
+        name: shape.name,
+        imageUrl: shape.thumbnailUrl,
+        insert: { type: "svg", svg },
+        metadata,
+        assetType: "shape",
+        externalId: shape.id,
+      });
+
+      toast.success(
+        insertionStrategy.verb === "Insert" ? "Shape inserted" : "Shape added to canvas",
+      );
     }).catch((error) => {
       console.error("Error inserting shape:", error);
       toast.error(error instanceof Error ? error.message : "Error inserting shape");
     });
-  }, [flow.selectedShape, mode, runInsertion, webCanvas]);
+  }, [flow.selectedShape, insertionStrategy, runInsertion]);
 
   useShapeLibraryHotkeys({
     flow,
     onInsert: handleInsert,
     isInserting,
-    canInsert: Boolean(flow.selectedShape),
+    canInsert: Boolean(flow.selectedShape) && Boolean(insertionStrategy),
   });
 
   const emptyDescription = flow.category
     ? `More ${flow.category.toLowerCase()} coming soon.`
     : "More shapes coming soon.";
+
+  const insertLabel = insertionStrategy?.verb ?? "Insert";
+  const insertingLabel = insertionStrategy?.insertingVerb ?? "Inserting...";
 
   return (
     <div className="flex flex-1 flex-col">
@@ -111,17 +138,11 @@ export function ShapeLibraryPanel({ mode, search }: ShapeLibraryPanelProps) {
 
       <div className="flex flex-1 flex-col px-4 pb-3">
         <div className="mt-auto flex flex-col gap-2 pt-3">
-          {!isOffice ? (
-            <p className="text-center text-xs text-muted-foreground">
-              Shapes can be added to the web canvas here. Open this add-in in PowerPoint to insert
-              directly into a slide.
-            </p>
-          ) : null}
           <InsertSection
-            disabled={!flow.selectedShape}
+            disabled={!flow.selectedShape || !insertionStrategy}
             isInserting={isInserting}
-            label={mode === "web" ? "Add to canvas" : "Insert"}
-            insertingLabel={mode === "web" ? "Adding..." : "Inserting..."}
+            label={insertLabel}
+            insertingLabel={insertingLabel}
             onClick={handleInsert}
           />
         </div>
