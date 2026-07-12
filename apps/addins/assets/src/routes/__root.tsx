@@ -1,8 +1,6 @@
 import type { createAppAuthClient } from "@deck-pack/auth/client";
 import { Toaster } from "@deck-pack/ui/components/system/sonner";
 import { HeadContent, Outlet, createRootRouteWithContext } from "@tanstack/react-router";
-import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-
 import { ErrorBoundary } from "@/components/error-boundary";
 import { ThemeProvider } from "@/components/theme-provider";
 import { EnvironmentProvider } from "@/contexts/EnvironmentContext";
@@ -55,7 +53,6 @@ function RootComponent() {
         </OfficeProvider>
         <Toaster />
       </ThemeProvider>
-      <TanStackRouterDevtools position="bottom-left" />
     </ErrorBoundary>
   );
 }
