@@ -21,26 +21,31 @@ async function tableExists(pool: pg.Pool, tableName: string): Promise<boolean> {
   return Boolean(result.rows[0]?.exists);
 }
 
+async function applyMigration(pool: pg.Pool, fileName: string): Promise<void> {
+  const migrationPath = path.join(packageRoot, "migrations", fileName);
+  const sql = await readFile(migrationPath, "utf8");
+  const statements = sql
+    .split("--> statement-breakpoint")
+    .map((statement) => statement.trim())
+    .filter(Boolean);
+
+  for (const statement of statements) {
+    await pool.query(statement);
+  }
+}
+
 export async function ensureMigrationsApplied(): Promise<void> {
   if (ensured) return;
 
   const pool = new pg.Pool({ connectionString: env.DATABASE_URL });
 
   try {
-    if (await tableExists(pool, "brand_profiles")) {
-      ensured = true;
-      return;
+    if (!(await tableExists(pool, "brand_profiles"))) {
+      await applyMigration(pool, "0001_brand_profiles.sql");
     }
 
-    const migrationPath = path.join(packageRoot, "migrations", "0001_brand_profiles.sql");
-    const sql = await readFile(migrationPath, "utf8");
-    const statements = sql
-      .split("--> statement-breakpoint")
-      .map((statement) => statement.trim())
-      .filter(Boolean);
-
-    for (const statement of statements) {
-      await pool.query(statement);
+    if (!(await tableExists(pool, "agenda_instances"))) {
+      await applyMigration(pool, "0002_agendas.sql");
     }
 
     ensured = true;

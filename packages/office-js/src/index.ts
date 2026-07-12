@@ -56,3 +56,45 @@ export {
   FormattingExecutionError,
   FormattingUnavailableError,
 } from "./format/formatting-errors";
+export {
+  loadDocumentSetting,
+  removeDocumentSetting,
+  saveDocumentSetting,
+} from "./settings/document-settings";
+export {
+  clearAgendaConfig,
+  loadAgendaConfig,
+  persistAgendaConfig,
+} from "./agenda/agenda-settings";
+export type { AgendaSettingsState } from "./agenda/agenda-settings";
+export {
+  buildAgendaShapeTags,
+  buildAgendaSlideTags,
+  tagPresentation,
+  tagShape,
+  tagSlide,
+} from "./agenda/agenda-tags";
+export {
+  getAgendaSelectionSnapshot,
+} from "./agenda/agenda-selection";
+export type {
+  AgendaActiveSlide,
+  AgendaSelectedShape,
+  AgendaSelectionSnapshot,
+} from "./agenda/agenda-selection";
+export {
+  deleteSlideById,
+  exportSlideAsBase64,
+  moveSlideToIndex,
+  scanAgendaDeck,
+  selectSlide,
+  setShapeText,
+} from "./agenda/scan-agenda-deck";
+export {
+  applyAgendaUpdatePlan,
+  buildTemplateMapping,
+  createInitialAgendaConfig,
+  updateAgendaFromDraft,
+  validateTemplateMappingDraft,
+} from "./agenda/apply-agenda-update";
+export type { TemplateMappingDraft } from "./agenda/apply-agenda-update";

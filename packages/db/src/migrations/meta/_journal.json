@@ -15,6 +15,13 @@
       "when": 1783783611776,
       "tag": "0001_brand_profiles",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1783783611777,
+      "tag": "0002_agendas",
+      "breakpoints": true
     }
   ]
 }

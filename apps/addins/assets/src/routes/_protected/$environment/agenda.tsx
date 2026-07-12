@@ -1,16 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { PlaceholderPage } from "@/features/placeholder-page";
+import { AgendaPanel } from "@/features/agenda/agenda-panel";
+import { toAssetPanelMode } from "@/lib/route-environment";
 
 export const Route = createFileRoute("/_protected/$environment/agenda")({
   component: AgendaPage,
 });
 
 function AgendaPage() {
-  return (
-    <PlaceholderPage
-      title="Agenda"
-      description="Build and manage presentation agendas from your slide content."
-    />
-  );
+  const { environment } = Route.useParams();
+
+  return <AgendaPanel mode={toAssetPanelMode(environment)} />;
 }

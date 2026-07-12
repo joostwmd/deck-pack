@@ -18,6 +18,7 @@
     "start": "node dist/index.mjs"
   },
   "dependencies": {
+    "@deck-pack/agenda": "workspace:*",
     "@deck-pack/auth": "workspace:*",
     "@deck-pack/brandfetch": "workspace:*",
     "@deck-pack/db": "workspace:*",

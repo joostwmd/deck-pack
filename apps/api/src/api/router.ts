@@ -4,6 +4,7 @@ import { PexelsClient } from "@deck-pack/pexels";
 
 import { createAddinRoutes } from "../domains/addin/routes";
 import { createAddinAssetService } from "../domains/addin/service";
+import { agendaRoutes } from "../domains/agenda/routes";
 import { brandProfileRoutes } from "../domains/brand-profiles/routes";
 import { organizationRoutes } from "../domains/organization/routes";
 import { systemRoutes } from "../domains/system/routes";
@@ -27,6 +28,7 @@ export function createAppRouter(deps: AddinRouterDeps) {
     ...systemRoutes,
     organization: router(organizationRoutes),
     addin: router(createAddinRoutes(addinAssetService)),
+    agenda: router(agendaRoutes),
     brandProfiles: router(brandProfileRoutes),
   });
 }
