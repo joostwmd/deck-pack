@@ -1,4 +1,13 @@
-import { alignLeftCommand, matchWidthCommand, rectifyLinesCommand, setBoundsCommand, stackVerticalCommand, swapPositionsCommand } from "@deck-pack/presentation-formatting";
+import {
+  alignLeftCommand,
+  matchWidthCommand,
+  rectifyLinesCommand,
+  setBoundsCommand,
+  stackVerticalCommand,
+  swapPositionsCommand,
+  swapTextCommand,
+  textMarginRemoveCommand,
+} from "@deck-pack/presentation-formatting";
 import { describe, expect, it } from "vitest";
 
 import { executeFormattingCommand } from "./execute-formatting-command";
@@ -77,6 +86,78 @@ describe("executeFormattingCommand", () => {
     const before = { ...office.shape("b") };
     await executeFormattingCommand(office.runner, alignLeftCommand, undefined);
     expect(office.shape("b")).toEqual(before);
+  });
+
+  it("runs text-margin-remove through text frame proxies", async () => {
+    const office = fakePowerPointSelection([
+      {
+        id: "a",
+        left: 0,
+        top: 0,
+        width: 10,
+        height: 10,
+        textFrame: {
+          hasText: true,
+          autoSizeSetting: "AutoSizeNone",
+          leftMargin: 12,
+          rightMargin: 12,
+          topMargin: 8,
+          bottomMargin: 8,
+          wordWrap: true,
+          verticalAlignment: "Top",
+          textRange: { text: "Hello" },
+        },
+      },
+    ]);
+
+    await executeFormattingCommand(office.runner, textMarginRemoveCommand, undefined);
+    expect(office.shape("a").textFrame?.leftMargin).toBe(0);
+    expect(office.shape("a").textFrame?.topMargin).toBe(0);
+  });
+
+  it("runs swap-text through text frame proxies", async () => {
+    const office = fakePowerPointSelection([
+      {
+        id: "a",
+        left: 0,
+        top: 0,
+        width: 10,
+        height: 10,
+        textFrame: {
+          hasText: true,
+          autoSizeSetting: "AutoSizeNone",
+          leftMargin: 0,
+          rightMargin: 0,
+          topMargin: 0,
+          bottomMargin: 0,
+          wordWrap: true,
+          verticalAlignment: "Top",
+          textRange: { text: "Alpha" },
+        },
+      },
+      {
+        id: "b",
+        left: 20,
+        top: 0,
+        width: 10,
+        height: 10,
+        textFrame: {
+          hasText: true,
+          autoSizeSetting: "AutoSizeNone",
+          leftMargin: 0,
+          rightMargin: 0,
+          topMargin: 0,
+          bottomMargin: 0,
+          wordWrap: true,
+          verticalAlignment: "Top",
+          textRange: { text: "Beta" },
+        },
+      },
+    ]);
+
+    await executeFormattingCommand(office.runner, swapTextCommand, undefined);
+    expect(office.shape("a").textFrame?.textRange.text).toBe("Beta");
+    expect(office.shape("b").textFrame?.textRange.text).toBe("Alpha");
   });
 });
 

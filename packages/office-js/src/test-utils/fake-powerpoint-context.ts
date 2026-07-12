@@ -1,7 +1,22 @@
 import type { PowerPointShapeProxy } from "../selection/read-selected-shapes";
 
+export type FakeTextFrame = {
+  hasText: boolean;
+  autoSizeSetting: string;
+  leftMargin: number;
+  rightMargin: number;
+  topMargin: number;
+  bottomMargin: number;
+  wordWrap: boolean;
+  verticalAlignment: string;
+  textRange: {
+    text: string;
+  };
+};
+
 export type FakeShape = PowerPointShapeProxy & {
   rotation: number;
+  textFrame?: FakeTextFrame;
 };
 
 export type FakePowerPointFixture = {
@@ -12,24 +27,45 @@ export type FakePowerPointFixture = {
   shape: (id: string) => FakeShape;
 };
 
+function createDefaultTextFrame(text = ""): FakeTextFrame {
+  return {
+    hasText: text.length > 0,
+    autoSizeSetting: "AutoSizeNone",
+    leftMargin: 10,
+    rightMargin: 10,
+    topMargin: 5,
+    bottomMargin: 5,
+    wordWrap: true,
+    verticalAlignment: "Top",
+    textRange: { text },
+  };
+}
+
 export function fakePowerPointSelection(
   shapes: Array<Partial<FakeShape> & Pick<FakeShape, "id">>,
   slideId = "slide-1",
 ): FakePowerPointFixture {
   const store = new Map<string, FakeShape>(
-    shapes.map((shape) => [
-      shape.id,
-      {
-        id: shape.id,
-        name: shape.name ?? shape.id,
-        type: shape.type ?? "rectangle",
-        left: shape.left ?? 0,
-        top: shape.top ?? 0,
-        width: shape.width ?? 10,
-        height: shape.height ?? 10,
-        rotation: shape.rotation ?? 0,
-      },
-    ]),
+    shapes.map((shape) => {
+      const type = shape.type ?? "rectangle";
+      const supportsText = type !== "line" && type !== "image" && type !== "table";
+
+      return [
+        shape.id,
+        {
+          id: shape.id,
+          name: shape.name ?? shape.id,
+          type,
+          left: shape.left ?? 0,
+          top: shape.top ?? 0,
+          width: shape.width ?? 10,
+          height: shape.height ?? 10,
+          rotation: shape.rotation ?? 0,
+          textFrame:
+            shape.textFrame ?? (supportsText ? createDefaultTextFrame() : undefined),
+        },
+      ];
+    }),
   );
 
   let syncCount = 0;
@@ -101,6 +137,78 @@ function createFakeContext(
 function createShapeProxy(store: Map<string, FakeShape>, id: string) {
   const record = store.get(id)!;
 
+  const textFrameRecord =
+    record.textFrame ??
+    (record.type !== "line" && record.type !== "image" && record.type !== "table"
+      ? createDefaultTextFrame()
+      : undefined);
+
+  if (textFrameRecord && !record.textFrame) {
+    record.textFrame = textFrameRecord;
+  }
+
+  const textFrameProxy = textFrameRecord
+    ? {
+        get hasText() {
+          return textFrameRecord.hasText;
+        },
+        set hasText(value: boolean) {
+          textFrameRecord.hasText = value;
+        },
+        get autoSizeSetting() {
+          return textFrameRecord.autoSizeSetting;
+        },
+        set autoSizeSetting(value: string) {
+          textFrameRecord.autoSizeSetting = value;
+        },
+        get leftMargin() {
+          return textFrameRecord.leftMargin;
+        },
+        set leftMargin(value: number) {
+          textFrameRecord.leftMargin = value;
+        },
+        get rightMargin() {
+          return textFrameRecord.rightMargin;
+        },
+        set rightMargin(value: number) {
+          textFrameRecord.rightMargin = value;
+        },
+        get topMargin() {
+          return textFrameRecord.topMargin;
+        },
+        set topMargin(value: number) {
+          textFrameRecord.topMargin = value;
+        },
+        get bottomMargin() {
+          return textFrameRecord.bottomMargin;
+        },
+        set bottomMargin(value: number) {
+          textFrameRecord.bottomMargin = value;
+        },
+        get wordWrap() {
+          return textFrameRecord.wordWrap;
+        },
+        set wordWrap(value: boolean) {
+          textFrameRecord.wordWrap = value;
+        },
+        get verticalAlignment() {
+          return textFrameRecord.verticalAlignment;
+        },
+        set verticalAlignment(value: string) {
+          textFrameRecord.verticalAlignment = value;
+        },
+        textRange: {
+          get text() {
+            return textFrameRecord.textRange.text;
+          },
+          set text(value: string) {
+            textFrameRecord.textRange.text = value;
+            textFrameRecord.hasText = value.length > 0;
+          },
+        },
+      }
+    : undefined;
+
   return {
     id: record.id,
     name: record.name,
@@ -134,6 +242,9 @@ function createShapeProxy(store: Map<string, FakeShape>, id: string) {
     },
     set rotation(value: number) {
       record.rotation = value;
+    },
+    get textFrame() {
+      return textFrameProxy;
     },
     load: () => undefined,
   };

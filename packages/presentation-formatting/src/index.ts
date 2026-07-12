@@ -16,7 +16,13 @@ export type {
   ShapeCapabilities,
   ShapeMutation,
   ShapeSelection,
+  StackAnchor,
   StackDirection,
+  SwapAnchor,
+  SwapParams,
+  TextAutoSizeMode,
+  TextFrameSnapshot,
+  TextVerticalAlignmentMode,
   VisualBounds,
 } from "./types";
 
@@ -29,6 +35,7 @@ export {
   sameSlide,
   supportsBoundsMutation,
   supportsResize,
+  supportsTextFrame,
 } from "./policies";
 
 export {
@@ -73,8 +80,10 @@ export {
 
 export {
   createStackCommand,
+  stackBottomCommand,
   stackCommands,
   stackHorizontalCommand,
+  stackRightCommand,
   stackVerticalCommand,
 } from "./commands/stack";
 
@@ -87,9 +96,36 @@ export {
   gapExactVerticalCommand,
   gapIncreaseHorizontalCommand,
   gapIncreaseVerticalCommand,
+  gapRemoveHorizontalCommand,
+  gapRemoveVerticalCommand,
 } from "./commands/gap";
 
-export { swapPositionsCommand } from "./commands/swap";
+export {
+  createSwapCommand,
+  swapBottomLeftCommand,
+  swapBottomRightCommand,
+  swapCommands,
+  swapPositionsCommand,
+  swapTopLeftCommand,
+  swapTopRightCommand,
+} from "./commands/swap";
+
+export {
+  swapTextCommand,
+  textAutofitNoneCommand,
+  textAutofitResizeShapeCommand,
+  textAutofitShrinkTextCommand,
+  textCommands,
+  textMarginDecreaseCommand,
+  textMarginIncreaseCommand,
+  textMarginRemoveCommand,
+  textVerticalBottomCommand,
+  textVerticalMiddleCommand,
+  textVerticalTopCommand,
+  textWrapOffCommand,
+  textWrapOnCommand,
+} from "./commands/text";
+
 export { rectifyLinesCommand } from "./commands/rectify-lines";
 export { setBoundsCommand } from "./commands/set-bounds";
 

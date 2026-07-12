@@ -37,6 +37,7 @@ export function toShapeCapabilities(type: string) {
   return {
     supportsBoundsMutation: shapeSupportsBoundsMutation(type),
     supportsResize: shapeSupportsResize(type),
+    supportsTextFrame: shapeSupportsTextFrame(type),
     isLine: shapeIsLine(type),
   };
 }

@@ -1,7 +1,8 @@
 import type { SelectedShape, ShapeSelection } from "@deck-pack/presentation-formatting";
 import { getVisualBounds } from "@deck-pack/presentation-formatting";
 
-import { toShapeCapabilities } from "./shape-capabilities";
+import { mapOfficeTextFrameSnapshot } from "../format/text-frame-mappers";
+import { shapeSupportsTextFrame, toShapeCapabilities } from "./shape-capabilities";
 
 export type PowerPointShapeProxy = {
   id: string;
@@ -12,6 +13,19 @@ export type PowerPointShapeProxy = {
   width: number;
   height: number;
   rotation?: number;
+  textFrame?: {
+    hasText: boolean;
+    autoSizeSetting: string;
+    leftMargin: number;
+    rightMargin: number;
+    topMargin: number;
+    bottomMargin: number;
+    wordWrap: boolean;
+    verticalAlignment: string;
+    textRange: {
+      text: string;
+    };
+  };
 };
 
 export function mapOfficeShapeToSelectedShape(
@@ -35,6 +49,19 @@ export function mapOfficeShapeToSelectedShape(
     rawBounds,
     visualBounds: getVisualBounds(rawBounds),
     capabilities: toShapeCapabilities(type),
+    textFrame: shape.textFrame
+      ? mapOfficeTextFrameSnapshot({
+          hasText: shape.textFrame.hasText,
+          autoSizeSetting: shape.textFrame.autoSizeSetting,
+          leftMargin: shape.textFrame.leftMargin,
+          rightMargin: shape.textFrame.rightMargin,
+          topMargin: shape.textFrame.topMargin,
+          bottomMargin: shape.textFrame.bottomMargin,
+          wordWrap: shape.textFrame.wordWrap,
+          verticalAlignment: shape.textFrame.verticalAlignment,
+          text: shape.textFrame.textRange.text,
+        })
+      : undefined,
   };
 }
 
@@ -85,6 +112,52 @@ export async function readSelectedShapesFromContext(
     }
   } catch {
     // Rotation is unavailable on some hosts/API levels.
+  }
+
+  for (let index = 0; index < selection.items.length; index += 1) {
+    const shape = selection.items[index]!;
+    const proxy = shapes[index]!;
+
+    if (!shapeSupportsTextFrame(proxy.type)) {
+      continue;
+    }
+
+    try {
+      shape.load(
+        "textFrame/hasText,textFrame/autoSizeSetting,textFrame/leftMargin,textFrame/rightMargin,textFrame/topMargin,textFrame/bottomMargin,textFrame/wordWrap,textFrame/verticalAlignment,textFrame/textRange/text",
+      );
+    } catch {
+      // Text frame is unavailable on some hosts/API levels.
+    }
+  }
+
+  await context.sync();
+
+  for (let index = 0; index < selection.items.length; index += 1) {
+    const shape = selection.items[index]!;
+    const proxy = shapes[index]!;
+
+    if (!shapeSupportsTextFrame(proxy.type)) {
+      continue;
+    }
+
+    try {
+      proxy.textFrame = {
+        hasText: shape.textFrame.hasText,
+        autoSizeSetting: String(shape.textFrame.autoSizeSetting),
+        leftMargin: shape.textFrame.leftMargin,
+        rightMargin: shape.textFrame.rightMargin,
+        topMargin: shape.textFrame.topMargin,
+        bottomMargin: shape.textFrame.bottomMargin,
+        wordWrap: shape.textFrame.wordWrap,
+        verticalAlignment: String(shape.textFrame.verticalAlignment),
+        textRange: {
+          text: shape.textFrame.textRange.text,
+        },
+      };
+    } catch {
+      // Text frame is unavailable on some hosts/API levels.
+    }
   }
 
   return mapOfficeSelection(slide.id, shapes);

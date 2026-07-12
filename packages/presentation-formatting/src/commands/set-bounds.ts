@@ -88,7 +88,7 @@ export const setBoundsCommand: FormattingCommand<SetBoundsParams> = {
       return policyResult;
     }
 
-    return validateParams(params);
+    return validateParams(params ?? {});
   },
-  createPlan: (selection, params) => createSetBoundsPlan(selection, params),
+  createPlan: (selection, params) => createSetBoundsPlan(selection, params ?? {}),
 };

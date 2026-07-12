@@ -116,6 +116,16 @@ export const gapDecreaseVerticalCommand = createGapCommand("gap-decrease-vertica
   direction: "vertical",
   value: 12,
 });
+export const gapRemoveHorizontalCommand = createGapCommand("gap-remove-horizontal", {
+  mode: "exact",
+  direction: "horizontal",
+  value: 0,
+});
+export const gapRemoveVerticalCommand = createGapCommand("gap-remove-vertical", {
+  mode: "exact",
+  direction: "vertical",
+  value: 0,
+});
 
 export const gapCommands = [
   gapExactHorizontalCommand,
@@ -124,4 +134,6 @@ export const gapCommands = [
   gapDecreaseHorizontalCommand,
   gapIncreaseVerticalCommand,
   gapDecreaseVerticalCommand,
+  gapRemoveHorizontalCommand,
+  gapRemoveVerticalCommand,
 ];

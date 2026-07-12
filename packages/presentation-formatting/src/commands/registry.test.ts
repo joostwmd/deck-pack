@@ -2,14 +2,27 @@ import { describe, expect, it } from "vitest";
 
 import { alignLeftCommand } from "./align";
 import { distributeHorizontalCommand } from "./distribute";
-import { gapExactHorizontalCommand, gapIncreaseHorizontalCommand } from "./gap";
+import {
+  gapExactHorizontalCommand,
+  gapIncreaseHorizontalCommand,
+  gapRemoveHorizontalCommand,
+} from "./gap";
 import { matchWidthCommand } from "./match-size";
 import { formattingCommandRegistry, getUniqueFormattingCommandIds } from "./registry";
 import { rectifyLinesCommand } from "./rectify-lines";
 import { setBoundsCommand } from "./set-bounds";
-import { stackVerticalCommand } from "./stack";
-import { swapPositionsCommand } from "./swap";
-import { createShape, selectionFromBounds } from "../test-utils/selection";
+import { stackBottomCommand, stackRightCommand, stackVerticalCommand } from "./stack";
+import {
+  swapBottomLeftCommand,
+  swapPositionsCommand,
+  swapTopLeftCommand,
+} from "./swap";
+import {
+  swapTextCommand,
+  textMarginRemoveCommand,
+  textWrapOnCommand,
+} from "./text";
+import { createShape, selectionFromBounds, selectionOf } from "../test-utils/selection";
 
 describe("align commands", () => {
   it("aligns shapes to the selection left edge regardless of input order", () => {
@@ -65,6 +78,24 @@ describe("stack commands", () => {
 
     expect(stackVerticalCommand.createPlan(selection, undefined)).toEqual([{ shapeId: "b", top: 20 }]);
   });
+
+  it("stacks shapes upward from the bottom anchor", () => {
+    const selection = selectionFromBounds([
+      { id: "a", left: 0, top: 0, width: 10, height: 10 },
+      { id: "b", left: 0, top: 30, width: 10, height: 20 },
+    ]);
+
+    expect(stackBottomCommand.createPlan(selection, undefined)).toEqual([{ shapeId: "a", top: 20 }]);
+  });
+
+  it("stacks shapes leftward from the right anchor", () => {
+    const selection = selectionFromBounds([
+      { id: "a", left: 0, top: 0, width: 10, height: 10 },
+      { id: "b", left: 30, top: 0, width: 20, height: 10 },
+    ]);
+
+    expect(stackRightCommand.createPlan(selection, undefined)).toEqual([{ shapeId: "a", left: 20 }]);
+  });
 });
 
 describe("gap commands", () => {
@@ -94,9 +125,19 @@ describe("gap commands", () => {
     const plan = gapIncreaseHorizontalCommand.createPlan(selection, undefined);
     expect(plan.find((mutation) => mutation.shapeId === "b")?.left).toBe(62);
   });
+
+  it("removes horizontal gap using baked-in zero exact gap", () => {
+    const selection = selectionFromBounds([
+      { id: "a", left: 0, top: 0, width: 10, height: 10 },
+      { id: "b", left: 50, top: 0, width: 10, height: 10 },
+    ]);
+
+    const plan = gapRemoveHorizontalCommand.createPlan(selection, undefined);
+    expect(plan.find((mutation) => mutation.shapeId === "b")?.left).toBe(10);
+  });
 });
 
-describe("swap command", () => {
+describe("swap commands", () => {
   it("swaps visual centers for exactly two shapes", () => {
     const selection = selectionFromBounds([
       { id: "a", left: 0, top: 0, width: 10, height: 10 },
@@ -107,6 +148,121 @@ describe("swap command", () => {
     expect(plan).toHaveLength(2);
     expect(plan.some((mutation) => mutation.shapeId === "a")).toBe(true);
     expect(plan.some((mutation) => mutation.shapeId === "b")).toBe(true);
+  });
+
+  it("swaps top-left corners for exactly two shapes", () => {
+    const selection = selectionFromBounds([
+      { id: "a", left: 0, top: 0, width: 10, height: 10 },
+      { id: "b", left: 40, top: 20, width: 10, height: 10 },
+    ]);
+
+    const plan = swapTopLeftCommand.createPlan(selection, undefined);
+    expect(plan).toEqual([
+      { shapeId: "a", left: 40, top: 20 },
+      { shapeId: "b", left: 0, top: 0 },
+    ]);
+  });
+
+  it("swaps bottom-left corners for exactly two shapes", () => {
+    const selection = selectionFromBounds([
+      { id: "a", left: 0, top: 0, width: 10, height: 20 },
+      { id: "b", left: 40, top: 10, width: 10, height: 10 },
+    ]);
+
+    const plan = swapBottomLeftCommand.createPlan(selection, undefined);
+    expect(plan).toEqual([
+      { shapeId: "a", left: 40 },
+      { shapeId: "b", left: 0 },
+    ]);
+  });
+});
+
+describe("text commands", () => {
+  it("sets autofit mode on text-capable shapes", () => {
+    const selection = selectionOf([
+      createShape("a", { left: 0, top: 0, width: 10, height: 10 }, { supportsTextFrame: true }),
+    ]);
+
+    expect(textWrapOnCommand.createPlan(selection, undefined)).toEqual([{ shapeId: "a", wordWrap: true }]);
+  });
+
+  it("removes text margins on all sides", () => {
+    const selection = selectionOf([
+      createShape(
+        "a",
+        { left: 0, top: 0, width: 10, height: 10 },
+        {
+          supportsTextFrame: true,
+          textFrame: {
+            hasText: true,
+            autoSizeSetting: "none",
+            leftMargin: 12,
+            rightMargin: 12,
+            topMargin: 8,
+            bottomMargin: 8,
+            wordWrap: true,
+            verticalAlignment: "top",
+            text: "Hello",
+          },
+        },
+      ),
+    ]);
+
+    expect(textMarginRemoveCommand.createPlan(selection, undefined)).toEqual([
+      {
+        shapeId: "a",
+        leftMargin: 0,
+        rightMargin: 0,
+        topMargin: 0,
+        bottomMargin: 0,
+      },
+    ]);
+  });
+
+  it("swaps plain text between two shapes", () => {
+    const selection = selectionOf([
+      createShape(
+        "a",
+        { left: 0, top: 0, width: 10, height: 10 },
+        {
+          supportsTextFrame: true,
+          textFrame: {
+            hasText: true,
+            autoSizeSetting: "none",
+            leftMargin: 0,
+            rightMargin: 0,
+            topMargin: 0,
+            bottomMargin: 0,
+            wordWrap: true,
+            verticalAlignment: "top",
+            text: "Alpha",
+          },
+        },
+      ),
+      createShape(
+        "b",
+        { left: 20, top: 0, width: 10, height: 10 },
+        {
+          supportsTextFrame: true,
+          textFrame: {
+            hasText: true,
+            autoSizeSetting: "none",
+            leftMargin: 0,
+            rightMargin: 0,
+            topMargin: 0,
+            bottomMargin: 0,
+            wordWrap: true,
+            verticalAlignment: "top",
+            text: "Beta",
+          },
+        },
+      ),
+    ]);
+
+    expect(swapTextCommand.createPlan(selection, undefined)).toEqual([
+      { shapeId: "a", text: "Beta" },
+      { shapeId: "b", text: "Alpha" },
+    ]);
   });
 });
 
@@ -142,6 +298,7 @@ describe("registry", () => {
     expect(new Set(ids).size).toBe(ids.length);
     expect(ids).toContain("align-left");
     expect(ids).toContain("swap-positions");
-    expect(formattingCommandRegistry.length).toBeGreaterThan(20);
+    expect(ids).toContain("text-autofit-none");
+    expect(formattingCommandRegistry.length).toBeGreaterThan(30);
   });
 });

@@ -1,6 +1,7 @@
 import type { FormattingActionId, GapParams, SetBoundsParams } from "@deck-pack/presentation-formatting";
 import { getPowerPointCapabilitySummary } from "@deck-pack/office-js";
-import { Palette } from "@phosphor-icons/react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@deck-pack/ui/components/system/tabs";
+import { Palette, Table } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -19,6 +20,8 @@ import {
   SpacingControls,
 } from "./align-controls";
 import { BoundsControls, SelectionSummary } from "./bounds-controls";
+import { GapExactControls } from "./gap-controls";
+import { TextControls } from "./text-controls";
 
 interface FormatPanelProps {
   mode: AssetPanelMode;
@@ -109,53 +112,95 @@ export function FormatPanel({ mode }: FormatPanelProps) {
           </p>
         ) : null}
 
-        <FormatSection title="Position & size">
-          <BoundsControls
-            selection={selection}
-            busy={busyActionId === "set-bounds"}
-            onApply={(values) => void runAction("set-bounds", values)}
-          />
-        </FormatSection>
+        <Tabs defaultValue="shapes" className="min-h-0 flex-1">
+          <TabsList className="w-full">
+            <TabsTrigger value="shapes" className="flex-1">
+              Shapes
+            </TabsTrigger>
+            <TabsTrigger value="text" className="flex-1">
+              Text
+            </TabsTrigger>
+            <TabsTrigger value="tables" className="flex-1" disabled>
+              Tables
+            </TabsTrigger>
+          </TabsList>
 
-        <FormatSection title="Align">
-          <AlignControls
-            applicabilityById={applicabilityById}
-            busyActionId={busyActionId}
-            onAction={(id) => void runAction(id)}
-          />
-        </FormatSection>
+          <TabsContent value="shapes" className="mt-4 grid gap-4">
+            <FormatSection title="Position & size">
+              <BoundsControls
+                selection={selection}
+                busy={busyActionId === "set-bounds"}
+                onApply={(values) => void runAction("set-bounds", values)}
+              />
+            </FormatSection>
 
-        <FormatSection title="Distribute">
-          <DistributeControls
-            applicabilityById={applicabilityById}
-            busyActionId={busyActionId}
-            onAction={(id) => void runAction(id)}
-          />
-        </FormatSection>
+            <FormatSection title="Align">
+              <AlignControls
+                applicabilityById={applicabilityById}
+                busyActionId={busyActionId}
+                onAction={(id) => void runAction(id)}
+              />
+            </FormatSection>
 
-        <FormatSection title="Size">
-          <SizeControls
-            applicabilityById={applicabilityById}
-            busyActionId={busyActionId}
-            onAction={(id) => void runAction(id)}
-          />
-        </FormatSection>
+            <FormatSection title="Distribute">
+              <DistributeControls
+                applicabilityById={applicabilityById}
+                busyActionId={busyActionId}
+                onAction={(id) => void runAction(id)}
+              />
+            </FormatSection>
 
-        <FormatSection title="Distribute & space">
-          <SpacingControls
-            applicabilityById={applicabilityById}
-            busyActionId={busyActionId}
-            onAction={(id) => void runAction(id)}
-          />
-        </FormatSection>
+            <FormatSection title="Size">
+              <SizeControls
+                applicabilityById={applicabilityById}
+                busyActionId={busyActionId}
+                onAction={(id) => void runAction(id)}
+              />
+            </FormatSection>
 
-        <FormatSection title="More">
-          <MoreControls
-            applicabilityById={applicabilityById}
-            busyActionId={busyActionId}
-            onAction={(id) => void runAction(id)}
-          />
-        </FormatSection>
+            <FormatSection title="Distribute & space">
+              <SpacingControls
+                applicabilityById={applicabilityById}
+                busyActionId={busyActionId}
+                onAction={(id) => void runAction(id)}
+              />
+              <GapExactControls
+                disabled={!selection || selection.shapes.length < 2}
+                busy={busyActionId === "gap-exact-horizontal" || busyActionId === "gap-exact-vertical"}
+                onApplyHorizontal={(value) =>
+                  void runAction("gap-exact-horizontal", { mode: "exact", direction: "horizontal", value })
+                }
+                onApplyVertical={(value) =>
+                  void runAction("gap-exact-vertical", { mode: "exact", direction: "vertical", value })
+                }
+              />
+            </FormatSection>
+
+            <FormatSection title="More">
+              <MoreControls
+                applicabilityById={applicabilityById}
+                busyActionId={busyActionId}
+                onAction={(id) => void runAction(id)}
+              />
+            </FormatSection>
+          </TabsContent>
+
+          <TabsContent value="text" className="mt-4">
+            <TextControls
+              applicabilityById={applicabilityById}
+              busyActionId={busyActionId}
+              onAction={(id) => void runAction(id)}
+            />
+          </TabsContent>
+
+          <TabsContent value="tables" className="mt-4">
+            <EmptyState
+              icon={Table}
+              title="Tables coming soon"
+              description="Table formatting tools will appear here in a future update."
+            />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

@@ -6,7 +6,8 @@ import { matchSizeCommands } from "./match-size";
 import { rectifyLinesCommand } from "./rectify-lines";
 import { setBoundsCommand } from "./set-bounds";
 import { stackCommands } from "./stack";
-import { swapPositionsCommand } from "./swap";
+import { swapCommands } from "./swap";
+import { textCommands } from "./text";
 
 export const formattingCommandRegistry = [
   ...alignCommands,
@@ -14,9 +15,10 @@ export const formattingCommandRegistry = [
   ...matchSizeCommands,
   ...stackCommands,
   ...gapCommands,
-  swapPositionsCommand,
+  ...swapCommands,
   rectifyLinesCommand,
   setBoundsCommand,
+  ...textCommands,
 ] satisfies AnyFormattingCommand[];
 
 export function getFormattingCommandById(id: FormattingActionId): AnyFormattingCommand | undefined {

@@ -72,6 +72,15 @@ export const supportsResize: ApplicabilityPolicy = allShapes(
   },
 );
 
+export const supportsTextFrame: ApplicabilityPolicy = allShapes(
+  (shape) => shape.capabilities.supportsTextFrame,
+  {
+    applicable: false,
+    code: "unsupported-text-frame",
+    reason: "One or more selected objects do not support text formatting",
+  },
+);
+
 export const onlyLines: ApplicabilityPolicy = allShapes(
   (shape) => shape.capabilities.isLine,
   {

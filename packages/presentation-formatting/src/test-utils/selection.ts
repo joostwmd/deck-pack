@@ -1,4 +1,4 @@
-import type { RawBounds, SelectedShape, ShapeSelection, VisualBounds } from "../types";
+import type { RawBounds, SelectedShape, ShapeSelection, TextFrameSnapshot, VisualBounds } from "../types";
 import { getVisualBounds } from "../geometry/bounds";
 
 export function createShape(
@@ -11,6 +11,8 @@ export function createShape(
     isLine?: boolean;
     supportsBoundsMutation?: boolean;
     supportsResize?: boolean;
+    supportsTextFrame?: boolean;
+    textFrame?: TextFrameSnapshot;
   } = {},
 ): SelectedShape {
   const rawBounds: RawBounds = {
@@ -23,6 +25,18 @@ export function createShape(
 
   const visualBounds = getVisualBounds(rawBounds);
   const isLine = options.isLine ?? false;
+  const supportsTextFrame = options.supportsTextFrame ?? !isLine;
+  const defaultTextFrame: TextFrameSnapshot = {
+    hasText: false,
+    autoSizeSetting: "none",
+    leftMargin: 0,
+    rightMargin: 0,
+    topMargin: 0,
+    bottomMargin: 0,
+    wordWrap: true,
+    verticalAlignment: "top",
+    text: "",
+  };
 
   return {
     id,
@@ -34,8 +48,10 @@ export function createShape(
     capabilities: {
       supportsBoundsMutation: options.supportsBoundsMutation ?? !isLine,
       supportsResize: options.supportsResize ?? !isLine,
+      supportsTextFrame,
       isLine,
     },
+    textFrame: supportsTextFrame ? (options.textFrame ?? defaultTextFrame) : options.textFrame,
   };
 }
 
