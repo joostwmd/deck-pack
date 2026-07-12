@@ -7,10 +7,11 @@ import { mapFlagDetailsResponse, mapFlagSearchResponse } from "../flags/mappers"
 import { mapIconDetailsResponse, mapIconSearchResponse } from "../icons/mappers";
 import { mapLogoDetailsResponse, mapLogoSearchResponse } from "../logos/mappers";
 import { mapPexelsSearchResponse } from "../photos/mappers";
+import { searchShapesMock } from "../shapes/mock-data";
 import { searchSlidesMock } from "../slides/mock-data";
 import type { z } from "zod";
 
-import { photoSearchInputSchema, slideSearchInputSchema } from "./schemas";
+import { photoSearchInputSchema, shapeSearchInputSchema, slideSearchInputSchema } from "./schemas";
 
 export type AddinAssetServiceDeps = {
   brandfetch: BrandfetchClient;
@@ -70,6 +71,10 @@ export function createAddinAssetService(deps: AddinAssetServiceDeps) {
 
     searchSlides: async (input: z.infer<typeof slideSearchInputSchema>) => {
       return searchSlidesMock(input);
+    },
+
+    searchShapes: async (input: z.infer<typeof shapeSearchInputSchema>) => {
+      return searchShapesMock(input);
     },
   };
 }

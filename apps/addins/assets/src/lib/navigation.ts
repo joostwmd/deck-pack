@@ -18,6 +18,7 @@ export type NavigationPageId =
   | "photos"
   | "balls"
   | "slides"
+  | "shapes"
   | "agenda"
   | "check"
   | "format"
@@ -80,6 +81,13 @@ export const NAVIGATION_PAGES: NavigationPage[] = [
     shortcut: SHORTCUTS.slides,
   },
   {
+    id: "shapes",
+    label: "Shapes",
+    section: "assets",
+    path: "shapes",
+    shortcut: SHORTCUTS.shapes,
+  },
+  {
     id: "agenda",
     label: "Agenda",
     section: "utilities",
@@ -130,6 +138,7 @@ export const PAGE_ROUTE_TO = {
   photos: "/$environment/photos",
   balls: "/$environment/balls",
   slides: "/$environment/slides",
+  shapes: "/$environment/shapes",
   agenda: "/$environment/agenda",
   check: "/$environment/check",
   format: "/$environment/format",

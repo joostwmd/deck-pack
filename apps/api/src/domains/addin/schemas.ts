@@ -4,7 +4,15 @@ export const assetSearchQuerySchema = z.string().trim().min(1).max(100);
 
 export const assetExternalIdSchema = z.string().trim().min(1);
 
-export const assetTypeSchema = z.enum(["logo", "flag", "icon", "harvey_ball", "photo", "slide"]);
+export const assetTypeSchema = z.enum([
+  "logo",
+  "flag",
+  "icon",
+  "harvey_ball",
+  "photo",
+  "slide",
+  "shape",
+]);
 
 export const assetClientSchema = z.enum(["office", "web"]);
 
@@ -167,4 +175,27 @@ export const slideSearchResponseSchema = z.object({
   results: z.array(slideSearchResultSchema),
   total: z.number().int(),
   facets: slideSearchFacetsSchema,
+});
+
+export const shapeSearchInputSchema = z.object({
+  category: z.string().trim().min(1).optional(),
+});
+
+export const shapeSearchResultSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  category: z.string(),
+  thumbnailUrl: z.string(),
+  svgUrl: z.string(),
+  createdAt: z.string(),
+});
+
+export const shapeSearchFacetsSchema = z.object({
+  categories: z.array(z.string()),
+});
+
+export const shapeSearchResponseSchema = z.object({
+  results: z.array(shapeSearchResultSchema),
+  total: z.number().int(),
+  facets: shapeSearchFacetsSchema,
 });

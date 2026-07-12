@@ -10,6 +10,7 @@ import {
   photoOrientationSchema,
   photoSearchInputSchema,
   photoSizeSchema,
+  shapeSearchInputSchema,
   slideAspectRatioSchema,
   slideSearchInputSchema,
   slideSortSchema,
@@ -32,6 +33,7 @@ describe("addin schemas", () => {
     expect(assetTypeSchema.parse("harvey_ball")).toBe("harvey_ball");
     expect(assetTypeSchema.parse("photo")).toBe("photo");
     expect(assetTypeSchema.parse("slide")).toBe("slide");
+    expect(assetTypeSchema.parse("shape")).toBe("shape");
   });
 
   it("rejects unsupported asset types", () => {
@@ -182,6 +184,38 @@ describe("addin schemas", () => {
     expect(parsed.metadata).toEqual({
       CATEGORY: "Intro",
       ASPECT_RATIO: "16:9",
+    });
+  });
+
+  it("accepts shape search filters", () => {
+    const parsed = shapeSearchInputSchema.parse({
+      category: "Arrows",
+    });
+
+    expect(parsed).toEqual({
+      category: "Arrows",
+    });
+  });
+
+  it("allows blank shape browsing", () => {
+    const parsed = shapeSearchInputSchema.parse({});
+
+    expect(parsed).toEqual({});
+  });
+
+  it("accepts shape tracking payloads", () => {
+    const parsed = trackAssetInsertionInputSchema.parse({
+      assetType: "shape",
+      externalId: "arrow-curved-1",
+      client: "office",
+      metadata: {
+        CATEGORY: "Arrows",
+      },
+    });
+
+    expect(parsed.assetType).toBe("shape");
+    expect(parsed.metadata).toEqual({
+      CATEGORY: "Arrows",
     });
   });
 });

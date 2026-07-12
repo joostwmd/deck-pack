@@ -13,6 +13,8 @@ import {
   assetSearchResponseSchema,
   photoSearchInputSchema,
   photoSearchResponseSchema,
+  shapeSearchInputSchema,
+  shapeSearchResponseSchema,
   slideSearchInputSchema,
   slideSearchResponseSchema,
   trackAssetInsertionInputSchema,
@@ -167,6 +169,23 @@ export function createAddinRoutes(addinAssetService: AddinAssetService) {
             throw new TRPCError({
               code: "INTERNAL_SERVER_ERROR",
               message: "Failed to search slides",
+            });
+          }
+        }),
+    },
+
+    shapes: {
+      search: protectedProcedure
+        .input(shapeSearchInputSchema)
+        .output(shapeSearchResponseSchema)
+        .query(async ({ input }) => {
+          try {
+            return await addinAssetService.searchShapes(input);
+          } catch (error) {
+            console.error("Shape search error:", error);
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: "Failed to search shapes",
             });
           }
         }),

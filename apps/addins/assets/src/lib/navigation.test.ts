@@ -17,7 +17,7 @@ describe("navigation registry", () => {
   it("includes every planned page in the assets group", () => {
     const assetIds = getNavigationPagesBySection("assets").map((page) => page.id);
 
-    expect(assetIds).toEqual(["flags", "icons", "logos", "photos", "balls", "slides"]);
+    expect(assetIds).toEqual(["flags", "icons", "logos", "photos", "balls", "slides", "shapes"]);
   });
 
   it("includes every planned page in the utilities group", () => {

@@ -35,6 +35,7 @@ export type ShortcutId =
   | "photos"
   | "balls"
   | "slides"
+  | "shapes"
   | "agenda"
   | "check"
   | "format"
@@ -88,6 +89,7 @@ export const SHORTCUTS = {
   photos: def("photos", "Mod+Shift+P", [CMD, SHIFT, t("P")], "Photos", "navigation"),
   balls: def("balls", "Mod+Shift+B", [CMD, SHIFT, t("B")], "Balls", "navigation"),
   slides: def("slides", "Mod+Shift+S", [CMD, SHIFT, t("S")], "Slides", "navigation"),
+  shapes: def("shapes", "Mod+Shift+H", [CMD, SHIFT, t("H")], "Shapes", "navigation"),
   agenda: def("agenda", "Mod+Shift+A", [CMD, SHIFT, t("A")], "Agenda", "navigation"),
   check: def("check", "Mod+Shift+C", [CMD, SHIFT, t("C")], "Check", "navigation"),
   format: def("format", "Mod+Shift+O", [CMD, SHIFT, t("O")], "Format", "navigation"),
@@ -209,6 +211,7 @@ export const ALL_SHORTCUTS: ShortcutDef[] = [
   SHORTCUTS.photos,
   SHORTCUTS.balls,
   SHORTCUTS.slides,
+  SHORTCUTS.shapes,
   SHORTCUTS.agenda,
   SHORTCUTS.check,
   SHORTCUTS.format,
