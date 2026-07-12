@@ -1,5 +1,5 @@
 {
-  "name": "@deck-pack/office-js",
+  "name": "@deck-pack/presentation-formatting",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -14,13 +14,8 @@
   "scripts": {
     "check-types": "tsc --noEmit"
   },
-  "dependencies": {
-    "@deck-pack/presentation-check": "workspace:*",
-    "@deck-pack/presentation-formatting": "workspace:*"
-  },
   "devDependencies": {
     "@deck-pack/config": "workspace:*",
-    "@types/office-js": "^1.0.514",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }

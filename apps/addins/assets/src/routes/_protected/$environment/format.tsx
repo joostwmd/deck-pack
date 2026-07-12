@@ -1,16 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { PlaceholderPage } from "@/features/placeholder-page";
+import { FormatPanel } from "@/features/format/format-panel";
+import { toAssetPanelMode } from "@/lib/route-environment";
 
 export const Route = createFileRoute("/_protected/$environment/format")({
   component: FormatPage,
 });
 
 function FormatPage() {
-  return (
-    <PlaceholderPage
-      title="Format"
-      description="Apply formatting rules and clean up slide layouts."
-    />
-  );
+  const { environment } = Route.useParams();
+
+  return <FormatPanel mode={toAssetPanelMode(environment)} />;
 }

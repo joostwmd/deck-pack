@@ -1,4 +1,5 @@
 import { runPowerPoint } from "../utils";
+import { shapeSupportsTextFrame } from "../selection/shape-capabilities";
 
 export interface CapturedSelectionStyle {
   fontName: string | null;
@@ -13,20 +14,6 @@ function normalizeColor(color: string | null | undefined): string | null {
   const trimmed = color.trim();
   if (/^#[0-9A-Fa-f]{6}$/.test(trimmed)) return trimmed.toUpperCase();
   return trimmed;
-}
-
-function shapeSupportsTextFrame(type: string): boolean {
-  const normalized = type.toLowerCase();
-  return ![
-    "image",
-    "line",
-    "group",
-    "table",
-    "chart",
-    "smartart",
-    "media",
-    "unsupported",
-  ].includes(normalized);
 }
 
 export async function captureSelectedTextStyle(): Promise<CapturedSelectionStyle> {

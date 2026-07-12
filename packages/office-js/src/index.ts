@@ -39,3 +39,20 @@ export {
   MIN_TEXT_API,
   POWERPOINT_API_LEVELS,
 } from "./constants/requirement-sets";
+export { readSelectedShapes } from "./selection/read-selected-shapes-api";
+export { subscribeToSelectionChanges } from "./selection/subscribe-selection-changes";
+export type { OfficeContextPort, SelectionSubscription } from "./selection/subscribe-selection-changes";
+export {
+  shapeIsLine,
+  shapeSupportsBoundsMutation,
+  shapeSupportsFill,
+  shapeSupportsResize,
+  shapeSupportsTextFrame,
+  toShapeCapabilities,
+} from "./selection/shape-capabilities";
+export { executeFormattingCommand } from "./format/execute-formatting-command";
+export type { FormattingExecutionResult } from "./format/execute-formatting-command";
+export {
+  FormattingExecutionError,
+  FormattingUnavailableError,
+} from "./format/formatting-errors";
