@@ -12,7 +12,7 @@ import { SignOut, UserCircle } from "@phosphor-icons/react";
 import { Link, useNavigate } from "@tanstack/react-router";
 
 import { getUserInitials } from "@/lib/user-initials";
-import { authClient } from "@/utils/auth";
+import { authClient, clearAddinAuthSession } from "@/utils/auth";
 
 export function UserMenu() {
   const navigate = useNavigate();
@@ -63,15 +63,19 @@ export function UserMenu() {
           <DropdownMenuItem
             variant="destructive"
             onClick={() => {
-              void authClient.signOut({
-                fetchOptions: {
-                  onSuccess: () => {
-                    void navigate({
-                      to: "/login",
-                    });
+              void authClient
+                .signOut({
+                  fetchOptions: {
+                    onSuccess: () => {
+                      void navigate({
+                        to: "/login",
+                      });
+                    },
                   },
-                },
-              });
+                })
+                .finally(() => {
+                  clearAddinAuthSession();
+                });
             }}
           >
             <SignOut className="size-4" />

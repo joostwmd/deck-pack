@@ -36,6 +36,10 @@ export type OtpSignupProps = {
 
   /** When provided, renders a Microsoft sign-in button on the email step. */
   onMicrosoftSignIn?: () => void;
+  /** Disable the Microsoft button (e.g. unsupported Office host). */
+  microsoftDisabled?: boolean;
+  /** Shown under the Microsoft button when disabled. */
+  microsoftDisabledReason?: string;
   /** Disable the Microsoft button (e.g. while a social sign-in redirect is in flight). */
   microsoftSigningIn?: boolean;
 
@@ -71,6 +75,8 @@ export type OtpSignupProps = {
   verifyingLabel?: string;
   /** Override the back button on the OTP step. */
   backLabel?: string;
+  /** Inline error shown above the form (e.g. Office taskpane where toasts are easy to miss). */
+  errorMessage?: string;
 };
 
 function MicrosoftLogo({ className }: { className?: string }) {
@@ -136,6 +142,8 @@ export function OtpSignup({
   onSubmitOtp,
   onBack,
   onMicrosoftSignIn,
+  microsoftDisabled = false,
+  microsoftDisabledReason,
   microsoftSigningIn = false,
   sending = false,
   verifying = false,
@@ -155,6 +163,7 @@ export function OtpSignup({
   verifyLabel = "Sign in",
   verifyingLabel = "Signing in…",
   backLabel = "Use a different email",
+  errorMessage,
 }: OtpSignupProps) {
   const slots = React.useMemo(() => Array.from({ length: otpLength }, (_, i) => i), [otpLength]);
 
@@ -166,7 +175,16 @@ export function OtpSignup({
     .replace("{email}", email.trim() || "your address");
 
   const emailStepBusy = sending || microsoftSigningIn;
-  const showMicrosoftSignIn = Boolean(onMicrosoftSignIn);
+  const showMicrosoftSignIn = Boolean(onMicrosoftSignIn) || microsoftDisabled;
+
+  const errorBanner = errorMessage ? (
+    <div
+      role="alert"
+      className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+    >
+      {errorMessage}
+    </div>
+  ) : null;
 
   if (step === "email") {
     return (
@@ -178,21 +196,27 @@ export function OtpSignup({
         />
 
         <div className="space-y-4">
+          {errorBanner}
           {showMicrosoftSignIn ? (
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={onMicrosoftSignIn}
-              disabled={emailStepBusy}
-            >
-              {microsoftSigningIn ? (
-                <SpinnerIcon className="animate-spin motion-reduce:animate-none" />
-              ) : (
-                <MicrosoftLogo />
-              )}
-              {microsoftSigningIn ? microsoftSigningInLabel : microsoftLabel}
-            </Button>
+            <div className="space-y-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={onMicrosoftSignIn}
+                disabled={emailStepBusy || microsoftDisabled || !onMicrosoftSignIn}
+              >
+                {microsoftSigningIn ? (
+                  <SpinnerIcon className="animate-spin motion-reduce:animate-none" />
+                ) : (
+                  <MicrosoftLogo />
+                )}
+                {microsoftSigningIn ? microsoftSigningInLabel : microsoftLabel}
+              </Button>
+              {microsoftDisabled && microsoftDisabledReason ? (
+                <p className="text-xs text-muted-foreground">{microsoftDisabledReason}</p>
+              ) : null}
+            </div>
           ) : null}
 
           {showMicrosoftSignIn ? <OtpSignupDivider label={dividerLabel} /> : null}
@@ -240,7 +264,10 @@ export function OtpSignup({
     <div className={cn("mx-auto w-full max-w-sm space-y-6", className)}>
       <OtpSignupHeader logo={logo} title={titleOtpStep} description={otpDescription} />
 
-      <form
+      <div className="space-y-4">
+        {errorBanner}
+
+        <form
         onSubmit={(e) => {
           e.preventDefault();
           onSubmitOtp();
@@ -305,6 +332,7 @@ export function OtpSignup({
           </Button>
         </div>
       </form>
+      </div>
     </div>
   );
 }

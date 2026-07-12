@@ -3,15 +3,21 @@ import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { getMicrosoftSignInAvailability } from "@/auth/microsoft-sign-in-availability";
+import { getBearerToken, setBearerToken } from "@/auth/bearer-session-store";
+import { createMicrosoftSignInStrategy } from "@/auth/microsoft-sign-in-strategy";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
+import { useOffice } from "@/contexts/OfficeContext";
 import {
   DEFAULT_NAVIGATION_PAGE_ID,
   getPageRouteParams,
   getPageRouteTo,
 } from "@/lib/navigation";
-import { authClient } from "@/utils/auth";
+import { getAuthClient } from "@/utils/auth";
+import { env } from "@deck-pack/env/web";
 
 const OTP_LENGTH = 6;
+const AUTH_CALLBACK_PATH = "/auth/callback";
 
 export const Route = createFileRoute("/login")({
   beforeLoad: async ({ context }) => {
@@ -36,7 +42,9 @@ function displayNameFromEmail(email: string): string {
 
 function LoginComponent() {
   const navigate = useNavigate();
+  const authClient = getAuthClient();
   const { environment } = useEnvironment();
+  const { isNaaSupported } = useOffice();
 
   const [step, setStep] = useState<OtpSignupStep>("email");
   const [email, setEmail] = useState("");
@@ -47,6 +55,19 @@ function LoginComponent() {
 
   const postAuthPath = getPageRouteTo(DEFAULT_NAVIGATION_PAGE_ID);
   const postAuthParams = getPageRouteParams(environment);
+  const microsoftAvailability = getMicrosoftSignInAvailability({
+    environment,
+    isNaaSupported,
+    clientId: env.VITE_MICROSOFT_CLIENT_ID,
+  });
+  const microsoftStrategy = createMicrosoftSignInStrategy({
+    authClient,
+    environment,
+    isNaaSupported,
+    callbackURL: `${window.location.origin}${AUTH_CALLBACK_PATH}`,
+    clientId: env.VITE_MICROSOFT_CLIENT_ID,
+    getCapturedBearerToken: getBearerToken,
+  });
 
   const handleSendCode = async () => {
     const trimmed = email.trim().toLowerCase();
@@ -66,6 +87,8 @@ function LoginComponent() {
       }
       setOtp("");
       setStep("otp");
+    } catch {
+      toast.error("Could not send the code. Try again in a moment.");
     } finally {
       setSending(false);
     }
@@ -79,7 +102,7 @@ function LoginComponent() {
     const trimmed = email.trim().toLowerCase();
     setVerifying(true);
     try {
-      const { error } = await authClient.signIn.emailOtp({
+      const { data, error } = await authClient.signIn.emailOtp({
         email: trimmed,
         otp,
         name: displayNameFromEmail(trimmed),
@@ -88,23 +111,49 @@ function LoginComponent() {
         toast.error(error.message ?? "That code did not work.");
         return;
       }
+
+      if (environment === "office") {
+        const bearerToken = data?.token ?? getBearerToken();
+        if (!bearerToken) {
+          toast.error("Could not sign in. Try again.");
+          return;
+        }
+        setBearerToken(bearerToken);
+      }
+
       toast.success("You're signed in");
       void navigate({ to: postAuthPath, params: postAuthParams });
+    } catch {
+      toast.error("That code did not work.");
     } finally {
       setVerifying(false);
     }
   };
 
   const handleMicrosoftSignIn = async () => {
+    if (!microsoftStrategy) {
+      toast.error(microsoftAvailability.reason ?? "Microsoft sign-in is not available in this host.");
+      return;
+    }
+
     setMicrosoftSigningIn(true);
     try {
-      const { error } = await authClient.signIn.social({
-        provider: "microsoft",
-        callbackURL: `${window.location.origin}${postAuthPath.replace("$environment", environment)}`,
-      });
-      if (error) {
-        toast.error(error.message ?? "Could not start Microsoft sign-in.");
+      const result = await microsoftStrategy.signIn();
+      if (!result.ok) {
+        toast.error(result.error);
+        return;
       }
+
+      if (!result.bearerToken) {
+        toast.error("Could not sign in with Microsoft. Try again or use email OTP.");
+        return;
+      }
+
+      setBearerToken(result.bearerToken);
+      toast.success("You're signed in");
+      void navigate({ to: postAuthPath, params: postAuthParams });
+    } catch {
+      toast.error("Could not sign in with Microsoft. Try again or use email OTP.");
     } finally {
       setMicrosoftSigningIn(false);
     }
@@ -125,7 +174,11 @@ function LoginComponent() {
           setStep("email");
           setOtp("");
         }}
-        onMicrosoftSignIn={() => void handleMicrosoftSignIn()}
+        onMicrosoftSignIn={
+          microsoftStrategy ? () => void handleMicrosoftSignIn() : undefined
+        }
+        microsoftDisabled={!microsoftAvailability.available}
+        microsoftDisabledReason={microsoftAvailability.reason ?? undefined}
         microsoftSigningIn={microsoftSigningIn}
         sending={sending}
         verifying={verifying}

@@ -145,6 +145,36 @@ pnpm dev:assets   # Add-in assets — HTTPS Vite port 3003
 
 `CORS_ORIGINS=http://localhost:3001,http://localhost:3002,https://localhost:3003`
 
+`CORS_ORIGINS=http://localhost:3001,http://localhost:3002,https://localhost:3003`
+
+### Microsoft SSO (web vs Office add-in)
+
+The assets add-in uses **two Microsoft sign-in strategies**:
+
+| Context | Strategy | Session transport |
+| ------- | -------- | ----------------- |
+| Browser preview (`/web/*`) | Better Auth redirect OAuth | HTTP-only cookies |
+| Office taskpane with NAA | MSAL Nested App Authentication → Better Auth `signIn.social({ idToken })` | In-memory Better Auth bearer token |
+| Office without NAA | Microsoft button disabled; use email OTP | In-memory bearer token after OTP |
+
+**Entra app registration (single application):**
+
+1. Copy **Application (client) ID** into API `MICROSOFT_CLIENT_ID` and add-in `VITE_MICROSOFT_CLIENT_ID` (same value).
+2. Create a **client secret** for the API only (`MICROSOFT_CLIENT_SECRET`).
+3. Under **Authentication**, add redirect URIs:
+   - **Web:** `http://localhost:3000/api/auth/app/callback/microsoft` (dev) and `https://<api-host>/api/auth/app/callback/microsoft` (prod). Must match `BETTER_AUTH_URL`.
+   - **SPA (NAA broker):** `brk-multihub://localhost:3003` and `brk-multihub://<addin-host>` (origin only, no path).
+   - **SPA (PowerPoint on the web):** `https://localhost:3003/index.html` and `https://<addin-host>/index.html`.
+4. Under **API permissions**, add Microsoft Graph delegated **`User.Read`**.
+5. Under **Token configuration**, add optional ID token claim **`email`** (or rely on `preferred_username` mapping).
+
+**Local add-in env** (`apps/addins/assets/.env`):
+
+```env
+VITE_SERVER_URL=https://localhost:3003
+VITE_MICROSOFT_CLIENT_ID=<same-as-MICROSOFT_CLIENT_ID>
+```
+
 ### PowerPoint add-in sideloading
 
 Manifests live in `apps/addins/assets/manifests/` (dev, staging, prod). Sideload scripts use Microsoft's `office-addin-debugging` CLI.

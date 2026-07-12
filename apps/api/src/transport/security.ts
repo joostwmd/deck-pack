@@ -24,7 +24,7 @@ export const corsMiddleware: MiddlewareHandler = async (c, next) => {
 
   c.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   c.header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
-  c.header("Access-Control-Expose-Headers", "X-Request-Id");
+  c.header("Access-Control-Expose-Headers", "X-Request-Id, set-auth-token");
 
   if (c.req.method === "OPTIONS") {
     return c.text("", 204 as ContentfulStatusCode);
