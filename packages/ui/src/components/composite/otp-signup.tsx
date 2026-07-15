@@ -33,6 +33,8 @@ export type OtpSignupProps = {
   onSubmitOtp: () => void;
   /** Called when the user presses "Use a different email" on the OTP step. */
   onBack: () => void;
+  /** Called when the user presses "Resend code" on the OTP step. */
+  onResendCode?: () => void;
 
   /** When provided, renders a Microsoft sign-in button on the email step. */
   onMicrosoftSignIn?: () => void;
@@ -47,6 +49,8 @@ export type OtpSignupProps = {
   sending?: boolean;
   /** Disable the OTP form (e.g. while verifying). */
   verifying?: boolean;
+  /** Disable the resend button (e.g. while resending). */
+  resending?: boolean;
 
   /** Length of the code from your auth provider (Better Auth default is 6). */
   otpLength?: number;
@@ -75,6 +79,9 @@ export type OtpSignupProps = {
   verifyingLabel?: string;
   /** Override the back button on the OTP step. */
   backLabel?: string;
+  /** Override the resend button label. */
+  resendLabel?: string;
+  resendingLabel?: string;
   /** Inline error shown above the form (e.g. Office taskpane where toasts are easy to miss). */
   errorMessage?: string;
 };
@@ -141,12 +148,14 @@ export function OtpSignup({
   onSubmitEmail,
   onSubmitOtp,
   onBack,
+  onResendCode,
   onMicrosoftSignIn,
   microsoftDisabled = false,
   microsoftDisabledReason,
   microsoftSigningIn = false,
   sending = false,
   verifying = false,
+  resending = false,
   otpLength = 6,
   className,
   logo,
@@ -163,6 +172,8 @@ export function OtpSignup({
   verifyLabel = "Sign in",
   verifyingLabel = "Signing in…",
   backLabel = "Use a different email",
+  resendLabel = "Resend code",
+  resendingLabel = "Resending…",
   errorMessage,
 }: OtpSignupProps) {
   const slots = React.useMemo(() => Array.from({ length: otpLength }, (_, i) => i), [otpLength]);
@@ -318,18 +329,31 @@ export function OtpSignup({
         </div>
 
         <div className="flex flex-col gap-2">
-          <Button type="submit" className="w-full" disabled={verifying || otp.length < otpLength}>
+          <Button type="submit" className="w-full" disabled={verifying || resending || otp.length < otpLength}>
             {verifying ? verifyingLabel : verifyLabel}
           </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            className="w-full"
-            onClick={onBack}
-            disabled={verifying}
-          >
-            {backLabel}
-          </Button>
+          <div className="flex gap-2">
+            {onResendCode ? (
+              <Button
+                type="button"
+                variant="ghost"
+                className="flex-1"
+                onClick={onResendCode}
+                disabled={verifying || resending}
+              >
+                {resending ? resendingLabel : resendLabel}
+              </Button>
+            ) : null}
+            <Button
+              type="button"
+              variant="ghost"
+              className={onResendCode ? "flex-1" : "w-full"}
+              onClick={onBack}
+              disabled={verifying || resending}
+            >
+              {backLabel}
+            </Button>
+          </div>
         </div>
       </form>
       </div>
