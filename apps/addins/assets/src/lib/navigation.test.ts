@@ -5,13 +5,22 @@ import {
   NAVIGATION_PAGES,
   NAVIGATION_SECTIONS,
   getNavigationPagesBySection,
+  getNavigationPagesWithShortcuts,
 } from "./navigation";
 import { SHORTCUTS } from "./shortcuts";
 
 describe("navigation registry", () => {
-  it("defines assets and utilities sections in order", () => {
-    expect(NAVIGATION_SECTIONS.map((section) => section.id)).toEqual(["assets", "utilities"]);
-    expect(NAVIGATION_SECTIONS.map((section) => section.label)).toEqual(["Assets", "Utilities"]);
+  it("defines assets, utilities, and settings sections in order", () => {
+    expect(NAVIGATION_SECTIONS.map((section) => section.id)).toEqual([
+      "assets",
+      "utilities",
+      "settings",
+    ]);
+    expect(NAVIGATION_SECTIONS.map((section) => section.label)).toEqual([
+      "Assets",
+      "Utilities",
+      "Settings",
+    ]);
   });
 
   it("includes every planned page in the assets group", () => {
@@ -26,16 +35,24 @@ describe("navigation registry", () => {
     expect(utilityIds).toEqual(["agenda", "check", "format", "themes"]);
   });
 
-  it("uses unique paths and shortcut ids", () => {
-    const paths = NAVIGATION_PAGES.map((page) => page.path);
-    const shortcutIds = NAVIGATION_PAGES.map((page) => page.shortcut.id);
+  it("includes settings pages without shortcuts", () => {
+    const settingsPages = getNavigationPagesBySection("settings");
+
+    expect(settingsPages.map((page) => page.id)).toEqual(["account", "shortcuts"]);
+    expect(settingsPages.every((page) => page.shortcut === undefined)).toBe(true);
+  });
+
+  it("uses unique paths and shortcut ids for shortcut-backed pages", () => {
+    const shortcutPages = getNavigationPagesWithShortcuts();
+    const paths = shortcutPages.map((page) => page.path);
+    const shortcutIds = shortcutPages.map((page) => page.shortcut.id);
 
     expect(new Set(paths).size).toBe(paths.length);
     expect(new Set(shortcutIds).size).toBe(shortcutIds.length);
   });
 
-  it("uses Mod+Shift navigation shortcuts for every page", () => {
-    for (const page of NAVIGATION_PAGES) {
+  it("uses Mod+Shift navigation shortcuts for shortcut-backed pages", () => {
+    for (const page of getNavigationPagesWithShortcuts()) {
       expect(page.shortcut.hotkey).toMatch(/^Mod\+Shift\+/);
     }
   });

@@ -22,6 +22,13 @@
       "when": 1783783611777,
       "tag": "0002_agendas",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1783783611778,
+      "tag": "0003_shortcut_overrides",
+      "breakpoints": true
     }
   ]
 }

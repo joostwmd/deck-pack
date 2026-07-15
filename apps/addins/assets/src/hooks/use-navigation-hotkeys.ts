@@ -1,27 +1,24 @@
-import { useHotkeys } from "@tanstack/react-hotkeys";
 import { useNavigate } from "@tanstack/react-router";
 
+import { useShortcutCommands } from "@/hooks/use-shortcut-commands";
 import type { AppEnvironment } from "@/lib/navigation";
 import {
-  NAVIGATION_PAGES,
+  getNavigationPagesWithShortcuts,
   getPageRouteParams,
   getPageRouteTo,
   type NavigationPageId,
 } from "@/lib/navigation";
-import { SHORTCUTS } from "@/lib/shortcuts";
 
 interface UseNavigationHotkeysOptions {
   environment: AppEnvironment;
   onOpenMenu: () => void;
   onCloseMenu: () => void;
-  onOpenHelp: () => void;
 }
 
 export function useNavigationHotkeys({
   environment,
   onOpenMenu,
   onCloseMenu,
-  onOpenHelp,
 }: UseNavigationHotkeysOptions) {
   const navigate = useNavigate();
 
@@ -33,27 +30,18 @@ export function useNavigationHotkeys({
     });
   };
 
-  useHotkeys([
+  useShortcutCommands([
     {
-      hotkey: SHORTCUTS.openMenu.hotkey,
-      callback: () => onOpenMenu(),
-      options: {
-        meta: { name: SHORTCUTS.openMenu.id, description: SHORTCUTS.openMenu.description },
-      },
+      id: "openMenu",
+      execute: () => onOpenMenu(),
     },
-    ...NAVIGATION_PAGES.map((page) => ({
-      hotkey: page.shortcut.hotkey,
-      callback: () => navigateToPage(page.id),
-      options: {
-        meta: { name: page.shortcut.id, description: page.shortcut.description },
-      },
+    ...getNavigationPagesWithShortcuts().map((page) => ({
+      id: page.shortcut.id,
+      execute: () => navigateToPage(page.id),
     })),
     {
-      hotkey: SHORTCUTS.openHelp.hotkey,
-      callback: () => onOpenHelp(),
-      options: {
-        meta: { name: SHORTCUTS.openHelp.id, description: SHORTCUTS.openHelp.description },
-      },
+      id: "openShortcuts",
+      execute: () => navigateToPage("shortcuts"),
     },
   ]);
 }

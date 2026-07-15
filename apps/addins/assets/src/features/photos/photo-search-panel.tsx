@@ -11,7 +11,7 @@ import { SearchBar } from "@/components/asset-picker/search-bar";
 import { ShortcutKeys } from "@/components/shortcut-hint";
 import { useAssetInsertion } from "@/hooks/use-asset-insertion";
 import { useInsertionStrategy } from "@/hooks/use-insertion-strategy";
-import { SHORTCUTS } from "@/lib/shortcuts";
+import { useResolvedShortcutDef } from "@/hooks/use-resolved-shortcut-defs";
 
 import { PhotoFiltersBar } from "./photo-filters";
 import { PhotoGrid } from "./photo-grid";
@@ -29,6 +29,7 @@ export function PhotoSearchPanel({ search }: PhotoSearchPanelProps) {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const resultsId = useId();
   const { isInserting, runInsertion } = useAssetInsertion();
+  const focusSearchShortcut = useResolvedShortcutDef("focusSearch");
 
   const showsResults = !flow.error && flow.results.length > 0;
   const activeResultId = showsResults && flow.highlightedPhotoId ? flow.highlightedPhotoId : undefined;
@@ -102,7 +103,7 @@ export function PhotoSearchPanel({ search }: PhotoSearchPanelProps) {
               isExpanded={showsResults}
               className="min-w-0 flex-1"
               rightSlot={
-                <ShortcutKeys tokens={SHORTCUTS.focusSearch.keys} className="opacity-70" />
+                <ShortcutKeys tokens={focusSearchShortcut.keys} className="opacity-70" />
               }
             />
 

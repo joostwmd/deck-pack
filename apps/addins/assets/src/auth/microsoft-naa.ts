@@ -103,6 +103,14 @@ function shouldRetryMicrosoftSignInInteractively(error: unknown): boolean {
   return record.errorCode === "no_account_error" || record.errorCode === "no_tokens_found";
 }
 
+/** Silent-only acquisition for session restore at bootstrap — never shows UI. */
+export async function acquireMicrosoftTokensSilently(
+  clientId: string,
+): Promise<AuthenticationResult> {
+  const msal = await initNestableMsal(clientId);
+  return msal.acquireTokenSilent({ scopes: MICROSOFT_SCOPES });
+}
+
 export async function acquireMicrosoftTokens(clientId: string): Promise<AuthenticationResult> {
   const msal = await initNestableMsal(clientId);
 

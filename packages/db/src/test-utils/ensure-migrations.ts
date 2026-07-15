@@ -48,6 +48,10 @@ export async function ensureMigrationsApplied(): Promise<void> {
       await applyMigration(pool, "0002_agendas.sql");
     }
 
+    if (!(await tableExists(pool, "shortcut_overrides"))) {
+      await applyMigration(pool, "0003_shortcut_overrides.sql");
+    }
+
     ensured = true;
   } finally {
     await pool.end();

@@ -1,8 +1,7 @@
-import { useHotkeys } from "@tanstack/react-hotkeys";
 import type { RefObject } from "react";
 
+import { useShortcutCommands } from "@/hooks/use-shortcut-commands";
 import type { useAssetSearchFlow } from "@/hooks/use-asset-search-flow";
-import { SHORTCUTS } from "@/lib/shortcuts";
 
 type AssetSearchFlow = ReturnType<typeof useAssetSearchFlow>;
 
@@ -26,121 +25,62 @@ export function useAssetSearchHotkeys({
   const canInsert = !!flow.selectedEntity && !!flow.selectedVariantId && !isInserting;
   const canGoBack = !!flow.searchValue || !!flow.selectedEntity || !!flow.selectedVariantId;
 
-  useHotkeys([
+  useShortcutCommands([
     {
-      hotkey: SHORTCUTS.focusSearch.hotkey,
-      callback: () => {
+      id: "focusSearch",
+      execute: () => {
         searchInputRef.current?.focus();
         searchInputRef.current?.select();
       },
-      options: {
-        meta: { name: SHORTCUTS.focusSearch.id, description: SHORTCUTS.focusSearch.description },
-      },
     },
     {
-      hotkey: SHORTCUTS.navigateResultsUp.hotkey,
-      callback: () => flow.navigateResults("up"),
-      options: {
-        enabled: inSearchPhase && hasResults,
-        ignoreInputs: false,
-        meta: {
-          name: SHORTCUTS.navigateResultsUp.id,
-          description: SHORTCUTS.navigateResultsUp.description,
-        },
-      },
+      id: "navigateResultsUp",
+      execute: () => flow.navigateResults("up"),
+      enabled: inSearchPhase && hasResults,
     },
     {
-      hotkey: SHORTCUTS.navigateResultsDown.hotkey,
-      callback: () => flow.navigateResults("down"),
-      options: {
-        enabled: inSearchPhase && hasResults,
-        ignoreInputs: false,
-        meta: {
-          name: SHORTCUTS.navigateResultsDown.id,
-          description: SHORTCUTS.navigateResultsDown.description,
-        },
-      },
+      id: "navigateResultsDown",
+      execute: () => flow.navigateResults("down"),
+      enabled: inSearchPhase && hasResults,
     },
     {
-      hotkey: SHORTCUTS.selectResult.hotkey,
-      callback: () => flow.selectHighlightedResult(),
-      options: {
-        enabled: inSearchPhase && hasResults,
-        ignoreInputs: false,
-        meta: { name: SHORTCUTS.selectResult.id, description: SHORTCUTS.selectResult.description },
-      },
+      id: "selectResult",
+      execute: () => flow.selectHighlightedResult(),
+      enabled: inSearchPhase && hasResults,
     },
     {
-      hotkey: SHORTCUTS.navigateVariantsUp.hotkey,
-      callback: () => flow.navigateVariants("up"),
-      options: {
-        enabled: inVariantPhase && hasVariants && !flow.isFetchingVariants,
-        ignoreInputs: false,
-        meta: {
-          name: SHORTCUTS.navigateVariantsUp.id,
-          description: SHORTCUTS.navigateVariantsUp.description,
-        },
-      },
+      id: "navigateVariantsUp",
+      execute: () => flow.navigateVariants("up"),
+      enabled: inVariantPhase && hasVariants && !flow.isFetchingVariants,
     },
     {
-      hotkey: SHORTCUTS.navigateVariantsDown.hotkey,
-      callback: () => flow.navigateVariants("down"),
-      options: {
-        enabled: inVariantPhase && hasVariants && !flow.isFetchingVariants,
-        ignoreInputs: false,
-        meta: {
-          name: SHORTCUTS.navigateVariantsDown.id,
-          description: SHORTCUTS.navigateVariantsDown.description,
-        },
-      },
+      id: "navigateVariantsDown",
+      execute: () => flow.navigateVariants("down"),
+      enabled: inVariantPhase && hasVariants && !flow.isFetchingVariants,
     },
     {
-      hotkey: SHORTCUTS.navigateVariantsLeft.hotkey,
-      callback: () => flow.navigateVariants("left"),
-      options: {
-        enabled: inVariantPhase && hasVariants && !flow.isFetchingVariants,
-        ignoreInputs: false,
-        meta: {
-          name: SHORTCUTS.navigateVariantsLeft.id,
-          description: SHORTCUTS.navigateVariantsLeft.description,
-        },
-      },
+      id: "navigateVariantsLeft",
+      execute: () => flow.navigateVariants("left"),
+      enabled: inVariantPhase && hasVariants && !flow.isFetchingVariants,
     },
     {
-      hotkey: SHORTCUTS.navigateVariantsRight.hotkey,
-      callback: () => flow.navigateVariants("right"),
-      options: {
-        enabled: inVariantPhase && hasVariants && !flow.isFetchingVariants,
-        ignoreInputs: false,
-        meta: {
-          name: SHORTCUTS.navigateVariantsRight.id,
-          description: SHORTCUTS.navigateVariantsRight.description,
-        },
-      },
+      id: "navigateVariantsRight",
+      execute: () => flow.navigateVariants("right"),
+      enabled: inVariantPhase && hasVariants && !flow.isFetchingVariants,
     },
     {
-      hotkey: SHORTCUTS.selectVariant.hotkey,
-      callback: () => flow.confirmHighlightedVariant(),
-      options: {
-        enabled: inVariantPhase && hasVariants && !flow.isFetchingVariants,
-        ignoreInputs: false,
-        meta: {
-          name: SHORTCUTS.selectVariant.id,
-          description: SHORTCUTS.selectVariant.description,
-        },
-      },
+      id: "selectVariant",
+      execute: () => flow.confirmHighlightedVariant(),
+      enabled: inVariantPhase && hasVariants && !flow.isFetchingVariants,
     },
     {
-      hotkey: SHORTCUTS.insert.hotkey,
-      callback: () => void onInsert(),
-      options: {
-        enabled: canInsert,
-        meta: { name: SHORTCUTS.insert.id, description: SHORTCUTS.insert.description },
-      },
+      id: "insert",
+      execute: () => void onInsert(),
+      enabled: canInsert,
     },
     {
-      hotkey: SHORTCUTS.back.hotkey,
-      callback: () => {
+      id: "back",
+      execute: () => {
         const returnsToSearch = !!flow.selectedEntity && !flow.selectedVariantId;
         flow.goBack();
 
@@ -148,10 +88,7 @@ export function useAssetSearchHotkeys({
           requestAnimationFrame(() => searchInputRef.current?.focus());
         }
       },
-      options: {
-        enabled: canGoBack,
-        meta: { name: SHORTCUTS.back.id, description: SHORTCUTS.back.description },
-      },
+      enabled: canGoBack,
     },
   ]);
 }

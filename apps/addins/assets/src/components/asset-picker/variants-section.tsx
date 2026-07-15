@@ -2,7 +2,7 @@ import { cn } from "@deck-pack/ui/lib/utils";
 import type { ReactNode } from "react";
 
 import { ShortcutHints } from "@/components/shortcut-hint";
-import { VARIANT_NAVIGATION_SHORTCUTS } from "@/lib/shortcuts";
+import { useVariantNavigationShortcutDefs } from "@/hooks/use-resolved-shortcut-defs";
 
 interface VariantsSectionProps {
   children: ReactNode;
@@ -10,9 +10,11 @@ interface VariantsSectionProps {
 }
 
 export function VariantsSection({ children, className }: VariantsSectionProps) {
+  const variantNavigationShortcuts = useVariantNavigationShortcutDefs();
+
   return (
     <section className={cn("flex w-full flex-col gap-4", className)}>
-      <ShortcutHints defs={VARIANT_NAVIGATION_SHORTCUTS} />
+      <ShortcutHints defs={variantNavigationShortcuts} />
       {children}
     </section>
   );

@@ -24,6 +24,7 @@
     "@deck-pack/office-js": "workspace:*",
     "@deck-pack/presentation-check": "workspace:*",
     "@deck-pack/presentation-formatting": "workspace:*",
+    "@deck-pack/shortcuts": "workspace:*",
     "@deck-pack/trpc-client": "workspace:*",
     "@deck-pack/ui": "workspace:*",
     "@azure/msal-browser": "^4.28.1",

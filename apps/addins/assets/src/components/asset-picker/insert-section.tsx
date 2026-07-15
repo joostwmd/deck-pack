@@ -3,7 +3,7 @@ import { cn } from "@deck-pack/ui/lib/utils";
 import { CircleNotch } from "@phosphor-icons/react";
 
 import { ShortcutHints } from "@/components/shortcut-hint";
-import { INSERT_SECTION_SHORTCUTS } from "@/lib/shortcuts";
+import { useInsertSectionShortcutDefs } from "@/hooks/use-resolved-shortcut-defs";
 
 interface InsertSectionProps {
   disabled?: boolean;
@@ -22,9 +22,11 @@ export function InsertSection({
   onClick,
   className,
 }: InsertSectionProps) {
+  const insertSectionShortcuts = useInsertSectionShortcutDefs();
+
   return (
     <section className={cn("sticky bottom-0 flex flex-col gap-2 bg-background pt-2", className)}>
-      <ShortcutHints defs={INSERT_SECTION_SHORTCUTS} />
+      <ShortcutHints defs={insertSectionShortcuts} />
 
       <Button
         className="w-full"

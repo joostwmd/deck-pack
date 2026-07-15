@@ -13,7 +13,7 @@ import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { useAssetInsertion } from "@/hooks/use-asset-insertion";
 import { useSlideSearch } from "@/hooks/use-slide-search";
 import { insertSlide } from "@/lib/insert-slide";
-import { SHORTCUTS } from "@/lib/shortcuts";
+import { useResolvedShortcutDef } from "@/hooks/use-resolved-shortcut-defs";
 
 import { SlideFiltersBar } from "./slide-filters";
 import { SlideGrid } from "./slide-grid";
@@ -30,6 +30,7 @@ function SlideSearchPanelContent({ search }: SlideSearchPanelProps) {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const resultsId = useId();
   const { isInserting, runInsertion } = useAssetInsertion();
+  const focusSearchShortcut = useResolvedShortcutDef("focusSearch");
 
   const showsResults = !flow.error && flow.results.length > 0;
   const activeResultId = showsResults && flow.highlightedSlideId ? flow.highlightedSlideId : undefined;
@@ -79,7 +80,7 @@ function SlideSearchPanelContent({ search }: SlideSearchPanelProps) {
             resultsId={showsResults ? resultsId : undefined}
             activeDescendantId={activeResultId}
             isExpanded={showsResults}
-            rightSlot={<ShortcutKeys tokens={SHORTCUTS.focusSearch.keys} className="opacity-70" />}
+            rightSlot={<ShortcutKeys tokens={focusSearchShortcut.keys} className="opacity-70" />}
           />
 
           <SlideFiltersBar

@@ -1,4 +1,3 @@
-import { useHotkeys } from "@tanstack/react-hotkeys";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -7,6 +6,7 @@ import { HarveyBallPreview } from "@/components/harvey-ball/harvey-ball-preview"
 import { InsertSection } from "@/components/asset-picker/insert-section";
 import { ScreenHeader } from "@/components/asset-picker/screen-header";
 import { useInsertionStrategy } from "@/hooks/use-insertion-strategy";
+import { useShortcutCommands } from "@/hooks/use-shortcut-commands";
 import {
   createHarveyBallMetadata,
   DEFAULT_HARVEY_BALL_CONFIG,
@@ -16,7 +16,6 @@ import {
   type HarveyBallConfig,
 } from "@/lib/harvey-ball-svg";
 import { HARVEY_BALL_EXTERNAL_ID } from "@/lib/insert-harvey-ball";
-import { SHORTCUTS } from "@/lib/shortcuts";
 
 export function HarveyBallsPanel() {
   const insertionStrategy = useInsertionStrategy();
@@ -68,14 +67,11 @@ export function HarveyBallsPanel() {
     }
   }, [insertionStrategy, normalizedConfig, validation.valid]);
 
-  useHotkeys([
+  useShortcutCommands([
     {
-      hotkey: SHORTCUTS.insert.hotkey,
-      callback: () => void handleInsert(),
-      options: {
-        enabled: canInsert,
-        meta: { name: SHORTCUTS.insert.id, description: SHORTCUTS.insert.description },
-      },
+      id: "insert",
+      execute: () => void handleInsert(),
+      enabled: canInsert,
     },
   ]);
 

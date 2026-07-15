@@ -1,7 +1,6 @@
-import { useHotkeys } from "@tanstack/react-hotkeys";
 import type { RefObject } from "react";
 
-import { SHORTCUTS } from "@/lib/shortcuts";
+import { useShortcutCommands } from "@/hooks/use-shortcut-commands";
 
 import type { usePhotoSearch } from "./use-photo-search";
 
@@ -20,79 +19,37 @@ export function usePhotoSearchHotkeys({
   onInsert,
   isInserting,
 }: UsePhotoSearchHotkeysOptions) {
-  useHotkeys([
+  useShortcutCommands([
     {
-      hotkey: SHORTCUTS.focusSearch.hotkey,
-      callback: () => searchInputRef.current?.focus(),
-      options: {
-        meta: {
-          name: SHORTCUTS.focusSearch.id,
-          description: SHORTCUTS.focusSearch.description,
-        },
-      },
+      id: "focusSearch",
+      execute: () => searchInputRef.current?.focus(),
     },
     {
-      hotkey: SHORTCUTS.navigateVariantsUp.hotkey,
-      callback: () => flow.navigatePhotos("up"),
-      options: {
-        meta: {
-          name: SHORTCUTS.navigateVariantsUp.id,
-          description: "Navigate photos up",
-        },
-      },
+      id: "navigateVariantsUp",
+      execute: () => flow.navigatePhotos("up"),
     },
     {
-      hotkey: SHORTCUTS.navigateVariantsDown.hotkey,
-      callback: () => flow.navigatePhotos("down"),
-      options: {
-        meta: {
-          name: SHORTCUTS.navigateVariantsDown.id,
-          description: "Navigate photos down",
-        },
-      },
+      id: "navigateVariantsDown",
+      execute: () => flow.navigatePhotos("down"),
     },
     {
-      hotkey: SHORTCUTS.navigateVariantsLeft.hotkey,
-      callback: () => flow.navigatePhotos("left"),
-      options: {
-        meta: {
-          name: SHORTCUTS.navigateVariantsLeft.id,
-          description: "Navigate photos left",
-        },
-      },
+      id: "navigateVariantsLeft",
+      execute: () => flow.navigatePhotos("left"),
     },
     {
-      hotkey: SHORTCUTS.navigateVariantsRight.hotkey,
-      callback: () => flow.navigatePhotos("right"),
-      options: {
-        meta: {
-          name: SHORTCUTS.navigateVariantsRight.id,
-          description: "Navigate photos right",
-        },
-      },
+      id: "navigateVariantsRight",
+      execute: () => flow.navigatePhotos("right"),
     },
     {
-      hotkey: SHORTCUTS.selectVariant.hotkey,
-      callback: () => flow.confirmHighlightedPhoto(),
-      options: {
-        meta: {
-          name: SHORTCUTS.selectVariant.id,
-          description: "Select photo",
-        },
-      },
+      id: "selectVariant",
+      execute: () => flow.confirmHighlightedPhoto(),
     },
     {
-      hotkey: SHORTCUTS.insert.hotkey,
-      callback: () => {
+      id: "insert",
+      execute: () => {
         if (!isInserting) {
           void onInsert();
         }
-      },
-      options: {
-        meta: {
-          name: SHORTCUTS.insert.id,
-          description: SHORTCUTS.insert.description,
-        },
       },
     },
   ]);

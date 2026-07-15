@@ -7,6 +7,7 @@ import { createAddinAssetService } from "../domains/addin/service";
 import { agendaRoutes } from "../domains/agenda/routes";
 import { brandProfileRoutes } from "../domains/brand-profiles/routes";
 import { organizationRoutes } from "../domains/organization/routes";
+import { shortcutRoutes } from "../domains/shortcuts/routes";
 import { systemRoutes } from "../domains/system/routes";
 
 import { router } from "./setup";
@@ -30,6 +31,7 @@ export function createAppRouter(deps: AddinRouterDeps) {
     addin: router(createAddinRoutes(addinAssetService)),
     agenda: router(agendaRoutes),
     brandProfiles: router(brandProfileRoutes),
+    shortcuts: router(shortcutRoutes),
   });
 }
 

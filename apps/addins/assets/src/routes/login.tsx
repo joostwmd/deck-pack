@@ -51,6 +51,7 @@ function LoginComponent() {
   const [otp, setOtp] = useState("");
   const [sending, setSending] = useState(false);
   const [verifying, setVerifying] = useState(false);
+  const [resending, setResending] = useState(false);
   const [microsoftSigningIn, setMicrosoftSigningIn] = useState(false);
 
   const postAuthPath = getPageRouteTo(DEFAULT_NAVIGATION_PAGE_ID);
@@ -69,13 +70,16 @@ function LoginComponent() {
     getCapturedBearerToken: getBearerToken,
   });
 
-  const handleSendCode = async () => {
+  const sendCodeToEmail = async (isResend = false) => {
     const trimmed = email.trim().toLowerCase();
     if (!trimmed) {
       toast.error("Enter your email to continue");
       return;
     }
-    setSending(true);
+    
+    const setLoading = isResend ? setResending : setSending;
+    setLoading(true);
+    
     try {
       const { error } = await authClient.emailOtp.sendVerificationOtp({
         email: trimmed,
@@ -86,13 +90,20 @@ function LoginComponent() {
         return;
       }
       setOtp("");
-      setStep("otp");
+      if (!isResend) {
+        setStep("otp");
+      } else {
+        toast.success("Code sent to your email");
+      }
     } catch {
       toast.error("Could not send the code. Try again in a moment.");
     } finally {
-      setSending(false);
+      setLoading(false);
     }
   };
+
+  const handleSendCode = () => sendCodeToEmail(false);
+  const handleResendCode = () => sendCodeToEmail(true);
 
   const handleVerify = async () => {
     if (otp.length < OTP_LENGTH) {
@@ -174,6 +185,7 @@ function LoginComponent() {
           setStep("email");
           setOtp("");
         }}
+        onResendCode={() => void handleResendCode()}
         onMicrosoftSignIn={
           microsoftStrategy ? () => void handleMicrosoftSignIn() : undefined
         }
@@ -182,6 +194,7 @@ function LoginComponent() {
         microsoftSigningIn={microsoftSigningIn}
         sending={sending}
         verifying={verifying}
+        resending={resending}
         otpLength={OTP_LENGTH}
         logo={
           <span className="text-sm font-semibold tracking-tight text-foreground">DeckPack</span>

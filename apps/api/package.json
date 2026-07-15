@@ -26,6 +26,7 @@
     "@deck-pack/icons8": "workspace:*",
     "@deck-pack/pexels": "workspace:*",
     "@deck-pack/presentation-check": "workspace:*",
+    "@deck-pack/shortcuts": "workspace:*",
     "@hono/node-server": "^1.14.4",
     "@hono/trpc-server": "^0.4.0",
     "@hono/zod-validator": "^0.8.0",

@@ -9,12 +9,14 @@ import {
 import { Skeleton } from "@deck-pack/ui/components/system/skeleton";
 import { cn } from "@deck-pack/ui/lib/utils";
 import { SignOut, UserCircle } from "@phosphor-icons/react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 
+import type { AppEnvironment } from "@/lib/navigation";
+import { getPageRouteParams, getPageRouteTo } from "@/lib/navigation";
 import { getUserInitials } from "@/lib/user-initials";
 import { authClient, clearAddinAuthSession } from "@/utils/auth";
 
-export function UserMenu() {
+export function UserMenu({ environment }: { environment: AppEnvironment }) {
   const navigate = useNavigate();
   const { data: session, isPending } = authClient.useSession();
 
@@ -56,7 +58,14 @@ export function UserMenu() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="bg-card">
         <DropdownMenuGroup>
-          <DropdownMenuItem render={<Link to="/account" />}>
+          <DropdownMenuItem
+            onClick={() =>
+              navigate({
+                to: getPageRouteTo("account"),
+                params: getPageRouteParams(environment),
+              })
+            }
+          >
             <UserCircle className="size-4" />
             My account
           </DropdownMenuItem>

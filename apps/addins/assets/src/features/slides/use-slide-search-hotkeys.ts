@@ -1,8 +1,7 @@
-import { useHotkeys } from "@tanstack/react-hotkeys";
 import type { RefObject } from "react";
 
+import { useShortcutCommands } from "@/hooks/use-shortcut-commands";
 import type { useSlideSearch } from "@/hooks/use-slide-search";
-import { SHORTCUTS } from "@/lib/shortcuts";
 
 type SlideSearchFlow = ReturnType<typeof useSlideSearch>;
 
@@ -21,80 +20,39 @@ export function useSlideSearchHotkeys({
   isInserting,
   canInsert,
 }: UseSlideSearchHotkeysOptions) {
-  useHotkeys([
+  useShortcutCommands([
     {
-      hotkey: SHORTCUTS.focusSearch.hotkey,
-      callback: () => searchInputRef.current?.focus(),
-      options: {
-        meta: {
-          name: SHORTCUTS.focusSearch.id,
-          description: SHORTCUTS.focusSearch.description,
-        },
-      },
+      id: "focusSearch",
+      execute: () => searchInputRef.current?.focus(),
     },
     {
-      hotkey: SHORTCUTS.navigateVariantsUp.hotkey,
-      callback: () => flow.navigateSlides("up"),
-      options: {
-        meta: {
-          name: SHORTCUTS.navigateVariantsUp.id,
-          description: "Navigate slides up",
-        },
-      },
+      id: "navigateVariantsUp",
+      execute: () => flow.navigateSlides("up"),
     },
     {
-      hotkey: SHORTCUTS.navigateVariantsDown.hotkey,
-      callback: () => flow.navigateSlides("down"),
-      options: {
-        meta: {
-          name: SHORTCUTS.navigateVariantsDown.id,
-          description: "Navigate slides down",
-        },
-      },
+      id: "navigateVariantsDown",
+      execute: () => flow.navigateSlides("down"),
     },
     {
-      hotkey: SHORTCUTS.navigateVariantsLeft.hotkey,
-      callback: () => flow.navigateSlides("left"),
-      options: {
-        meta: {
-          name: SHORTCUTS.navigateVariantsLeft.id,
-          description: "Navigate slides left",
-        },
-      },
+      id: "navigateVariantsLeft",
+      execute: () => flow.navigateSlides("left"),
     },
     {
-      hotkey: SHORTCUTS.navigateVariantsRight.hotkey,
-      callback: () => flow.navigateSlides("right"),
-      options: {
-        meta: {
-          name: SHORTCUTS.navigateVariantsRight.id,
-          description: "Navigate slides right",
-        },
-      },
+      id: "navigateVariantsRight",
+      execute: () => flow.navigateSlides("right"),
     },
     {
-      hotkey: SHORTCUTS.selectVariant.hotkey,
-      callback: () => flow.confirmHighlightedSlide(),
-      options: {
-        meta: {
-          name: SHORTCUTS.selectVariant.id,
-          description: "Select slide",
-        },
-      },
+      id: "selectVariant",
+      execute: () => flow.confirmHighlightedSlide(),
     },
     {
-      hotkey: SHORTCUTS.insert.hotkey,
-      callback: () => {
+      id: "insert",
+      execute: () => {
         if (!isInserting && canInsert) {
           void onInsert();
         }
       },
-      options: {
-        meta: {
-          name: SHORTCUTS.insert.id,
-          description: SHORTCUTS.insert.description,
-        },
-      },
+      enabled: canInsert && !isInserting,
     },
   ]);
 }

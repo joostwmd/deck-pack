@@ -9,7 +9,7 @@ export function isAppEnvironment(value: string): value is AppEnvironment {
   return APP_ENVIRONMENTS.includes(value as AppEnvironment);
 }
 
-export type NavigationSection = "assets" | "utilities";
+export type NavigationSection = "assets" | "utilities" | "settings";
 
 export type NavigationPageId =
   | "logos"
@@ -22,19 +22,22 @@ export type NavigationPageId =
   | "agenda"
   | "check"
   | "format"
-  | "themes";
+  | "themes"
+  | "account"
+  | "shortcuts";
 
 export interface NavigationPage {
   id: NavigationPageId;
   label: string;
   section: NavigationSection;
   path: NavigationPageId;
-  shortcut: ShortcutDef;
+  shortcut?: ShortcutDef;
 }
 
 export const NAVIGATION_SECTIONS: { id: NavigationSection; label: string }[] = [
   { id: "assets", label: "Assets" },
   { id: "utilities", label: "Utilities" },
+  { id: "settings", label: "Settings" },
 ];
 
 export const NAVIGATION_PAGES: NavigationPage[] = [
@@ -115,6 +118,18 @@ export const NAVIGATION_PAGES: NavigationPage[] = [
     path: "themes",
     shortcut: SHORTCUTS.themes,
   },
+  {
+    id: "account",
+    label: "Account",
+    section: "settings",
+    path: "account",
+  },
+  {
+    id: "shortcuts",
+    label: "Shortcuts",
+    section: "settings",
+    path: "shortcuts",
+  },
 ];
 
 export const DEFAULT_NAVIGATION_PAGE_ID: NavigationPageId = "logos";
@@ -131,6 +146,12 @@ export function getNavigationPageByPath(path: string): NavigationPage | undefine
   return NAVIGATION_PAGES.find((page) => page.path === path);
 }
 
+export function getNavigationPagesWithShortcuts(): NavigationPage[] {
+  return NAVIGATION_PAGES.filter((page): page is NavigationPage & { shortcut: ShortcutDef } =>
+    Boolean(page.shortcut),
+  );
+}
+
 export const PAGE_ROUTE_TO = {
   logos: "/$environment/logos",
   flags: "/$environment/flags",
@@ -143,6 +164,8 @@ export const PAGE_ROUTE_TO = {
   check: "/$environment/check",
   format: "/$environment/format",
   themes: "/$environment/themes",
+  account: "/$environment/account",
+  shortcuts: "/$environment/shortcuts",
 } as const satisfies Record<NavigationPageId, string>;
 
 export function getPageRouteTo(pageId: NavigationPageId) {

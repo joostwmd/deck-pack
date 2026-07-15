@@ -12,8 +12,8 @@ import { List } from "@phosphor-icons/react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 
 import { ShortcutKeys } from "@/components/shortcut-hint";
+import { useResolvedShortcutDef } from "@/hooks/use-resolved-shortcut-defs";
 import type { AppEnvironment } from "@/lib/navigation";
-import { SHORTCUTS } from "@/lib/shortcuts";
 import {
   NAVIGATION_SECTIONS,
   getNavigationPagesBySection,
@@ -29,17 +29,36 @@ interface NavigationDrawerProps {
   showTrigger?: boolean;
 }
 
-function NavigationDrawerItem({
-  page,
-  environment,
-  isActive,
-  onNavigate,
-}: {
+interface NavigationDrawerItemProps {
   page: NavigationPage;
-  environment: AppEnvironment;
   isActive: boolean;
   onNavigate: () => void;
-}) {
+}
+
+function NavigationDrawerItem({ page, isActive, onNavigate }: NavigationDrawerItemProps) {
+  return (
+    <button
+      type="button"
+      onClick={onNavigate}
+      className={cn(
+        "flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors",
+        isActive
+          ? "bg-accent text-accent-foreground"
+          : "text-foreground hover:bg-accent/60 hover:text-accent-foreground",
+      )}
+    >
+      <span className="font-medium">{page.label}</span>
+    </button>
+  );
+}
+
+function NavigationDrawerItemWithShortcut({
+  page,
+  isActive,
+  onNavigate,
+}: NavigationDrawerItemProps & { page: NavigationPage & { shortcut: NonNullable<NavigationPage["shortcut"]> } }) {
+  const shortcutDef = useResolvedShortcutDef(page.shortcut.id);
+
   return (
     <button
       type="button"
@@ -53,8 +72,8 @@ function NavigationDrawerItem({
     >
       <span className="font-medium">{page.label}</span>
       <ShortcutKeys
-        tokens={page.shortcut.keys}
-        className="opacity-70 [&_kbd]:h-4 [&_kbd]:min-w-4 [&_kbd]:px-1 [&_kbd]:text-[10px] [&_svg]:size-2.5"
+        tokens={shortcutDef.keys}
+        className="opacity-70 [&_kbd]:h-4 [&_kbd]:min-w-4 [&_kbd]:px-1 [&_kbd]:text-[10px]"
       />
     </button>
   );
@@ -69,6 +88,7 @@ export function NavigationDrawer({
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const currentPage = pathname.split("/").filter(Boolean).at(-1);
+  const openMenuShortcut = useResolvedShortcutDef("openMenu");
 
   const handleNavigate = (page: NavigationPage) => {
     navigate({
@@ -83,8 +103,8 @@ export function NavigationDrawer({
       {showTrigger ? (
         <div className="flex items-center gap-2">
           <ShortcutKeys
-            tokens={SHORTCUTS.openMenu.keys}
-            className="opacity-70 [&_kbd]:h-4 [&_kbd]:min-w-4 [&_kbd]:px-1 [&_kbd]:text-[10px] [&_svg]:size-2.5"
+            tokens={openMenuShortcut.keys}
+            className="opacity-70 [&_kbd]:h-4 [&_kbd]:min-w-4 [&_kbd]:px-1 [&_kbd]:text-[10px]"
           />
           <SheetTrigger
             render={
@@ -100,7 +120,7 @@ export function NavigationDrawer({
         <SheetHeader>
           <SheetTitle>Navigation</SheetTitle>
           <SheetDescription>
-            Jump between asset libraries and presentation utilities.
+            Jump between asset libraries, utilities, and settings.
           </SheetDescription>
         </SheetHeader>
 
@@ -115,15 +135,23 @@ export function NavigationDrawer({
                 </h3>
 
                 <div className="flex flex-col gap-1">
-                  {pages.map((page) => (
-                    <NavigationDrawerItem
-                      key={page.id}
-                      page={page}
-                      environment={environment}
-                      isActive={currentPage === page.path}
-                      onNavigate={() => handleNavigate(page)}
-                    />
-                  ))}
+                  {pages.map((page) =>
+                    page.shortcut ? (
+                      <NavigationDrawerItemWithShortcut
+                        key={page.id}
+                        page={{ ...page, shortcut: page.shortcut }}
+                        isActive={currentPage === page.path}
+                        onNavigate={() => handleNavigate(page)}
+                      />
+                    ) : (
+                      <NavigationDrawerItem
+                        key={page.id}
+                        page={page}
+                        isActive={currentPage === page.path}
+                        onNavigate={() => handleNavigate(page)}
+                      />
+                    ),
+                  )}
                 </div>
               </section>
             );

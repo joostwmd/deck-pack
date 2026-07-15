@@ -3,21 +3,11 @@ import { cn } from "@deck-pack/ui/lib/utils";
 
 import type { KeyToken, ShortcutDef } from "@/lib/shortcuts";
 
-// ---------------------------------------------------------------------------
-// Single key chip — text or icon variant
-// ---------------------------------------------------------------------------
+const shortcutKbdClassName =
+  "min-w-5.5 rounded-sm border-[0.5px] border-border px-1.5 text-xs font-medium text-foreground shadow-xs";
 
 function ShortcutKey({ token }: { token: KeyToken }) {
-  if (token.type === "icon") {
-    const Icon = token.icon;
-    return (
-      <Kbd className="rounded-sm border-[0.5px] border-border shadow-xs">
-        <Icon aria-label={token.label} />
-      </Kbd>
-    );
-  }
-
-  return <Kbd className="rounded-sm border-[0.5px] border-border shadow-xs">{token.value}</Kbd>;
+  return <Kbd className={shortcutKbdClassName}>{token.value}</Kbd>;
 }
 
 export function ShortcutKeys({ tokens, className }: { tokens: KeyToken[]; className?: string }) {
@@ -30,11 +20,6 @@ export function ShortcutKeys({ tokens, className }: { tokens: KeyToken[]; classN
     </KbdGroup>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Single shortcut row  —  [keys]    description
-// Matches the "shortcut-explanation" pill from the Figma design.
-// ---------------------------------------------------------------------------
 
 interface ShortcutRowProps {
   def: ShortcutDef;
@@ -52,10 +37,6 @@ export function ShortcutRow({ def, className }: ShortcutRowProps) {
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Stacked list of shortcut rows
-// ---------------------------------------------------------------------------
 
 interface ShortcutHintsProps {
   defs: ShortcutDef[];

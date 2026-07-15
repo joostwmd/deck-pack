@@ -18,7 +18,7 @@ import { SearchSection } from "./search-section";
 import { SelectedEntityHeader } from "./selected-entity-header";
 import { VariantGrid } from "./variant-grid";
 import { VariantsSection } from "./variants-section";
-import { SHORTCUTS } from "@/lib/shortcuts";
+import { useResolvedShortcutDef } from "@/hooks/use-resolved-shortcut-defs";
 
 interface AssetSearchPanelProps {
   assetType: AssetType;
@@ -51,6 +51,7 @@ export function AssetSearchPanel({
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchResultsId = useId();
   const { isInserting, runInsertion } = useAssetInsertion();
+  const focusSearchShortcut = useResolvedShortcutDef("focusSearch");
 
   const label = assetLabel.toLowerCase();
   const showsSearchResults = !flow.selectedEntity && !flow.searchError && flow.results.length > 0;
@@ -139,7 +140,7 @@ export function AssetSearchPanel({
           activeDescendantId={activeSearchResultId}
           isExpanded={showsSearchResults}
           searchRightSlot={
-            <ShortcutKeys tokens={SHORTCUTS.focusSearch.keys} className="opacity-70" />
+            <ShortcutKeys tokens={focusSearchShortcut.keys} className="opacity-70" />
           }
         >
           {!flow.selectedEntity ? (

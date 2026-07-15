@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 const STORAGE_KEY = "deck-pack:addin:bearer-token";
 
-function createSessionStorage(): Storage {
+function createMemoryStorage(): Storage {
   const entries = new Map<string, string>();
 
   return {
@@ -27,16 +27,16 @@ function createSessionStorage(): Storage {
   };
 }
 
-function setSessionStorage(storage?: Storage): void {
-  if (storage) {
-    Object.defineProperty(globalThis, "sessionStorage", {
+function setGlobal(name: "localStorage" | "sessionStorage" | "Office", value?: unknown): void {
+  if (value !== undefined) {
+    Object.defineProperty(globalThis, name, {
       configurable: true,
-      value: storage,
+      value,
     });
     return;
   }
 
-  Reflect.deleteProperty(globalThis, "sessionStorage");
+  Reflect.deleteProperty(globalThis, name);
 }
 
 async function loadBearerStore() {
@@ -46,25 +46,55 @@ async function loadBearerStore() {
 
 describe("bearer session store", () => {
   afterEach(() => {
-    setSessionStorage();
+    setGlobal("localStorage");
+    setGlobal("sessionStorage");
+    setGlobal("Office");
     vi.resetModules();
   });
 
   it("persists and hydrates the bearer token across module reloads", async () => {
-    const storage = createSessionStorage();
-    setSessionStorage(storage);
+    const storage = createMemoryStorage();
+    setGlobal("localStorage", storage);
     const firstStore = await loadBearerStore();
 
     firstStore.setBearerToken("signed.session.token");
     const reloadedStore = await loadBearerStore();
 
+    expect(storage.getItem(STORAGE_KEY)).toBe("signed.session.token");
     expect(reloadedStore.getBearerToken()).toBe("signed.session.token");
   });
 
+  it("namespaces the storage key with the Office partition key", async () => {
+    const storage = createMemoryStorage();
+    setGlobal("localStorage", storage);
+    setGlobal("Office", { context: { partitionKey: "partition-abc" } });
+    const store = await loadBearerStore();
+
+    store.setBearerToken("signed.session.token");
+
+    expect(storage.getItem(`partition-abc:${STORAGE_KEY}`)).toBe("signed.session.token");
+    expect(storage.getItem(STORAGE_KEY)).toBeNull();
+    expect(store.getBearerToken()).toBe("signed.session.token");
+  });
+
+  it("migrates a legacy sessionStorage token into localStorage", async () => {
+    const local = createMemoryStorage();
+    const session = createMemoryStorage();
+    session.setItem(STORAGE_KEY, "legacy.session.token");
+    setGlobal("localStorage", local);
+    setGlobal("sessionStorage", session);
+
+    const store = await loadBearerStore();
+
+    expect(store.getBearerToken()).toBe("legacy.session.token");
+    expect(local.getItem(STORAGE_KEY)).toBe("legacy.session.token");
+    expect(session.getItem(STORAGE_KEY)).toBeNull();
+  });
+
   it("clears the in-memory and persisted bearer token", async () => {
-    const storage = createSessionStorage();
+    const storage = createMemoryStorage();
     storage.setItem(STORAGE_KEY, "signed.session.token");
-    setSessionStorage(storage);
+    setGlobal("localStorage", storage);
     const store = await loadBearerStore();
 
     store.clearBearerToken();
@@ -75,8 +105,7 @@ describe("bearer session store", () => {
     expect(reloadedStore.getBearerToken()).toBeNull();
   });
 
-  it("works without browser session storage", async () => {
-    setSessionStorage();
+  it("works without browser storage", async () => {
     const store = await loadBearerStore();
 
     expect(() => store.setBearerToken("signed.session.token")).not.toThrow();
@@ -85,8 +114,8 @@ describe("bearer session store", () => {
     expect(store.getBearerToken()).toBeNull();
   });
 
-  it("tolerates throwing browser session storage", async () => {
-    const throwingStorage = createSessionStorage();
+  it("tolerates throwing browser storage", async () => {
+    const throwingStorage = createMemoryStorage();
     throwingStorage.getItem = () => {
       throw new Error("storage denied");
     };
@@ -96,7 +125,7 @@ describe("bearer session store", () => {
     throwingStorage.removeItem = () => {
       throw new Error("storage denied");
     };
-    setSessionStorage(throwingStorage);
+    setGlobal("localStorage", throwingStorage);
 
     const store = await loadBearerStore();
 
