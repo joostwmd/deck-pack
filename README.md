@@ -68,16 +68,14 @@ Jobs that touch Azure use **`azure/login`** with **OIDC** and GitHub **Environme
 
 ## Deployed URLs (production and staging)
 
-Public HTTPS entry points for the four applications. **Staging** URLs are left blank until they are wired and verified.
+Public HTTPS entry points for the four applications on Azure Static Web Apps (frontends) and Azure App Service (API).
 
-| Application | Role                                                      | Production                                                                                                   | Staging |
-| ----------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ------- |
-| **Ops**     | Internal operations dashboard (Static Web App)            | [https://orange-bay-0bf467703.7.azurestaticapps.net/](https://orange-bay-0bf467703.7.azurestaticapps.net/)   | —       |
-| **Portal**  | Organization admin dashboard (Static Web App)             | [https://blue-hill-0434a2003.7.azurestaticapps.net/](https://blue-hill-0434a2003.7.azurestaticapps.net/)     | —       |
-| **Add-in**  | DeckPack add-in web shell / Static Web App                | [https://yellow-tree-08cc84803.7.azurestaticapps.net/](https://yellow-tree-08cc84803.7.azurestaticapps.net/) | —       |
-| **API**     | Hono + tRPC + Better Auth (App Service – Linux container) | [https://deck-pack-api-staging-jw.azurewebsites.net](https://deck-pack-api-staging-jw.azurewebsites.net)     | —       |
-
-> **Note:** The production URL for the API uses the hostname above as currently deployed in Azure; rename the Web App in Azure/Terraform over time without changing this table until DNS and workflows are updated.
+| Application | Role                                                      | Production                                                                                                     | Staging                                                                                                      |
+| ----------- | --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **Ops**     | Internal operations dashboard (Static Web App)            | [https://blue-stone-00d228c03.7.azurestaticapps.net/](https://blue-stone-00d228c03.7.azurestaticapps.net/)     | [https://orange-bay-0bf467703.7.azurestaticapps.net/](https://orange-bay-0bf467703.7.azurestaticapps.net/)   |
+| **Portal**  | Organization admin dashboard (Static Web App)             | [https://white-wave-0cfaad503.7.azurestaticapps.net/](https://white-wave-0cfaad503.7.azurestaticapps.net/)     | [https://blue-hill-0434a2003.7.azurestaticapps.net/](https://blue-hill-0434a2003.7.azurestaticapps.net/)     |
+| **Add-in**  | DeckPack add-in web shell / Static Web App                | [https://lively-coast-020399703.7.azurestaticapps.net/](https://lively-coast-020399703.7.azurestaticapps.net/) | [https://yellow-tree-08cc84803.7.azurestaticapps.net/](https://yellow-tree-08cc84803.7.azurestaticapps.net/) |
+| **API**     | Hono + tRPC + Better Auth (App Service – Linux container) | [https://deck-pack-api-jw.azurewebsites.net/](https://deck-pack-api-jw.azurewebsites.net/)                     | [https://deck-pack-api-staging-jw.azurewebsites.net/](https://deck-pack-api-staging-jw.azurewebsites.net/)   |
 
 ---
 
@@ -140,12 +138,82 @@ pnpm db:push
 pnpm dev:api      # API — default http://localhost:3000 · tRPC http://localhost:3000/trpc
 pnpm dev:ops      # Ops — typically http://localhost:3001
 pnpm dev:portal   # Portal — Vite port 3002
-pnpm dev:addin-one  # Add-in assets — Vite port 3003
+pnpm dev:assets   # Add-in assets — HTTPS Vite port 3003
 ```
 
 **CORS and auth:** set **`CORS_ORIGINS`** on the API to a **comma-separated** list of browser origins (same list feeds Better Auth **trusted origins**), for example:
 
-`CORS_ORIGINS=http://localhost:3001,http://localhost:3002,http://localhost:3003`
+`CORS_ORIGINS=http://localhost:3001,http://localhost:3002,https://localhost:3003`
+
+`CORS_ORIGINS=http://localhost:3001,http://localhost:3002,https://localhost:3003`
+
+### Microsoft SSO (web vs Office add-in)
+
+The assets add-in uses **two Microsoft sign-in strategies**:
+
+| Context | Strategy | Session transport |
+| ------- | -------- | ----------------- |
+| Browser preview (`/web/*`) | Better Auth redirect OAuth | HTTP-only cookies |
+| Office taskpane with NAA | MSAL Nested App Authentication → Better Auth `signIn.social({ idToken })` | In-memory Better Auth bearer token |
+| Office without NAA | Microsoft button disabled; use email OTP | In-memory bearer token after OTP |
+
+**Entra app registration (single application):**
+
+1. Copy **Application (client) ID** into API `MICROSOFT_CLIENT_ID` and add-in `VITE_MICROSOFT_CLIENT_ID` (same value).
+2. Create a **client secret** for the API only (`MICROSOFT_CLIENT_SECRET`).
+3. Under **Authentication**, add redirect URIs:
+   - **Web:** `http://localhost:3000/api/auth/app/callback/microsoft` (dev) and `https://<api-host>/api/auth/app/callback/microsoft` (prod). Must match `BETTER_AUTH_URL`.
+   - **SPA (NAA broker):** `brk-multihub://localhost:3003` and `brk-multihub://<addin-host>` (origin only, no path).
+   - **SPA (PowerPoint on the web):** `https://localhost:3003/index.html` and `https://<addin-host>/index.html`.
+4. Under **API permissions**, add Microsoft Graph delegated **`User.Read`**.
+5. Under **Token configuration**, add optional ID token claim **`email`** (or rely on `preferred_username` mapping).
+
+**Local add-in env** (`apps/addins/assets/.env`):
+
+```env
+VITE_SERVER_URL=https://localhost:3003
+VITE_MICROSOFT_CLIENT_ID=<same-as-MICROSOFT_CLIENT_ID>
+```
+
+### PowerPoint add-in sideloading
+
+Manifests live in `apps/addins/assets/manifests/` (dev, staging, prod). Sideload scripts use Microsoft's `office-addin-debugging` CLI.
+
+**Local dev** (two terminals):
+
+```bash
+pnpm dev:assets        # Terminal 1 — HTTPS dev server at https://localhost:3003
+pnpm sideload:assets   # Terminal 2 — register dev manifest + launch PowerPoint
+```
+
+**Test against deployed builds** (no local Vite needed):
+
+```bash
+pnpm sideload:assets:staging   # sideload against staging SWA
+pnpm sideload:assets:prod      # sideload against production SWA
+```
+
+**Other commands:**
+
+```bash
+pnpm -F @deck-pack/assets sideload:stop      # stop dev sideload
+pnpm -F @deck-pack/assets validate           # validate dev manifest
+pnpm -F @deck-pack/assets validate:staging   # validate staging manifest
+pnpm -F @deck-pack/assets validate:prod      # validate prod manifest
+```
+
+**First-time HTTPS certs** (auto-installed on first `pnpm dev:assets`; manual fallback):
+
+```bash
+npx office-addin-dev-certs install
+```
+
+**Stale sideload cache** (if the add-in does not update):
+
+- macOS: `~/Library/Containers/com.microsoft.Powerpoint/Data/Documents/wef`
+- Windows: `%LOCALAPPDATA%\Microsoft\Office\16.0\Wef\`
+
+`dev:addin-one` is an alias for `dev:assets`.
 
 ---
 

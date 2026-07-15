@@ -32,6 +32,11 @@ export const env = createEnv({
     APITALLY_CLIENT_ID: z.string().min(1).optional(),
     /** Apitally environment label (dashboards). */
     APITALLY_ENV: z.enum(["dev", "staging", "prod"]).default("dev"),
+    /** Microsoft Entra app registration; both required to enable Microsoft OAuth on app auth. */
+    MICROSOFT_CLIENT_ID: z.string().min(1).optional(),
+    MICROSOFT_CLIENT_SECRET: z.string().min(1).optional(),
+    /** Pexels API key for stock photo search in the assets add-in. */
+    PEXELS_API_KEY: z.string().min(1),
   },
   runtimeEnv: process.env,
   emptyStringAsUndefined: true,

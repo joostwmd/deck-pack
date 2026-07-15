@@ -1,0 +1,28 @@
+{
+  "name": "@deck-pack/office-js",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@deck-pack/agenda": "workspace:*",
+    "@deck-pack/presentation-check": "workspace:*",
+    "@deck-pack/presentation-formatting": "workspace:*"
+  },
+  "devDependencies": {
+    "@deck-pack/config": "workspace:*",
+    "@types/office-js": "^1.0.514",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

@@ -9,7 +9,7 @@ import { env } from "@deck-pack/env/server";
 
 import { createContext } from "./api/context";
 import type { Context } from "./api/context";
-import { appRouter } from "./api/router";
+import { createAppRouter } from "./api/router";
 import { initializeApitally } from "./lib/observability/apitally";
 import { captureRequestError } from "./lib/observability/sentry";
 import { apitallySessionConsumerMiddleware } from "./transport/apitally-consumer";
@@ -24,10 +24,17 @@ import type { AppEnv } from "./types";
 export function createApp() {
   const app = new Hono<AppEnv>();
 
+  const appRouter = createAppRouter({
+    brandfetchApiKey: "dummy-key-for-now",
+    icons8ApiKey: "dummy-key-for-now",
+    pexelsApiKey: env.PEXELS_API_KEY,
+  });
+
+  app.use("*", corsMiddleware);
+
   initializeApitally(app);
 
   app.use("*", securityHeadersMiddleware);
-  app.use("*", corsMiddleware);
 
   app.on(["POST", "GET"], "/api/auth/ops/*", (c) => opsAuth.handler(c.req.raw));
   app.on(["POST", "GET"], "/api/auth/app/*", (c) => appAuth.handler(c.req.raw));

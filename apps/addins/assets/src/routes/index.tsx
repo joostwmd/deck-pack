@@ -1,16 +1,24 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { Navigate, createFileRoute } from "@tanstack/react-router";
+
+import { useOfficeDetection } from "@/hooks/use-office-detection";
+import {
+  DEFAULT_NAVIGATION_PAGE_ID,
+  getPageRouteParams,
+  getPageRouteTo,
+} from "@/lib/navigation";
 
 export const Route = createFileRoute("/")({
   component: HomeComponent,
 });
 
 function HomeComponent() {
+  const { environment } = useOfficeDetection();
+
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center gap-4 px-6 text-center">
-      <h1 className="text-2xl font-semibold tracking-tight">Under construction</h1>
-      <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
-        DeckPack add-in is currently under development.
-      </p>
-    </div>
+    <Navigate
+      to={getPageRouteTo(DEFAULT_NAVIGATION_PAGE_ID)}
+      params={getPageRouteParams(environment)}
+      replace
+    />
   );
 }

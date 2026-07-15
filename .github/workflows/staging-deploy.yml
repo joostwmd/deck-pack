@@ -157,6 +157,7 @@ jobs:
         run: pnpm exec turbo build --filter=@deck-pack/assets
         env:
           VITE_SERVER_URL: ${{ vars.VITE_SERVER_URL_STAGING || 'http://localhost:3000' }}
+          VITE_MICROSOFT_CLIENT_ID: ${{ vars.VITE_MICROSOFT_CLIENT_ID_STAGING || vars.MICROSOFT_CLIENT_ID || '' }}
 
       - uses: actions/upload-artifact@v4
         with:

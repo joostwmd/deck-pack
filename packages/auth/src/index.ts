@@ -2,10 +2,11 @@ import type { createDb } from "@deck-pack/db";
 import * as schema from "@deck-pack/db/schema/auth";
 import { APIError, betterAuth, type BetterAuthOptions } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { admin, emailOTP, type Member } from "better-auth/plugins";
+import { admin, bearer, emailOTP, type Member } from "better-auth/plugins";
 import { organization } from "better-auth/plugins";
 import { createAuthMiddleware } from "better-auth/api";
 import { organizationOwner, organizationAdmin, organizationMember, ac } from "./utils/rbac";
+import { createMicrosoftIdTokenVerifier } from "./microsoft-id-token";
 
 const ADMIN_EMAIL_DOMAIN = "code.berlin";
 
@@ -21,6 +22,10 @@ export interface AuthDeps {
   baseURL: string;
   trustedOrigins: string[];
   sendOtp: SendOtp;
+  microsoftOAuth?: {
+    clientId: string;
+    clientSecret: string;
+  };
 }
 
 function baseAuthOptions(
@@ -69,13 +74,7 @@ async function sessionCreateAfter(
     where: [{ field: "userId", value: session.userId }],
   })) as Member;
 
-  console.log("member", member);
   if (member) {
-    const org = await ctx!.context.adapter.findOne({
-      model: "organization",
-      where: [{ field: "id", value: member.organizationId }],
-    });
-    console.log("organization", org);
     await ctx!.context.adapter.update({
       model: "session",
       where: [{ field: "id", value: session.id }],
@@ -168,7 +167,7 @@ export function createOpsAuth(deps: AuthDeps) {
  * admin plugin.
  */
 export function createAppAuth(deps: AuthDeps) {
-  const { sendOtp } = deps;
+  const { sendOtp, microsoftOAuth } = deps;
 
   return betterAuth(
     baseAuthOptions(deps, {
@@ -181,6 +180,24 @@ export function createAppAuth(deps: AuthDeps) {
         },
         cookiePrefix: "app",
       },
+      ...(microsoftOAuth
+        ? {
+            socialProviders: {
+              microsoft: {
+                clientId: microsoftOAuth.clientId,
+                clientSecret: microsoftOAuth.clientSecret,
+                tenantId: "common",
+                prompt: "select_account",
+                verifyIdToken: createMicrosoftIdTokenVerifier({
+                  clientId: microsoftOAuth.clientId,
+                }),
+                mapProfileToUser: (profile: { email?: string; preferred_username?: string }) => ({
+                  email: profile.email ?? profile.preferred_username,
+                }),
+              },
+            },
+          }
+        : {}),
       plugins: [
         emailOTP({
           async sendVerificationOTP({ email, otp, type }) {
@@ -188,6 +205,7 @@ export function createAppAuth(deps: AuthDeps) {
           },
         }),
         organizationPlugin,
+        bearer({ requireSignature: true }),
       ],
       databaseHooks: {
         session: {
