@@ -13,7 +13,7 @@ import {
 } from "@deck-pack/ui/components/system/sidebar";
 import { Link, useRouterState } from "@tanstack/react-router";
 
-import { ModeToggle } from "./mode-toggle";
+import { ThemeToggle } from "@deck-pack/ui/components/composite/theme-toggle";
 import UserMenu from "./user-menu";
 
 type PortalAppShellProps = {
@@ -59,7 +59,7 @@ export function PortalAppShell({ children, sidebar, areaLabel, areaHomeTo }: Por
             </Breadcrumb>
           </div>
           <div className="flex shrink-0 items-center gap-2 pr-2">
-            <ModeToggle />
+            <ThemeToggle variant="default" />
             <UserMenu />
           </div>
         </header>

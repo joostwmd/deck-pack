@@ -8,7 +8,7 @@ import z from "zod";
 
 import { authClient } from "@/utils/auth";
 
-import Loader from "./loader";
+import { Loader } from "@deck-pack/ui/components/system/loader";
 
 export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () => void }) {
   const navigate = useNavigate({

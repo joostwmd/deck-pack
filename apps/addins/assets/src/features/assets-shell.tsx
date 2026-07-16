@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { NavigationDrawer } from "@/components/navigation-drawer";
 import { ShortcutSettingsButton } from "@/components/shortcut-settings/shortcut-settings-button";
-import { ThemeSelector } from "@/components/theme-selector";
+import { ThemeToggle } from "@deck-pack/ui/components/composite/theme-toggle";
 import { UserMenu } from "@/components/user-menu";
 import { useNavigationHotkeys } from "@/hooks/use-navigation-hotkeys";
 import type { AppEnvironment } from "@/lib/navigation";
@@ -54,7 +54,7 @@ export function AssetsShell({ mode, children }: AssetsShellProps) {
         <UserMenu environment={environment} />
         <div className="flex items-center gap-1">
           <ShortcutSettingsButton environment={environment} />
-          <ThemeSelector />
+          <ThemeToggle variant="enhanced" size="sm" />
         </div>
       </footer>
     </div>

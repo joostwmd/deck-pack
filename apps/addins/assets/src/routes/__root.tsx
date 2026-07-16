@@ -2,7 +2,7 @@ import type { createAppAuthClient } from "@deck-pack/auth/client";
 import { Toaster } from "@deck-pack/ui/components/system/sonner";
 import { HeadContent, Outlet, createRootRouteWithContext } from "@tanstack/react-router";
 import { ErrorBoundary } from "@/components/error-boundary";
-import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeProvider } from "@deck-pack/ui/components/system/theme-provider";
 import { EnvironmentProvider } from "@/contexts/EnvironmentContext";
 import { OfficeProvider } from "@/contexts/OfficeContext";
 import { AppHotkeysProvider } from "@/providers/app-hotkeys-provider";

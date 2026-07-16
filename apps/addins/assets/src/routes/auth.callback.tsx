@@ -1,7 +1,7 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 
-import Loader from "@/components/loader";
+import { Loader } from "@deck-pack/ui/components/system/loader";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import {
   DEFAULT_NAVIGATION_PAGE_ID,

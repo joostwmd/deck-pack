@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
 import { isNaaSupported } from "@/auth/naa-support";
-import Loader from "@/components/loader";
+import { Loader } from "@deck-pack/ui/components/system/loader";
 
 interface OfficeContextValue {
   isReady: boolean;

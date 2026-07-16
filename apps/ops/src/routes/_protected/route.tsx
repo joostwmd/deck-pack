@@ -14,7 +14,7 @@ import {
   BreadcrumbPage,
 } from "@deck-pack/ui/components/system/breadcrumb";
 import AppSidebar from "@/components/app-sidebar";
-import { ModeToggle } from "@/components/mode-toggle";
+import { ThemeToggle } from "@deck-pack/ui/components/composite/theme-toggle";
 import UserMenu from "@/components/user-menu";
 
 export const Route = createFileRoute("/_protected")({
@@ -55,7 +55,7 @@ function RouteComponent() {
             </Breadcrumb>
           </div>
           <div className="flex shrink-0 items-center gap-2 pr-2">
-            <ModeToggle />
+            <ThemeToggle variant="default" />
             <UserMenu />
           </div>
         </header>
