@@ -5,7 +5,7 @@ import { RouterProvider, createMemoryHistory, createRouter } from "@tanstack/rea
 import ReactDOM from "react-dom/client";
 
 import { setOfficeBearerMode } from "./auth/office-auth-mode";
-import Loader from "./components/loader";
+import { Loader } from "@deck-pack/ui/components/system/loader";
 
 function getInitialEntry() {
   const path = window.location.pathname === "/index.html" ? "/" : window.location.pathname;

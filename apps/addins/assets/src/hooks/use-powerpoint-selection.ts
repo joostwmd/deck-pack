@@ -1,10 +1,11 @@
 import type { Applicability, FormattingActionId, ShapeSelection } from "@deck-pack/presentation-formatting";
 import { formattingCommandRegistry } from "@deck-pack/presentation-formatting";
-import { readSelectedShapes, subscribeToSelectionChanges, type OfficeContextPort } from "@deck-pack/office-js";
+import type { OfficeContextPort } from "@deck-pack/office-js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { getDefaultCommandParams } from "@/lib/get-default-command-params";
+import { useServices } from "@/services/services-context";
 
 export type SelectionState =
   | { status: "unavailable" }
@@ -21,6 +22,7 @@ export type CommandApplicability = {
 
 export function usePowerPointSelection() {
   const { isOfficeAvailable } = useEnvironment();
+  const { office } = useServices();
   const enabled = isOfficeAvailable;
   const [state, setState] = useState<SelectionState>(enabled ? { status: "loading" } : { status: "unavailable" });
   const requestTokenRef = useRef(0);
@@ -43,7 +45,7 @@ export function usePowerPointSelection() {
     });
 
     try {
-      const selection = await readSelectedShapes();
+      const selection = await office.readSelectedShapes();
       if (requestTokenRef.current !== requestToken) {
         return;
       }
@@ -64,7 +66,7 @@ export function usePowerPointSelection() {
         message: error instanceof Error ? error.message : "Failed to read the current selection.",
       });
     }
-  }, [enabled]);
+  }, [enabled, office]);
 
   useEffect(() => {
     if (!enabled) {
@@ -81,10 +83,10 @@ export function usePowerPointSelection() {
     window.addEventListener("focus", onFocus);
 
     let unsubscribe: (() => Promise<void>) | undefined;
-    const office = (window as Window & { Office?: typeof Office }).Office;
+    const officeGlobal = (window as Window & { Office?: typeof Office }).Office;
 
-    if (office?.context?.document) {
-      void subscribeToSelectionChanges(office.context as unknown as OfficeContextPort, () => {
+    if (officeGlobal?.context?.document) {
+      void office.subscribeToSelectionChanges(officeGlobal.context as unknown as OfficeContextPort, () => {
         void refresh();
       }).then((subscription) => {
         unsubscribe = subscription.unsubscribe;
@@ -95,7 +97,7 @@ export function usePowerPointSelection() {
       window.removeEventListener("focus", onFocus);
       void unsubscribe?.();
     };
-  }, [enabled, refresh]);
+  }, [enabled, office, refresh]);
 
   const applicableCommands = useMemo<CommandApplicability[]>(() => {
     if (state.status !== "ready" && state.status !== "refreshing") {

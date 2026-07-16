@@ -1,15 +1,15 @@
+import type { AgendaConfigV1, AgendaEventType } from "@deck-pack/agenda";
 import {
   buildAnalyticsMetadata,
   buildConfigurationHash,
   markEventSynced,
   queuePendingEvent,
-  type AgendaConfigV1,
-  type AgendaEventType,
 } from "@deck-pack/agenda";
 
-import { trpcClient } from "@/utils/trpc";
+import type { TrpcClient } from "@/services/types";
 
 export async function syncAgendaToCloud(
+  api: TrpcClient,
   config: AgendaConfigV1,
   eventType: AgendaEventType,
   eventId: string,
@@ -25,7 +25,7 @@ export async function syncAgendaToCloud(
     metadata: buildAnalyticsMetadata(config),
   };
 
-  await trpcClient.agenda.sync.mutate(payload);
+  await api.agenda.sync.mutate(payload);
   return markEventSynced(config, eventId, config.revision);
 }
 
@@ -37,13 +37,14 @@ export function queueAgendaCloudEvent(
 }
 
 export async function retryPendingAgendaSync(
+  api: TrpcClient,
   config: AgendaConfigV1,
   eventType: AgendaEventType = "updated",
 ): Promise<AgendaConfigV1> {
   let working = config;
 
   for (const eventId of config.cloudSync.pendingEventIds) {
-    working = await syncAgendaToCloud(working, eventType, eventId);
+    working = await syncAgendaToCloud(api, working, eventType, eventId);
   }
 
   return working;

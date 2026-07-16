@@ -9,7 +9,7 @@ import {
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { getUserFacingApiErrorMessage } from "@/lib/user-facing-api-error";
-import { trpcClient } from "@/utils/trpc";
+import { useServices } from "@/services/services-context";
 
 interface ShortcutBindingsContextValue {
   shortcuts: ReadonlyMap<ShortcutId, ResolvedShortcut>;
@@ -28,6 +28,7 @@ interface ShortcutBindingsContextValue {
 const ShortcutBindingsContext = createContext<ShortcutBindingsContextValue | null>(null);
 
 export function ShortcutBindingsProvider({ children }: { children: ReactNode }) {
+  const { shortcutStore } = useServices();
   const [overrides, setOverrides] = useState<ShortcutOverride[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -42,7 +43,7 @@ export function ShortcutBindingsProvider({ children }: { children: ReactNode }) 
     setLoading(true);
     setLoadError(null);
     try {
-      const result = await trpcClient.shortcuts.list.query();
+      const result = await shortcutStore.list();
       setOverrides(result.overrides);
     } catch (error) {
       setOverrides([]);
@@ -50,7 +51,7 @@ export function ShortcutBindingsProvider({ children }: { children: ReactNode }) 
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [shortcutStore]);
 
   const getShortcut = useCallback(
     (id: ShortcutId) => {
@@ -65,7 +66,7 @@ export function ShortcutBindingsProvider({ children }: { children: ReactNode }) 
 
   const saveOverride = useCallback(
     async (id: ShortcutId, hotkey: string) => {
-      const saved = await trpcClient.shortcuts.setOverride.mutate({
+      const saved = await shortcutStore.setOverride({
         shortcutId: id,
         hotkey,
       });
@@ -82,18 +83,21 @@ export function ShortcutBindingsProvider({ children }: { children: ReactNode }) 
         return next;
       });
     },
-    [],
+    [shortcutStore],
   );
 
-  const resetOverride = useCallback(async (id: ShortcutId) => {
-    await trpcClient.shortcuts.resetOverride.mutate({ shortcutId: id });
-    setOverrides((current) => current.filter((override) => override.shortcutId !== id));
-  }, []);
+  const resetOverride = useCallback(
+    async (id: ShortcutId) => {
+      await shortcutStore.resetOverride({ shortcutId: id });
+      setOverrides((current) => current.filter((override) => override.shortcutId !== id));
+    },
+    [shortcutStore],
+  );
 
   const resetAll = useCallback(async () => {
-    await trpcClient.shortcuts.resetAll.mutate();
+    await shortcutStore.resetAll();
     setOverrides([]);
-  }, []);
+  }, [shortcutStore]);
 
   const findLocalConflict = useCallback(
     (id: ShortcutId, hotkey: string) => findInternalConflict(id, hotkey, shortcuts),

@@ -1,7 +1,5 @@
-import { officeClient } from "@deck-pack/office-js";
-
 import type { AssetDetailsResponse, AssetType } from "@/lib/asset-types";
-import { trackAssetInsertion } from "@/lib/track-asset-insertion";
+import type { InsertionTracker, OfficeService } from "@/services/types";
 import { urlToBase64 } from "@/lib/url-to-base64";
 
 export async function insertDirectImage({
@@ -10,18 +8,22 @@ export async function insertDirectImage({
   assetType,
   externalId,
   extraMetadata = {},
+  office,
+  tracker,
 }: {
   imageUrl: string;
   metadata: Record<string, string>;
   assetType: AssetType;
   externalId: string;
   extraMetadata?: Record<string, string>;
+  office: Pick<OfficeService, "insertImageWithMetadata">;
+  tracker: InsertionTracker;
 }) {
   const combinedMetadata = { ...metadata, ...extraMetadata };
   const base64 = await urlToBase64(imageUrl);
-  await officeClient.insertImageWithMetadata(base64, combinedMetadata);
+  await office.insertImageWithMetadata(base64, combinedMetadata);
 
-  trackAssetInsertion({
+  tracker.track({
     assetType,
     externalId,
     client: "office",
@@ -33,6 +35,10 @@ export async function insertAssetVariant(
   details: AssetDetailsResponse,
   variantId: string,
   assetType: AssetType,
+  deps: {
+    office: Pick<OfficeService, "insertImageWithMetadata" | "insertSvgWithMetadata">;
+    tracker: InsertionTracker;
+  },
   extraMetadata: Record<string, string> = {},
 ) {
   const variant = details.variants.find((item) => item.id === variantId);
@@ -54,6 +60,8 @@ export async function insertAssetVariant(
       assetType,
       externalId: details.id,
       extraMetadata: { variantId },
+      office: deps.office,
+      tracker: deps.tracker,
     });
     return;
   }
@@ -62,9 +70,9 @@ export async function insertAssetVariant(
     throw new Error("No SVG found");
   }
 
-  await officeClient.insertSvgWithMetadata(variant.insert.svg, metadata);
+  await deps.office.insertSvgWithMetadata(variant.insert.svg, metadata);
 
-  trackAssetInsertion({
+  deps.tracker.track({
     assetType,
     externalId: details.id,
     client: "office",

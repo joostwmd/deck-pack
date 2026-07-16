@@ -4,7 +4,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { HeadContent, Outlet, createRootRouteWithContext } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
-import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeProvider } from "@deck-pack/ui/components/system/theme-provider";
 import type { trpc } from "@/utils/trpc";
 
 import "../index.css";

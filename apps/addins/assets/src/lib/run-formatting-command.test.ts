@@ -1,12 +1,12 @@
 import { alignLeftCommand, gapIncreaseHorizontalCommand } from "@deck-pack/presentation-formatting";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { executeFormattingCommand } = vi.hoisted(() => ({
+const { executeFormattingCommand, runPowerPoint } = vi.hoisted(() => ({
   executeFormattingCommand: vi.fn(),
+  runPowerPoint: vi.fn(),
 }));
 
 vi.mock("@deck-pack/office-js", () => ({
-  executeFormattingCommand,
   FormattingUnavailableError: class FormattingUnavailableError extends Error {
     code: string;
     reason: string;
@@ -17,11 +17,15 @@ vi.mock("@deck-pack/office-js", () => ({
       this.reason = reason;
     }
   },
-  runPowerPoint: vi.fn(),
 }));
 
 import { FormattingUnavailableError } from "@deck-pack/office-js";
 import { runFormattingCommand } from "./run-formatting-command";
+
+const office = {
+  executeFormattingCommand,
+  runPowerPoint,
+};
 
 describe("runFormattingCommand", () => {
   beforeEach(() => {
@@ -31,26 +35,26 @@ describe("runFormattingCommand", () => {
   it("executes a known formatting command", async () => {
     executeFormattingCommand.mockResolvedValue({ commandId: "align-left", mutationCount: 1 });
 
-    await expect(runFormattingCommand("align-left", undefined)).resolves.toEqual({
+    await expect(runFormattingCommand(office, "align-left", undefined)).resolves.toEqual({
       ok: true,
       commandId: "align-left",
       mutationCount: 1,
     });
 
-    expect(executeFormattingCommand).toHaveBeenCalledWith(expect.any(Function), alignLeftCommand, undefined);
+    expect(executeFormattingCommand).toHaveBeenCalledWith(runPowerPoint, alignLeftCommand, undefined);
   });
 
   it("resolves default gap params when none are supplied", async () => {
     executeFormattingCommand.mockResolvedValue({ commandId: "gap-increase-horizontal", mutationCount: 1 });
 
-    await expect(runFormattingCommand("gap-increase-horizontal")).resolves.toEqual({
+    await expect(runFormattingCommand(office, "gap-increase-horizontal")).resolves.toEqual({
       ok: true,
       commandId: "gap-increase-horizontal",
       mutationCount: 1,
     });
 
     expect(executeFormattingCommand).toHaveBeenCalledWith(
-      expect.any(Function),
+      runPowerPoint,
       gapIncreaseHorizontalCommand,
       { mode: "increase", direction: "horizontal", value: 12 },
     );
@@ -59,7 +63,7 @@ describe("runFormattingCommand", () => {
   it("translates unavailable errors into stable UI results", async () => {
     executeFormattingCommand.mockRejectedValue(new FormattingUnavailableError("exact-shape-count", "Select exactly 2 objects"));
 
-    await expect(runFormattingCommand("swap-positions", undefined)).resolves.toEqual({
+    await expect(runFormattingCommand(office, "swap-positions", undefined)).resolves.toEqual({
       ok: false,
       code: "exact-shape-count",
       reason: "Select exactly 2 objects",
@@ -69,7 +73,7 @@ describe("runFormattingCommand", () => {
   it("returns an error result for execution failures", async () => {
     executeFormattingCommand.mockRejectedValue(new Error("PowerPoint API is not available"));
 
-    await expect(runFormattingCommand("align-left", undefined)).resolves.toEqual({
+    await expect(runFormattingCommand(office, "align-left", undefined)).resolves.toEqual({
       ok: false,
       code: "execution-failed",
       reason: "PowerPoint API is not available",

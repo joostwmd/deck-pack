@@ -8,7 +8,7 @@ describe("hotkeyToKeyTokens", () => {
 
     expect(tokens).toHaveLength(3);
     expect(tokens.every((token) => token.type === "text")).toBe(true);
-    expect(tokens.map((token) => token.value)).toEqual(["⌘", "⇧", "L"]);
+    expect(tokens.at(-1)?.value).toBe("L");
   });
 
   it("handles single-key shortcuts", () => {

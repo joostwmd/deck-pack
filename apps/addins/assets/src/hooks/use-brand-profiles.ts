@@ -2,7 +2,8 @@ import type { BrandProfileConfiguration } from "@deck-pack/presentation-check";
 import { useCallback, useEffect, useState } from "react";
 
 import { getUserFacingApiErrorMessage } from "@/lib/user-facing-api-error";
-import { trpcClient } from "@/utils/trpc";
+import { useServices } from "@/services/services-context";
+import type { TrpcClient } from "@/services/types";
 
 export interface BrandProfileSummary {
   id: string;
@@ -35,6 +36,7 @@ export interface BrandProfileDetail {
 }
 
 export function useBrandProfiles() {
+  const { api } = useServices();
   const [profiles, setProfiles] = useState<BrandProfileSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -43,14 +45,14 @@ export function useBrandProfiles() {
     setLoading(true);
     setError(null);
     try {
-      const rows = await trpcClient.brandProfiles.list.query();
+      const rows = await api.brandProfiles.list.query();
       setProfiles(rows as BrandProfileSummary[]);
     } catch (err) {
       setError(getUserFacingApiErrorMessage(err, "Failed to load themes"));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [api]);
 
   useEffect(() => {
     void refresh();
@@ -59,19 +61,25 @@ export function useBrandProfiles() {
   return { profiles, loading, error, refresh };
 }
 
-export async function fetchBrandProfile(profileId: string): Promise<BrandProfileDetail> {
-  return trpcClient.brandProfiles.get.query({ profileId }) as Promise<BrandProfileDetail>;
+export async function fetchBrandProfile(
+  api: TrpcClient,
+  profileId: string,
+): Promise<BrandProfileDetail> {
+  return api.brandProfiles.get.query({ profileId }) as Promise<BrandProfileDetail>;
 }
 
-export async function saveBrandProfile(input: {
-  profileId?: string;
-  name: string;
-  description?: string | null;
-  isDefault?: boolean;
-  configuration: BrandProfileConfiguration;
-}) {
+export async function saveBrandProfile(
+  api: TrpcClient,
+  input: {
+    profileId?: string;
+    name: string;
+    description?: string | null;
+    isDefault?: boolean;
+    configuration: BrandProfileConfiguration;
+  },
+) {
   if (input.profileId) {
-    return trpcClient.brandProfiles.update.mutate({
+    return api.brandProfiles.update.mutate({
       profileId: input.profileId,
       name: input.name,
       description: input.description,
@@ -79,7 +87,7 @@ export async function saveBrandProfile(input: {
     });
   }
 
-  return trpcClient.brandProfiles.create.mutate({
+  return api.brandProfiles.create.mutate({
     name: input.name,
     description: input.description,
     isDefault: input.isDefault,
@@ -87,14 +95,24 @@ export async function saveBrandProfile(input: {
   });
 }
 
-export async function duplicateBrandProfile(profileId: string, name: string) {
-  return trpcClient.brandProfiles.duplicate.mutate({ profileId, name });
+export async function duplicateBrandProfile(
+  api: TrpcClient,
+  profileId: string,
+  name: string,
+) {
+  return api.brandProfiles.duplicate.mutate({ profileId, name });
 }
 
-export async function setDefaultBrandProfile(profileId: string) {
-  return trpcClient.brandProfiles.setDefault.mutate({ profileId });
+export async function setDefaultBrandProfile(
+  api: TrpcClient,
+  profileId: string,
+) {
+  return api.brandProfiles.setDefault.mutate({ profileId });
 }
 
-export async function archiveBrandProfile(profileId: string) {
-  return trpcClient.brandProfiles.archive.mutate({ profileId });
+export async function archiveBrandProfile(
+  api: TrpcClient,
+  profileId: string,
+) {
+  return api.brandProfiles.archive.mutate({ profileId });
 }

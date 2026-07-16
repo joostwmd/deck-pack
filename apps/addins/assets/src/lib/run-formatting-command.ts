@@ -1,10 +1,8 @@
 import type { AnyFormattingCommand, FormattingActionId } from "@deck-pack/presentation-formatting";
 import { getFormattingCommandById } from "@deck-pack/presentation-formatting";
-import {
-  executeFormattingCommand,
-  FormattingUnavailableError,
-  runPowerPoint,
-} from "@deck-pack/office-js";
+import { FormattingUnavailableError } from "@deck-pack/office-js";
+
+import type { OfficeService } from "@/services/types";
 
 import { getDefaultCommandParams } from "./get-default-command-params";
 
@@ -13,6 +11,7 @@ export type FormattingCommandResult =
   | { ok: false; code: string; reason: string };
 
 export async function runFormattingCommand<TParams>(
+  office: Pick<OfficeService, "executeFormattingCommand" | "runPowerPoint">,
   commandId: FormattingActionId,
   params?: TParams,
 ): Promise<FormattingCommandResult> {
@@ -29,7 +28,11 @@ export async function runFormattingCommand<TParams>(
   const resolvedParams = (params ?? getDefaultCommandParams(commandId)) as TParams;
 
   try {
-    const result = await executeFormattingCommand(runPowerPoint, command as AnyFormattingCommand, resolvedParams);
+    const result = await office.executeFormattingCommand(
+      office.runPowerPoint,
+      command as AnyFormattingCommand,
+      resolvedParams,
+    );
     return {
       ok: true,
       commandId: result.commandId as FormattingActionId,
