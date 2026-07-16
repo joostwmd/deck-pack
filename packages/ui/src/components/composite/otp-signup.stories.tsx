@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
+import { ThemeProvider } from "../system/theme-provider";
 import { OtpSignup } from "./otp-signup";
 
 const meta = {
@@ -12,9 +13,11 @@ const meta = {
   tags: ["autodocs"],
   decorators: [
     (Story) => (
-      <div className="w-[400px]">
-        <Story />
-      </div>
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+        <div className="w-[400px] bg-background p-4 text-foreground">
+          <Story />
+        </div>
+      </ThemeProvider>
     ),
   ],
 } satisfies Meta<typeof OtpSignup>;

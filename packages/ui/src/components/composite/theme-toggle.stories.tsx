@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { ThemeToggle } from "../composite/theme-toggle";
+import { ThemeProvider } from "../system/theme-provider";
+import { ThemeToggle } from "./theme-toggle";
 
 const meta = {
   title: "Composite/ThemeToggle",
@@ -9,6 +10,15 @@ const meta = {
     layout: "centered",
   },
   tags: ["autodocs"],
+  decorators: [
+    (Story) => (
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+        <div className="bg-background p-4 text-foreground">
+          <Story />
+        </div>
+      </ThemeProvider>
+    ),
+  ],
   argTypes: {
     variant: {
       control: "select",
