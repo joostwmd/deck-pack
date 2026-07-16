@@ -13,6 +13,10 @@ import { EnvironmentProvider } from "@/contexts/EnvironmentContext";
 import { WebCanvasProvider } from "@/contexts/web-canvas-context";
 import { ShortcutBindingsProvider } from "@/providers/shortcut-bindings-provider";
 import { routeTree } from "@/routeTree.gen";
+import { ServicesProvider } from "@/services/services-context";
+import type { AppServices } from "@/services/types";
+import type { DeepPartial } from "@/testing/deep-partial";
+import { createTestServices } from "@/testing/test-services";
 import { createAuthClient } from "@/utils/auth";
 
 import type { AppShellMode, AssetsRoute } from "./routes";
@@ -39,21 +43,27 @@ function createStoryRouter(initialEntry: AssetsRoute) {
 export function StoryProviders({
   children,
   layout = "panel",
+  services,
 }: {
   children: ReactNode;
   layout?: keyof typeof layoutSizes;
+  services?: AppServices;
 }) {
+  const resolvedServices = useMemo(() => services ?? createTestServices(), [services]);
+
   return (
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-      <EnvironmentProvider>
-        <WebCanvasProvider>
-          <ShortcutBindingsProvider>
-            <div className={layoutSizes[layout]}>{children}</div>
-            <Toaster richColors />
-          </ShortcutBindingsProvider>
-        </WebCanvasProvider>
-      </EnvironmentProvider>
-    </ThemeProvider>
+    <ServicesProvider services={resolvedServices}>
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+        <EnvironmentProvider>
+          <WebCanvasProvider>
+            <ShortcutBindingsProvider>
+              <div className={layoutSizes[layout]}>{children}</div>
+              <Toaster richColors />
+            </ShortcutBindingsProvider>
+          </WebCanvasProvider>
+        </EnvironmentProvider>
+      </ThemeProvider>
+    </ServicesProvider>
   );
 }
 
@@ -76,6 +86,25 @@ export function AssetsRouterFrame({
 export function withAssetsPanel(Story: () => ReactNode) {
   return (
     <StoryProviders layout="panel">
+      <Story />
+    </StoryProviders>
+  );
+}
+
+export function withTestServices(services?: AppServices | DeepPartial<AppServices>) {
+  const resolvedServices =
+    services &&
+    typeof services === "object" &&
+    "api" in services &&
+    "auth" in services &&
+    "office" in services &&
+    "insertion" in services &&
+    "shortcutStore" in services
+      ? (services as AppServices)
+      : createTestServices(services as DeepPartial<AppServices> | undefined);
+
+  return (Story: () => ReactNode) => (
+    <StoryProviders layout="panel" services={resolvedServices}>
       <Story />
     </StoryProviders>
   );

@@ -1,6 +1,25 @@
 import type { AssetType } from "@/lib/asset-types";
-import { trpcClient } from "@/utils/trpc";
+import type { InsertionTracker } from "@/services/types";
+import type { TrpcClient } from "@/services/types";
 
+export function createInsertionTracker(api: TrpcClient): InsertionTracker {
+  return {
+    track({ assetType, externalId, client, metadata }) {
+      void api.addin.insertions.track
+        .mutate({
+          assetType,
+          externalId,
+          client,
+          metadata,
+        })
+        .catch((error) => {
+          console.error("Failed to track asset insertion:", error);
+        });
+    },
+  };
+}
+
+/** @deprecated Use createInsertionTracker(services.api) */
 export function trackAssetInsertion({
   assetType,
   externalId,
@@ -12,14 +31,12 @@ export function trackAssetInsertion({
   client: "office" | "web";
   metadata: Record<string, unknown>;
 }) {
-  void trpcClient.addin.insertions.track
-    .mutate({
+  void import("@/utils/trpc").then(({ getTrpcClient }) => {
+    createInsertionTracker(getTrpcClient()).track({
       assetType,
       externalId,
       client,
       metadata,
-    })
-    .catch((error) => {
-      console.error("Failed to track asset insertion:", error);
     });
+  });
 }

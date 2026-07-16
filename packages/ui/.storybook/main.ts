@@ -11,7 +11,11 @@ const repoRoot = path.resolve(storybookDir, "../../..");
 const assetsSrc = path.resolve(repoRoot, "apps/addins/assets/src");
 
 const config: StorybookConfig = {
-  stories: ["../src/**/*.stories.@(ts|tsx)", "../stories/**/*.stories.@(ts|tsx)"],
+  stories: [
+    "../src/**/*.stories.@(ts|tsx)",
+    "../stories/**/*.stories.@(ts|tsx)",
+    "../stories/**/*.mdx",
+  ],
   addons: [
     "@storybook/addon-docs",
     "@storybook/addon-a11y",
@@ -27,14 +31,6 @@ const config: StorybookConfig = {
           {
             find: "@deck-pack/env/web",
             replacement: path.resolve(storybookDir, "../stories/assets/mocks/env.ts"),
-          },
-          {
-            find: "@/utils/auth",
-            replacement: path.resolve(storybookDir, "../stories/assets/mocks/auth.ts"),
-          },
-          {
-            find: "@/utils/trpc",
-            replacement: path.resolve(storybookDir, "../stories/assets/mocks/trpc.ts"),
           },
           {
             find: /^@\/(.*)/,

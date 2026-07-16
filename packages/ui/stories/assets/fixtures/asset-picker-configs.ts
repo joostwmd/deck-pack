@@ -10,7 +10,7 @@ import {
   mockIconSearch,
   mockLogoDetails,
   mockLogoSearch,
-} from "./asset-search";
+} from "@/testing/fixtures/asset-search";
 
 export interface AssetPickerStoryConfig {
   assetType: AssetType;

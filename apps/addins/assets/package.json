@@ -14,7 +14,9 @@
     "sideload:stop": "office-addin-debugging stop ./manifests/manifest.dev.xml",
     "validate": "office-addin-manifest validate ./manifests/manifest.dev.xml",
     "validate:staging": "office-addin-manifest validate ./manifests/manifest.staging.xml",
-    "validate:prod": "office-addin-manifest validate ./manifests/manifest.prod.xml"
+    "validate:prod": "office-addin-manifest validate ./manifests/manifest.prod.xml",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@deck-pack/agenda": "workspace:*",
@@ -45,17 +47,20 @@
     "@deck-pack/config": "workspace:*",
     "@tanstack/react-router-devtools": "^1.166.13",
     "@tanstack/router-plugin": "^1.167.22",
+    "@testing-library/react": "^16.3.0",
     "@types/node": "catalog:",
     "@types/office-js": "^1.0.514",
     "@types/react": "^19.2.14",
     "@types/react-dom": "catalog:",
     "@vitejs/plugin-react": "^6.0.1",
+    "jsdom": "^26.1.0",
     "office-addin-debugging": "^6.0.3",
     "office-addin-dev-certs": "^2.0.3",
     "office-addin-manifest": "^2.0.3",
     "postcss": "^8.5.10",
     "tailwindcss": "^4.2.2",
     "typescript": "catalog:",
-    "vite": "^8.0.8"
+    "vite": "^8.0.8",
+    "vitest": "catalog:"
   }
 }

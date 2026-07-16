@@ -1,9 +1,11 @@
 import { Image } from "@phosphor-icons/react";
 
 import { AssetSearchPanel } from "@/components/asset-picker/asset-search-panel";
-import { trpcClient } from "@/utils/trpc";
+import { useServices } from "@/services/services-context";
 
 export function LogosPanel() {
+  const { api } = useServices();
+
   return (
     <AssetSearchPanel
       assetType="logo"
@@ -14,9 +16,9 @@ export function LogosPanel() {
       noResultsDescription="Try searching for a different brand or company name."
       noVariantsDescription="This brand has no logo variants."
       search={(query) =>
-        trpcClient.addin.logos.search.query({ query }).then((response) => response.results)
+        api.addin.logos.search.query({ query }).then((response) => response.results)
       }
-      getDetails={(id) => trpcClient.addin.logos.getDetails.query({ externalId: id })}
+      getDetails={(id) => api.addin.logos.getDetails.query({ externalId: id })}
     />
   );
 }

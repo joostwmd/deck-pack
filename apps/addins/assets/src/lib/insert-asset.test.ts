@@ -5,26 +5,8 @@ const { insertImageWithMetadata, mutate } = vi.hoisted(() => ({
   mutate: vi.fn(),
 }));
 
-vi.mock("@deck-pack/office-js", () => ({
-  officeClient: {
-    insertImageWithMetadata,
-  },
-}));
-
 vi.mock("@/lib/url-to-base64", () => ({
   urlToBase64: vi.fn().mockResolvedValue("base64-image"),
-}));
-
-vi.mock("@/utils/trpc", () => ({
-  trpcClient: {
-    addin: {
-      insertions: {
-        track: {
-          mutate,
-        },
-      },
-    },
-  },
 }));
 
 import { insertDirectImage } from "./insert-asset";
@@ -46,6 +28,12 @@ describe("insertDirectImage", () => {
       },
       assetType: "photo",
       externalId: "2014422",
+      office: { insertImageWithMetadata },
+      tracker: {
+        track: (input) => {
+          mutate(input);
+        },
+      },
     });
 
     expect(insertImageWithMetadata).toHaveBeenCalledWith("base64-image", {

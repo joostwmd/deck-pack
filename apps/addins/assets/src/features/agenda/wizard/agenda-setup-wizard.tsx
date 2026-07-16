@@ -19,11 +19,13 @@ import { toast } from "sonner";
 import { EmptyState } from "@/components/asset-picker/empty-state";
 import { InsertSection } from "@/components/asset-picker/insert-section";
 import { ScreenHeader } from "@/components/asset-picker/screen-header";
+import { useInsertSectionShortcutDefs } from "@/hooks/use-resolved-shortcut-defs";
 import { queueAgendaCloudEvent, syncAgendaToCloud } from "@/lib/sync-agenda";
 import {
   AUTHENTICATION_REQUIRED_MESSAGE,
   isAuthenticationError,
 } from "@/lib/user-facing-api-error";
+import { useServices } from "@/services/services-context";
 
 type WizardStep = "structure" | "template" | "mapping" | "review";
 
@@ -39,6 +41,8 @@ interface AgendaSetupWizardProps {
 }
 
 export function AgendaSetupWizard({ onComplete }: AgendaSetupWizardProps) {
+  const { api } = useServices();
+  const insertSectionShortcutDefs = useInsertSectionShortcutDefs();
   const [step, setStep] = useState<WizardStep>("structure");
   const [sections, setSections] = useState<DraftSection[]>([]);
   const [templateSlide, setTemplateSlide] = useState<{
@@ -185,6 +189,7 @@ export function AgendaSetupWizard({ onComplete }: AgendaSetupWizardProps) {
       const eventId = crypto.randomUUID();
       try {
         await syncAgendaToCloud(
+          api,
           config,
           "created",
           eventId,
@@ -207,6 +212,7 @@ export function AgendaSetupWizard({ onComplete }: AgendaSetupWizardProps) {
       setCreating(false);
     }
   }, [
+    api,
     capacity,
     headingShape,
     mappingErrors.length,
@@ -421,6 +427,7 @@ export function AgendaSetupWizard({ onComplete }: AgendaSetupWizardProps) {
         insertingLabel="Creating..."
         isInserting={creating}
         disabled
+        shortcutDefs={insertSectionShortcutDefs}
         onClick={() => undefined}
       />
     </div>

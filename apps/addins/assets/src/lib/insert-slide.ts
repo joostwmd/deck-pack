@@ -1,8 +1,6 @@
-import { officeClient } from "@deck-pack/office-js";
-
 import type { SlideSearchResult } from "@/features/slides/types";
 import { fetchFileAsBase64 } from "@/lib/fetch-file-as-base64";
-import { trackAssetInsertion } from "@/lib/track-asset-insertion";
+import type { InsertionTracker, OfficeService } from "@/services/types";
 
 function buildSlideMetadata(slide: SlideSearchResult): Record<string, string> {
   return {
@@ -13,11 +11,17 @@ function buildSlideMetadata(slide: SlideSearchResult): Record<string, string> {
   };
 }
 
-export async function insertSlide(slide: SlideSearchResult) {
+export async function insertSlide(
+  slide: SlideSearchResult,
+  deps: {
+    office: Pick<OfficeService, "insertSlidesFromBase64">;
+    tracker: InsertionTracker;
+  },
+) {
   const base64 = await fetchFileAsBase64(slide.presentationUrl);
-  await officeClient.insertSlidesFromBase64(base64);
+  await deps.office.insertSlidesFromBase64(base64);
 
-  trackAssetInsertion({
+  deps.tracker.track({
     assetType: "slide",
     externalId: slide.id,
     client: "office",

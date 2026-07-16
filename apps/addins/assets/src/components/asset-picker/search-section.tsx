@@ -2,7 +2,7 @@ import { cn } from "@deck-pack/ui/lib/utils";
 import type { ReactNode, Ref } from "react";
 
 import { ShortcutHints } from "@/components/shortcut-hint";
-import { useSearchNavigationShortcutDefs } from "@/hooks/use-resolved-shortcut-defs";
+import type { ShortcutDef } from "@/lib/shortcuts";
 
 import { SearchBar } from "./search-bar";
 
@@ -16,6 +16,7 @@ interface SearchSectionProps {
   resultsId?: string;
   activeDescendantId?: string;
   isExpanded?: boolean;
+  shortcutDefs: ShortcutDef[];
   children?: ReactNode;
   className?: string;
 }
@@ -30,11 +31,10 @@ export function SearchSection({
   resultsId,
   activeDescendantId,
   isExpanded = false,
+  shortcutDefs,
   children,
   className,
 }: SearchSectionProps) {
-  const searchNavigationShortcuts = useSearchNavigationShortcutDefs();
-
   return (
     <section className={cn("flex flex-col gap-4", className)}>
       <SearchBar
@@ -49,7 +49,7 @@ export function SearchSection({
         isExpanded={isExpanded}
       />
 
-      <ShortcutHints defs={searchNavigationShortcuts} className="gap-1" />
+      <ShortcutHints defs={shortcutDefs} className="gap-1" />
 
       {children}
     </section>

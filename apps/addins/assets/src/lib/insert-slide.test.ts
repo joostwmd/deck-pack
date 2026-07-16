@@ -1,23 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { insertSlidesFromBase64, fetchFileAsBase64, trackAssetInsertion } = vi.hoisted(() => ({
+const { insertSlidesFromBase64, fetchFileAsBase64, track } = vi.hoisted(() => ({
   insertSlidesFromBase64: vi.fn(),
   fetchFileAsBase64: vi.fn(),
-  trackAssetInsertion: vi.fn(),
-}));
-
-vi.mock("@deck-pack/office-js", () => ({
-  officeClient: {
-    insertSlidesFromBase64,
-  },
+  track: vi.fn(),
 }));
 
 vi.mock("@/lib/fetch-file-as-base64", () => ({
   fetchFileAsBase64,
-}));
-
-vi.mock("@/lib/track-asset-insertion", () => ({
-  trackAssetInsertion,
 }));
 
 import { insertSlide } from "./insert-slide";
@@ -33,21 +23,26 @@ const slide = {
   createdAt: "2026-01-15T10:00:00.000Z",
 };
 
+const deps = {
+  office: { insertSlidesFromBase64 },
+  tracker: { track },
+};
+
 describe("insertSlide", () => {
   beforeEach(() => {
     insertSlidesFromBase64.mockReset();
     fetchFileAsBase64.mockReset();
-    trackAssetInsertion.mockReset();
+    track.mockReset();
     fetchFileAsBase64.mockResolvedValue("UEsDBA==");
     insertSlidesFromBase64.mockResolvedValue(undefined);
   });
 
   it("fetches the presentation, inserts it, and tracks the event", async () => {
-    await insertSlide(slide);
+    await insertSlide(slide, deps);
 
     expect(fetchFileAsBase64).toHaveBeenCalledWith("/mock-slides/title-hero.pptx");
     expect(insertSlidesFromBase64).toHaveBeenCalledWith("UEsDBA==");
-    expect(trackAssetInsertion).toHaveBeenCalledWith({
+    expect(track).toHaveBeenCalledWith({
       assetType: "slide",
       externalId: "slide-title-hero",
       client: "office",
@@ -63,8 +58,8 @@ describe("insertSlide", () => {
   it("propagates fetch failures", async () => {
     fetchFileAsBase64.mockRejectedValue(new Error("Failed to fetch file (500)"));
 
-    await expect(insertSlide(slide)).rejects.toThrow("Failed to fetch file (500)");
+    await expect(insertSlide(slide, deps)).rejects.toThrow("Failed to fetch file (500)");
     expect(insertSlidesFromBase64).not.toHaveBeenCalled();
-    expect(trackAssetInsertion).not.toHaveBeenCalled();
+    expect(track).not.toHaveBeenCalled();
   });
 });

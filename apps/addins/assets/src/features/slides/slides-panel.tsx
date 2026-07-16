@@ -1,11 +1,13 @@
 import { SlideSearchPanel } from "@/features/slides/slide-search-panel";
-import { trpcClient } from "@/utils/trpc";
+import { useServices } from "@/services/services-context";
 
 export function SlidesPanel() {
+  const { api } = useServices();
+
   return (
     <SlideSearchPanel
       search={({ query, filters, sort }) =>
-        trpcClient.addin.slides.search.query({
+        api.addin.slides.search.query({
           query,
           category: filters.category,
           tags: filters.tags,

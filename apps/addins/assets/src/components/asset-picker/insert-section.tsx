@@ -3,13 +3,14 @@ import { cn } from "@deck-pack/ui/lib/utils";
 import { CircleNotch } from "@phosphor-icons/react";
 
 import { ShortcutHints } from "@/components/shortcut-hint";
-import { useInsertSectionShortcutDefs } from "@/hooks/use-resolved-shortcut-defs";
+import type { ShortcutDef } from "@/lib/shortcuts";
 
 interface InsertSectionProps {
   disabled?: boolean;
   isInserting?: boolean;
   label?: string;
   insertingLabel?: string;
+  shortcutDefs: ShortcutDef[];
   onClick: () => void | Promise<void>;
   className?: string;
 }
@@ -19,14 +20,13 @@ export function InsertSection({
   isInserting = false,
   label = "Insert",
   insertingLabel = "Inserting...",
+  shortcutDefs,
   onClick,
   className,
 }: InsertSectionProps) {
-  const insertSectionShortcuts = useInsertSectionShortcutDefs();
-
   return (
     <section className={cn("sticky bottom-0 flex flex-col gap-2 bg-background pt-2", className)}>
-      <ShortcutHints defs={insertSectionShortcuts} />
+      <ShortcutHints defs={shortcutDefs} />
 
       <Button
         className="w-full"

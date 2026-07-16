@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/asset-picker/empty-state";
 import { ErrorState } from "@/components/asset-picker/error-state";
 import { InsertSection } from "@/components/asset-picker/insert-section";
 import { ScreenHeader } from "@/components/asset-picker/screen-header";
+import { useInsertSectionShortcutDefs } from "@/hooks/use-resolved-shortcut-defs";
 import { BrandProfileEditor } from "@/features/themes/brand-profile-editor";
 import { ThemeCreateDialog, ThemeImportReview } from "@/features/themes/theme-create-dialog";
 import {
@@ -21,11 +22,14 @@ import {
   useBrandProfiles,
 } from "@/hooks/use-brand-profiles";
 import { getUserFacingApiErrorMessage } from "@/lib/user-facing-api-error";
+import { useServices } from "@/services/services-context";
 
 type ThemesView = "list" | "create" | "edit" | "import-review";
 
 export function ThemesPanel() {
+  const { api } = useServices();
   const { profiles, loading, error, refresh } = useBrandProfiles();
+  const insertSectionShortcutDefs = useInsertSectionShortcutDefs();
   const [view, setView] = useState<ThemesView>("list");
   const [createOpen, setCreateOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -46,7 +50,7 @@ export function ThemesPanel() {
   const handleSave = useCallback(async () => {
     setSaving(true);
     try {
-      await saveBrandProfile({
+      await saveBrandProfile(api, {
         profileId: editingId ?? undefined,
         name: name.trim(),
         description: description.trim() || null,
@@ -61,7 +65,7 @@ export function ThemesPanel() {
     } finally {
       setSaving(false);
     }
-  }, [configuration, description, editingId, name, refresh, resetEditor]);
+  }, [api, configuration, description, editingId, name, refresh, resetEditor]);
 
   if (view !== "list") {
     return (
@@ -135,6 +139,7 @@ export function ThemesPanel() {
             isInserting={saving}
             label="Save theme"
             insertingLabel="Saving..."
+            shortcutDefs={insertSectionShortcutDefs}
             onClick={() => void handleSave()}
           />
           <Button type="button" variant="ghost" onClick={() => setView("list")}>
@@ -215,7 +220,7 @@ export function ThemesPanel() {
                   size="sm"
                   variant="ghost"
                   onClick={() =>
-                    void duplicateBrandProfile(profile.id, `${profile.name} copy`)
+                    void duplicateBrandProfile(api, profile.id, `${profile.name} copy`)
                       .then(refresh)
                       .then(() => toast.success("Theme duplicated"))
                       .catch((err) =>
@@ -230,7 +235,7 @@ export function ThemesPanel() {
                     type="button"
                     size="sm"
                     variant="ghost"
-                    onClick={() => void setDefaultBrandProfile(profile.id).then(refresh)}
+                    onClick={() => void setDefaultBrandProfile(api, profile.id).then(refresh)}
                   >
                     Make default
                   </Button>
@@ -239,7 +244,7 @@ export function ThemesPanel() {
                   type="button"
                   size="sm"
                   variant="ghost"
-                  onClick={() => void archiveBrandProfile(profile.id).then(refresh)}
+                  onClick={() => void archiveBrandProfile(api, profile.id).then(refresh)}
                 >
                   Archive
                 </Button>

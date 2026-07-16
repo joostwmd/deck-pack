@@ -1,11 +1,13 @@
 import { PhotoSearchPanel } from "@/features/photos/photo-search-panel";
-import { trpcClient } from "@/utils/trpc";
+import { useServices } from "@/services/services-context";
 
 export function PhotosPanel() {
+  const { api } = useServices();
+
   return (
     <PhotoSearchPanel
       search={({ query, page, filters }) =>
-        trpcClient.addin.photos.search.query({
+        api.addin.photos.search.query({
           query,
           page,
           orientation: filters.orientation,

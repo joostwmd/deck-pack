@@ -21,11 +21,13 @@ import { toast } from "sonner";
 import { EmptyState } from "@/components/asset-picker/empty-state";
 import { InsertSection } from "@/components/asset-picker/insert-section";
 import { ScreenHeader } from "@/components/asset-picker/screen-header";
+import { useInsertSectionShortcutDefs } from "@/hooks/use-resolved-shortcut-defs";
 import { queueAgendaCloudEvent, retryPendingAgendaSync, syncAgendaToCloud } from "@/lib/sync-agenda";
 import {
   AUTHENTICATION_REQUIRED_MESSAGE,
   isAuthenticationError,
 } from "@/lib/user-facing-api-error";
+import { useServices } from "@/services/services-context";
 
 import type { AgendaChangePreview, AgendaDraftSection, AgendaEditorStatus } from "../types";
 
@@ -59,6 +61,8 @@ function deriveStatus(
 }
 
 export function AgendaEditor({ initialConfig, onConfigChange }: AgendaEditorProps) {
+  const { api } = useServices();
+  const insertSectionShortcutDefs = useInsertSectionShortcutDefs();
   const [config, setConfig] = useState(initialConfig);
   const [draftSections, setDraftSections] = useState<AgendaDraftSection[]>([]);
   const [issues, setIssues] = useState<ReturnType<typeof reconcileAgendaConfig>["issues"]>([]);
@@ -97,14 +101,14 @@ export function AgendaEditor({ initialConfig, onConfigChange }: AgendaEditorProp
 
   useEffect(() => {
     if (config.cloudSync.pendingEventIds.length > 0) {
-      void retryPendingAgendaSync(config, "updated")
+      void retryPendingAgendaSync(api, config, "updated")
         .then((synced) => {
           setConfig(synced);
           onConfigChange(synced);
         })
         .catch(() => undefined);
     }
-  }, [config, onConfigChange]);
+  }, [api, config, onConfigChange]);
 
   const status = useMemo(
     () => deriveStatus(config, draftSections, issues),
@@ -168,6 +172,7 @@ export function AgendaEditor({ initialConfig, onConfigChange }: AgendaEditorProp
       const eventId = crypto.randomUUID();
       try {
         const synced = await syncAgendaToCloud(
+          api,
           nextConfig,
           status === "repair_required" ? "repaired" : "updated",
           eventId,
@@ -194,7 +199,7 @@ export function AgendaEditor({ initialConfig, onConfigChange }: AgendaEditorProp
     } finally {
       setUpdating(false);
     }
-  }, [config, draftSections, onConfigChange, refresh, status]);
+  }, [api, config, draftSections, onConfigChange, refresh, status]);
 
   const statusLabel =
     status === "up_to_date"
@@ -302,6 +307,7 @@ export function AgendaEditor({ initialConfig, onConfigChange }: AgendaEditorProp
           insertingLabel="Updating..."
           isInserting={updating}
           disabled={status === "up_to_date" || status === "template_invalid" || updating}
+          shortcutDefs={insertSectionShortcutDefs}
           onClick={() => void updateAgenda()}
         />
       </div>

@@ -1,52 +1,44 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 
-import { AssetSearchPanel } from "@/components/asset-picker/asset-search-panel";
+import { FlagsPanel } from "@/features/flags/flags-panel";
 
-import { withAssetsPanel } from "../decorators";
-import { flagsPickerConfig } from "../fixtures/asset-picker-configs";
+import { withAssetsPanel, withTestServices } from "../decorators";
 import { mockEmptySearch, mockFailingSearch } from "../fixtures/asset-search";
-
-const { searchHint, ...flagsArgs } = flagsPickerConfig;
+import { flagsPickerConfig } from "../fixtures/asset-picker-configs";
+import { createFlagsTestServices } from "../fixtures/panel-test-services";
 
 const meta = {
   title: "Assets/AssetPicker/Flags",
-  component: AssetSearchPanel,
-  decorators: [withAssetsPanel],
+  component: FlagsPanel,
+  tags: ["autodocs"],
   parameters: {
     layout: "fullscreen",
     docs: {
       description: {
-        component: `Mock flag search panel. ${searchHint} Wait ~500ms after typing for debounced search.`,
+        component: `Connected flag search panel using \`FlagsPanel\` and test services. ${flagsPickerConfig.searchHint} Wait ~500ms after typing for debounced search.`,
       },
     },
   },
-} satisfies Meta<typeof AssetSearchPanel>;
+} satisfies Meta<typeof FlagsPanel>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+/**
+ * @summary Default flag search panel wired to mock tRPC handlers via ServicesProvider.
+ */
 export const Default: Story = {
-  args: flagsArgs,
+  decorators: [withAssetsPanel],
+  render: () => <FlagsPanel />,
 };
 
-export const NoResults: Story = {
-  args: {
-    ...flagsArgs,
-    search: mockEmptySearch,
-  },
-};
-
-export const SearchError: Story = {
-  args: {
-    ...flagsArgs,
-    search: mockFailingSearch,
-  },
-};
-
-/** Types a query, selects a result, and loads variants — documents the full flow. */
+/**
+ * @summary Types a query, selects a result, and loads variants — documents the full flow.
+ */
 export const SelectCountry: Story = {
-  args: flagsArgs,
+  decorators: [withAssetsPanel],
+  render: () => <FlagsPanel />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const input = canvas.getByPlaceholderText(/search flags/i);
@@ -67,6 +59,50 @@ export const SelectCountry: Story = {
       () => {
         expect(canvas.getByText("4:3")).toBeInTheDocument();
         expect(canvas.getByText("1:1")).toBeInTheDocument();
+      },
+      { timeout: 3000 },
+    );
+  },
+};
+
+/**
+ * @summary Empty search results state after a query with no matches.
+ */
+export const NoResults: Story = {
+  tags: ["!manifest"],
+  decorators: [withTestServices(createFlagsTestServices(mockEmptySearch))],
+  render: () => <FlagsPanel />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const input = canvas.getByPlaceholderText(/search flags/i);
+
+    await userEvent.type(input, "zzzz");
+
+    await waitFor(
+      () => {
+        expect(canvas.getByText(/no flags found/i)).toBeInTheDocument();
+      },
+      { timeout: 3000 },
+    );
+  },
+};
+
+/**
+ * @summary Search service failure with retry affordance.
+ */
+export const SearchError: Story = {
+  tags: ["!manifest"],
+  decorators: [withTestServices(createFlagsTestServices(mockFailingSearch))],
+  render: () => <FlagsPanel />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const input = canvas.getByPlaceholderText(/search flags/i);
+
+    await userEvent.type(input, "nether");
+
+    await waitFor(
+      () => {
+        expect(canvas.getByRole("alert")).toBeInTheDocument();
       },
       { timeout: 3000 },
     );

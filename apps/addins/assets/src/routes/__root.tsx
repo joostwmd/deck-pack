@@ -6,6 +6,7 @@ import { ThemeProvider } from "@deck-pack/ui/components/system/theme-provider";
 import { EnvironmentProvider } from "@/contexts/EnvironmentContext";
 import { OfficeProvider } from "@/contexts/OfficeContext";
 import { AppHotkeysProvider } from "@/providers/app-hotkeys-provider";
+import { ServicesProvider } from "@/services/services-context";
 
 import "../index.css";
 
@@ -46,9 +47,11 @@ function RootComponent() {
       >
         <OfficeProvider>
           <EnvironmentProvider>
-            <AppHotkeysProvider>
-              <Outlet />
-            </AppHotkeysProvider>
+            <ServicesProvider>
+              <AppHotkeysProvider>
+                <Outlet />
+              </AppHotkeysProvider>
+            </ServicesProvider>
           </EnvironmentProvider>
         </OfficeProvider>
         <Toaster />

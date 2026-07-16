@@ -1,9 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { insertSvgWithMetadata, insertImageWithMetadata, mutate } = vi.hoisted(() => ({
+const { insertSvgWithMetadata, insertImageWithMetadata } = vi.hoisted(() => ({
   insertSvgWithMetadata: vi.fn(),
   insertImageWithMetadata: vi.fn(),
-  mutate: vi.fn(),
 }));
 
 vi.mock("@deck-pack/office-js", () => ({
@@ -17,23 +16,11 @@ vi.mock("@/lib/url-to-base64", () => ({
   urlToBase64: vi.fn().mockResolvedValue("base64-image"),
 }));
 
-vi.mock("@/utils/trpc", () => ({
-  trpcClient: {
-    addin: {
-      insertions: {
-        track: {
-          mutate,
-        },
-      },
-    },
-  },
-}));
-
 import { DEFAULT_HARVEY_BALL_CONFIG } from "./harvey-ball-svg";
 import { HARVEY_BALL_EXTERNAL_ID } from "./insert-harvey-ball";
 import {
   createCanvasStrategy,
-  officeInsertionStrategy,
+  officeInsertionStrategyWithTracker,
   type InsertionItem,
 } from "./insertion-strategy";
 
@@ -63,20 +50,19 @@ describe("insertion strategy", () => {
   beforeEach(() => {
     insertSvgWithMetadata.mockReset();
     insertImageWithMetadata.mockReset();
-    mutate.mockReset();
     insertSvgWithMetadata.mockResolvedValue("shape-1");
-    mutate.mockResolvedValue({ id: "event-1" });
   });
 
   it("inserts SVG with metadata via office strategy", async () => {
+    const track = vi.fn();
+    const strategy = officeInsertionStrategyWithTracker({ track });
     const item = createHarveyBallItem(75);
 
-    await officeInsertionStrategy.insert(item);
+    await strategy.insert(item);
 
     expect(insertSvgWithMetadata).toHaveBeenCalledTimes(1);
     expect(insertSvgWithMetadata).toHaveBeenCalledWith(item.insert.svg, item.metadata);
-
-    expect(mutate).toHaveBeenCalledWith({
+    expect(track).toHaveBeenCalledWith({
       assetType: "harvey_ball",
       externalId: HARVEY_BALL_EXTERNAL_ID,
       client: "office",
@@ -86,13 +72,17 @@ describe("insertion strategy", () => {
 
   it("adds items to the web canvas via canvas strategy", async () => {
     const addToCanvas = vi.fn();
-    const strategy = createCanvasStrategy({
-      items: [],
-      addToCanvas,
-      updateItemPosition: vi.fn(),
-      removeItem: vi.fn(),
-      clearCanvas: vi.fn(),
-    });
+    const track = vi.fn();
+    const strategy = createCanvasStrategy(
+      {
+        items: [],
+        addToCanvas,
+        updateItemPosition: vi.fn(),
+        removeItem: vi.fn(),
+        clearCanvas: vi.fn(),
+      },
+      { track },
+    );
 
     const item = createHarveyBallItem(25);
     await strategy.insert(item);
@@ -104,8 +94,7 @@ describe("insertion strategy", () => {
       insert: item.insert,
       metadata: item.metadata,
     });
-
-    expect(mutate).toHaveBeenCalledWith({
+    expect(track).toHaveBeenCalledWith({
       assetType: "harvey_ball",
       externalId: HARVEY_BALL_EXTERNAL_ID,
       client: "web",

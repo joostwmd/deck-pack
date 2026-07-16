@@ -1,9 +1,11 @@
 import { Flag } from "@phosphor-icons/react";
 
 import { AssetSearchPanel } from "@/components/asset-picker/asset-search-panel";
-import { trpcClient } from "@/utils/trpc";
+import { useServices } from "@/services/services-context";
 
 export function FlagsPanel() {
+  const { api } = useServices();
+
   return (
     <AssetSearchPanel
       assetType="flag"
@@ -14,9 +16,9 @@ export function FlagsPanel() {
       noResultsDescription="Try searching for a different country name or code."
       noVariantsDescription="This flag has no variants."
       search={(query) =>
-        trpcClient.addin.flags.search.query({ query }).then((response) => response.results)
+        api.addin.flags.search.query({ query }).then((response) => response.results)
       }
-      getDetails={(id) => trpcClient.addin.flags.getDetails.query({ externalId: id })}
+      getDetails={(id) => api.addin.flags.getDetails.query({ externalId: id })}
     />
   );
 }
