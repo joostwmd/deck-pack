@@ -68,3 +68,6 @@ terraform/**/*.tfvars
 apps/portal/src/routeTree.gen.ts
 apps/ops/src/routeTree.gen.ts
 apps/addins/assets/src/routeTree.gen.ts
+
+# Cursor
+.cursor
