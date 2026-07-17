@@ -27,7 +27,7 @@ import { useServices } from "@/services/services-context";
 type ThemesView = "list" | "create" | "edit" | "import-review";
 
 export function ThemesPanel() {
-  const { api } = useServices();
+  const { brandProfiles } = useServices();
   const { profiles, loading, error, refresh } = useBrandProfiles();
   const insertSectionShortcutDefs = useInsertSectionShortcutDefs();
   const [view, setView] = useState<ThemesView>("list");
@@ -50,7 +50,7 @@ export function ThemesPanel() {
   const handleSave = useCallback(async () => {
     setSaving(true);
     try {
-      await saveBrandProfile(api, {
+      await saveBrandProfile(brandProfiles, {
         profileId: editingId ?? undefined,
         name: name.trim(),
         description: description.trim() || null,
@@ -65,7 +65,7 @@ export function ThemesPanel() {
     } finally {
       setSaving(false);
     }
-  }, [api, configuration, description, editingId, name, refresh, resetEditor]);
+  }, [brandProfiles, configuration, description, editingId, name, refresh, resetEditor]);
 
   if (view !== "list") {
     return (
@@ -220,7 +220,7 @@ export function ThemesPanel() {
                   size="sm"
                   variant="ghost"
                   onClick={() =>
-                    void duplicateBrandProfile(api, profile.id, `${profile.name} copy`)
+                    void duplicateBrandProfile(brandProfiles, profile.id, `${profile.name} copy`)
                       .then(refresh)
                       .then(() => toast.success("Theme duplicated"))
                       .catch((err) =>
@@ -235,7 +235,7 @@ export function ThemesPanel() {
                     type="button"
                     size="sm"
                     variant="ghost"
-                    onClick={() => void setDefaultBrandProfile(api, profile.id).then(refresh)}
+                    onClick={() => void setDefaultBrandProfile(brandProfiles, profile.id).then(refresh)}
                   >
                     Make default
                   </Button>
@@ -244,7 +244,7 @@ export function ThemesPanel() {
                   type="button"
                   size="sm"
                   variant="ghost"
-                  onClick={() => void archiveBrandProfile(api, profile.id).then(refresh)}
+                  onClick={() => void archiveBrandProfile(brandProfiles, profile.id).then(refresh)}
                 >
                   Archive
                 </Button>

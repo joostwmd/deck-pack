@@ -3,6 +3,7 @@ import { RouterProvider, createRouter } from "@tanstack/react-router";
 import ReactDOM from "react-dom/client";
 
 import { Loader } from "@deck-pack/ui/components/system/loader";
+import { ServicesProvider } from "./services/services-context";
 import { routeTree } from "./routeTree.gen";
 import { queryClient, trpc } from "./utils/trpc";
 import { authClient } from "./utils/auth";
@@ -14,7 +15,11 @@ const router = createRouter({
   defaultPendingComponent: () => <Loader />,
   context: { trpc, queryClient, authClient },
   Wrap: function WrapComponent({ children }: { children: React.ReactNode }) {
-    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+    return (
+      <ServicesProvider>
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      </ServicesProvider>
+    );
   },
 });
 

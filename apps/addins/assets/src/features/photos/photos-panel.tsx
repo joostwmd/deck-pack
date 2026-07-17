@@ -2,12 +2,12 @@ import { PhotoSearchPanel } from "@/features/photos/photo-search-panel";
 import { useServices } from "@/services/services-context";
 
 export function PhotosPanel() {
-  const { api } = useServices();
+  const { assets } = useServices();
 
   return (
     <PhotoSearchPanel
       search={({ query, page, filters }) =>
-        api.addin.photos.search.query({
+        assets.photos.search({
           query,
           page,
           orientation: filters.orientation,

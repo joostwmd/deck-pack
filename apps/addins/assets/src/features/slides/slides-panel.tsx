@@ -2,12 +2,12 @@ import { SlideSearchPanel } from "@/features/slides/slide-search-panel";
 import { useServices } from "@/services/services-context";
 
 export function SlidesPanel() {
-  const { api } = useServices();
+  const { assets } = useServices();
 
   return (
     <SlideSearchPanel
       search={({ query, filters, sort }) =>
-        api.addin.slides.search.query({
+        assets.slides.search({
           query,
           category: filters.category,
           tags: filters.tags,

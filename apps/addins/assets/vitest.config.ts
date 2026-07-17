@@ -7,7 +7,7 @@ import { defineConfig } from "vitest/config";
 const assetsRoot = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react()] as import("vitest/config").UserConfig["plugins"],
   resolve: {
     alias: {
       "@": path.resolve(assetsRoot, "src"),

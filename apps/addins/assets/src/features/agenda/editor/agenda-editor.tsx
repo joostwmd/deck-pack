@@ -61,7 +61,7 @@ function deriveStatus(
 }
 
 export function AgendaEditor({ initialConfig, onConfigChange }: AgendaEditorProps) {
-  const { api } = useServices();
+  const { agenda } = useServices();
   const insertSectionShortcutDefs = useInsertSectionShortcutDefs();
   const [config, setConfig] = useState(initialConfig);
   const [draftSections, setDraftSections] = useState<AgendaDraftSection[]>([]);
@@ -101,14 +101,14 @@ export function AgendaEditor({ initialConfig, onConfigChange }: AgendaEditorProp
 
   useEffect(() => {
     if (config.cloudSync.pendingEventIds.length > 0) {
-      void retryPendingAgendaSync(api, config, "updated")
+      void retryPendingAgendaSync(agenda, config, "updated")
         .then((synced) => {
           setConfig(synced);
           onConfigChange(synced);
         })
         .catch(() => undefined);
     }
-  }, [api, config, onConfigChange]);
+  }, [agenda, config, onConfigChange]);
 
   const status = useMemo(
     () => deriveStatus(config, draftSections, issues),
@@ -172,7 +172,7 @@ export function AgendaEditor({ initialConfig, onConfigChange }: AgendaEditorProp
       const eventId = crypto.randomUUID();
       try {
         const synced = await syncAgendaToCloud(
-          api,
+          agenda,
           nextConfig,
           status === "repair_required" ? "repaired" : "updated",
           eventId,
@@ -199,7 +199,7 @@ export function AgendaEditor({ initialConfig, onConfigChange }: AgendaEditorProp
     } finally {
       setUpdating(false);
     }
-  }, [api, config, draftSections, onConfigChange, refresh, status]);
+  }, [agenda, config, draftSections, onConfigChange, refresh, status]);
 
   const statusLabel =
     status === "up_to_date"

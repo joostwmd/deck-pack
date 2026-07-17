@@ -4,7 +4,7 @@ import { AssetSearchPanel } from "@/components/asset-picker/asset-search-panel";
 import { useServices } from "@/services/services-context";
 
 export function FlagsPanel() {
-  const { api } = useServices();
+  const { assets } = useServices();
 
   return (
     <AssetSearchPanel
@@ -15,10 +15,8 @@ export function FlagsPanel() {
       icon={Flag}
       noResultsDescription="Try searching for a different country name or code."
       noVariantsDescription="This flag has no variants."
-      search={(query) =>
-        api.addin.flags.search.query({ query }).then((response) => response.results)
-      }
-      getDetails={(id) => api.addin.flags.getDetails.query({ externalId: id })}
+      search={(query) => assets.flags.search(query)}
+      getDetails={(id) => assets.flags.getDetails(id)}
     />
   );
 }

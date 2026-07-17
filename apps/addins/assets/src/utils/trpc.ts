@@ -31,10 +31,3 @@ export function getTrpcClient(): ReturnType<typeof createTrpcBrowserBundle<AppRo
 
   return trpcBundle!.trpcClient;
 }
-
-/** @deprecated Prefer getTrpcClient(); kept for modules imported after bootstrap. */
-export const trpcClient = new Proxy({} as ReturnType<typeof createTrpcBrowserBundle<AppRouter>>["trpcClient"], {
-  get(_target, property, receiver) {
-    return Reflect.get(getTrpcClient(), property, receiver);
-  },
-});

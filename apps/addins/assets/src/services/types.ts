@@ -1,4 +1,5 @@
-import type { AppRouter } from "@deck-pack/api/routers/index";
+import type { AgendaConfigV1, AgendaEventType } from "@deck-pack/agenda";
+import type { BrandProfileConfiguration } from "@deck-pack/presentation-check";
 import type { createAppAuthClient } from "@deck-pack/auth/client";
 import type {
   executeFormattingCommand,
@@ -6,14 +7,19 @@ import type {
   runPowerPoint,
   subscribeToSelectionChanges,
 } from "@deck-pack/office-js";
-import type { createTrpcBrowserBundle } from "@deck-pack/trpc-client";
 import type { ShortcutId, ShortcutOverride } from "@deck-pack/shortcuts";
 
 import type { WebCanvasContextValue } from "@/contexts/web-canvas-context";
-import type { AssetType } from "@/lib/asset-types";
+import type { PhotoFilters, PhotoSearchResponse } from "@/features/photos/types";
+import type { ShapeSearchResponse } from "@/features/shapes/types";
+import type { SlideAspectRatio, SlideSearchResponse, SlideSort } from "@/features/slides/types";
+import type {
+  AssetDetailsResponse,
+  AssetListItem,
+  AssetType,
+} from "@/lib/asset-types";
 import type { InsertionStrategy } from "@/lib/insertion-strategy";
 
-export type TrpcClient = ReturnType<typeof createTrpcBrowserBundle<AppRouter>>["trpcClient"];
 export type AuthClient = ReturnType<typeof createAppAuthClient>;
 
 export interface ShortcutOverrideRecord {
@@ -33,6 +39,124 @@ export interface ShortcutStore {
   resetAll: () => Promise<unknown>;
 }
 
+export interface AssetListSearchStore {
+  search: (query: string) => Promise<AssetListItem[]>;
+  getDetails: (externalId: string) => Promise<AssetDetailsResponse>;
+}
+
+export interface PhotoSearchInput {
+  query: string;
+  page?: number;
+  orientation?: PhotoFilters["orientation"];
+  size?: PhotoFilters["size"];
+  color?: PhotoFilters["color"];
+  locale?: PhotoFilters["locale"];
+}
+
+export interface PhotoSearchStore {
+  search: (input: PhotoSearchInput) => Promise<PhotoSearchResponse>;
+}
+
+export interface SlideSearchStore {
+  search: (input: {
+    query?: string;
+    category?: string;
+    tags?: string[];
+    aspectRatio?: SlideAspectRatio;
+    sort?: SlideSort;
+  }) => Promise<SlideSearchResponse>;
+}
+
+export interface ShapeSearchStore {
+  search: (input: { category?: string }) => Promise<ShapeSearchResponse>;
+}
+
+export interface AssetStores {
+  flags: AssetListSearchStore;
+  logos: AssetListSearchStore;
+  icons: AssetListSearchStore;
+  photos: PhotoSearchStore;
+  slides: SlideSearchStore;
+  shapes: ShapeSearchStore;
+}
+
+export interface InsertionStore {
+  track: (input: {
+    assetType: AssetType;
+    externalId: string;
+    client: "office" | "web";
+    metadata: Record<string, unknown>;
+  }) => void;
+}
+
+export interface BrandProfileSummary {
+  id: string;
+  name: string;
+  description: string | null;
+  isDefault: boolean;
+  activeVersionId: string | null;
+  versionNumber: number | null;
+  schemaVersion: number | null;
+  configuration: BrandProfileConfiguration | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface BrandProfileDetail {
+  id: string;
+  name: string;
+  description: string | null;
+  isDefault: boolean;
+  activeVersionId: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  version: {
+    id: string;
+    version: number;
+    schemaVersion: number;
+    configuration: BrandProfileConfiguration;
+    createdAt: Date;
+  } | null;
+}
+
+export interface BrandProfileStore {
+  list: () => Promise<BrandProfileSummary[]>;
+  get: (profileId: string, versionId?: string) => Promise<BrandProfileDetail>;
+  create: (input: {
+    name: string;
+    description?: string | null;
+    isDefault?: boolean;
+    configuration: BrandProfileConfiguration;
+  }) => Promise<BrandProfileDetail>;
+  update: (input: {
+    profileId: string;
+    name?: string;
+    description?: string | null;
+    configuration: BrandProfileConfiguration;
+  }) => Promise<BrandProfileDetail>;
+  duplicate: (input: { profileId: string; name: string }) => Promise<BrandProfileDetail>;
+  setDefault: (profileId: string) => Promise<{ id: string; isDefault: boolean }>;
+  archive: (profileId: string) => Promise<{ id: string }>;
+}
+
+export interface AgendaSyncInput {
+  configuration: AgendaConfigV1;
+  configurationHash: string;
+  eventId: string;
+  eventType: AgendaEventType;
+  client: "office" | "web";
+  durationMs?: number;
+  metadata: {
+    sectionCount: number;
+    generatedSlideCount: number;
+  };
+}
+
+export interface AgendaStore {
+  sync: (input: AgendaSyncInput) => Promise<{ instanceId: string; revision: number }>;
+  get: (documentAgendaId: string) => Promise<unknown>;
+}
+
 export interface OfficeService {
   readSelectedShapes: typeof readSelectedShapes;
   subscribeToSelectionChanges: typeof subscribeToSelectionChanges;
@@ -50,16 +174,14 @@ export interface OfficeService {
 }
 
 export interface InsertionTracker {
-  track: (input: {
-    assetType: AssetType;
-    externalId: string;
-    client: "office" | "web";
-    metadata: Record<string, unknown>;
-  }) => void;
+  track: InsertionStore["track"];
 }
 
 export interface InsertionService {
-  createOfficeStrategy: (tracker: InsertionTracker) => InsertionStrategy;
+  createOfficeStrategy: (
+    office: Pick<OfficeService, "insertImageWithMetadata" | "insertSvgWithMetadata">,
+    tracker: InsertionTracker,
+  ) => InsertionStrategy;
   createCanvasStrategy: (
     webCanvas: WebCanvasContextValue,
     tracker: InsertionTracker,
@@ -67,8 +189,11 @@ export interface InsertionService {
 }
 
 export interface AppServices {
-  api: TrpcClient;
   auth: AuthClient;
+  assets: AssetStores;
+  brandProfiles: BrandProfileStore;
+  agenda: AgendaStore;
+  insertions: InsertionStore;
   office: OfficeService;
   insertion: InsertionService;
   shortcutStore: ShortcutStore;

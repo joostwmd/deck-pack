@@ -1,7 +1,7 @@
+import type { SlideAspectRatio } from "@/features/slides/types";
 import type { DeepPartial } from "@/testing/deep-partial";
-import type { AppServices, InsertionTracker, TrpcClient } from "@/services/types";
+import type { AppServices, AssetListSearchStore } from "@/services/types";
 import {
-  createTrpcAssetHandlers,
   mockFlagDetails,
   mockFlagSearch,
   mockIconDetails,
@@ -21,52 +21,67 @@ const mockSession = {
   },
 };
 
-function createTestTracker(api: TrpcClient): InsertionTracker {
-  return createInsertionTracker(api);
+function createListSearchStore(
+  search: (query: string) => Promise<import("@/lib/asset-types").AssetListItem[]>,
+  getDetails: (id: string) => Promise<import("@/lib/asset-types").AssetDetailsResponse>,
+): AssetListSearchStore {
+  return { search, getDetails };
 }
 
-function createDefaultTestApi(): TrpcClient {
+function createDefaultAssets(): AppServices["assets"] {
   return {
-    shortcuts: {
-      list: { query: async () => ({ overrides: [] }) },
-      setOverride: {
-        mutate: async ({
-          shortcutId,
-          hotkey,
-        }: {
-          shortcutId: string;
-          hotkey: string;
-        }) => ({
-          shortcutId,
-          hotkey,
-          isCustomized: true,
-          schemaVersion: 1,
-        }),
-      },
-      resetOverride: { mutate: async () => undefined },
-      resetAll: { mutate: async () => undefined },
+    flags: createListSearchStore(mockFlagSearch, mockFlagDetails),
+    logos: createListSearchStore(mockLogoSearch, mockLogoDetails),
+    icons: createListSearchStore(mockIconSearch, mockIconDetails),
+    photos: {
+      search: async () => ({
+        results: [],
+        page: 1,
+        perPage: 20,
+        totalResults: 0,
+        hasNextPage: false,
+      }),
     },
-    addin: {
-      flags: createTrpcAssetHandlers(mockFlagSearch, mockFlagDetails),
-      logos: createTrpcAssetHandlers(mockLogoSearch, mockLogoDetails),
-      icons: createTrpcAssetHandlers(mockIconSearch, mockIconDetails),
-      insertions: {
-        track: { mutate: async () => ({ success: true }) },
-      },
+    slides: {
+      search: async () => ({
+        results: [],
+        total: 0,
+        facets: {
+          categories: [],
+          tags: [],
+          aspectRatios: ["16:9", "4:3"] as SlideAspectRatio[],
+        },
+      }),
     },
-    brandProfiles: {
-      list: { query: async () => [] },
-      get: { query: async () => null },
-      create: { mutate: async () => ({ id: "profile-1" }) },
-      update: { mutate: async () => ({ id: "profile-1" }) },
-      duplicate: { mutate: async () => ({ id: "profile-2" }) },
-      setDefault: { mutate: async () => ({ success: true }) },
-      archive: { mutate: async () => ({ success: true }) },
+    shapes: { search: async () => ({ results: [], total: 0, facets: { categories: [] } }) },
+  };
+}
+
+function createDefaultBrandProfiles(): AppServices["brandProfiles"] {
+  return {
+    list: async () => [],
+    get: async () => {
+      throw new Error("not found");
     },
-    agenda: {
-      sync: { mutate: async () => ({ success: true }) },
-    },
-  } as unknown as TrpcClient;
+    create: async () => ({ id: "profile-1" }) as never,
+    update: async () => ({ id: "profile-1" }) as never,
+    duplicate: async () => ({ id: "profile-2" }) as never,
+    setDefault: async () => ({ id: "profile-1", isDefault: true }),
+    archive: async () => ({ id: "profile-1" }),
+  };
+}
+
+function createDefaultAgenda(): AppServices["agenda"] {
+  return {
+    sync: async () => ({ instanceId: "agenda-1", revision: 1 }),
+    get: async () => null,
+  };
+}
+
+function createDefaultInsertions(): AppServices["insertions"] {
+  return {
+    track: () => undefined,
+  };
 }
 
 function createDefaultTestAuth(): AppServices["auth"] {
@@ -89,34 +104,59 @@ function createDefaultTestOffice(): AppServices["office"] {
   };
 }
 
+function createDefaultShortcutStore(): AppServices["shortcutStore"] {
+  return {
+    list: async () => ({ overrides: [] }),
+    setOverride: async ({ shortcutId, hotkey }) => ({
+      shortcutId,
+      hotkey,
+      isCustomized: true,
+      schemaVersion: 1,
+    }),
+    resetOverride: async () => undefined,
+    resetAll: async () => undefined,
+  };
+}
+
 export function createTestServices(overrides?: DeepPartial<AppServices>): AppServices {
-  const api = (overrides?.api ?? createDefaultTestApi()) as TrpcClient;
-  const tracker = createTestTracker(api);
+  const insertions = {
+    ...createDefaultInsertions(),
+    ...(overrides?.insertions as Partial<AppServices["insertions"]>),
+  };
+  const office = {
+    ...createDefaultTestOffice(),
+    ...(overrides?.office as Partial<AppServices["office"]>),
+  };
+  const tracker = createInsertionTracker(insertions);
 
   const insertion: AppServices["insertion"] = {
-    createOfficeStrategy: (nextTracker) =>
-      officeInsertionStrategyWithTracker(nextTracker ?? tracker),
+    createOfficeStrategy: (officeDeps, nextTracker) =>
+      officeInsertionStrategyWithTracker(officeDeps, nextTracker ?? tracker),
     createCanvasStrategy: (webCanvas, nextTracker) =>
       createCanvasStrategy(webCanvas, nextTracker ?? tracker),
     ...(overrides?.insertion as Partial<AppServices["insertion"]>),
   };
 
-  const shortcutStore: AppServices["shortcutStore"] = {
-    list: () => api.shortcuts.list.query(),
-    setOverride: (input) => api.shortcuts.setOverride.mutate(input),
-    resetOverride: (input) => api.shortcuts.resetOverride.mutate(input),
-    resetAll: () => api.shortcuts.resetAll.mutate(),
-    ...(overrides?.shortcutStore as Partial<AppServices["shortcutStore"]>),
-  };
-
   return {
-    api,
     auth: (overrides?.auth ?? createDefaultTestAuth()) as AppServices["auth"],
-    office: {
-      ...createDefaultTestOffice(),
-      ...(overrides?.office as Partial<AppServices["office"]>),
+    assets: {
+      ...createDefaultAssets(),
+      ...(overrides?.assets as Partial<AppServices["assets"]>),
     },
+    brandProfiles: {
+      ...createDefaultBrandProfiles(),
+      ...(overrides?.brandProfiles as Partial<AppServices["brandProfiles"]>),
+    },
+    agenda: {
+      ...createDefaultAgenda(),
+      ...(overrides?.agenda as Partial<AppServices["agenda"]>),
+    },
+    insertions,
+    office,
     insertion,
-    shortcutStore,
+    shortcutStore: {
+      ...createDefaultShortcutStore(),
+      ...(overrides?.shortcutStore as Partial<AppServices["shortcutStore"]>),
+    },
   };
 }

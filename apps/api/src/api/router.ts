@@ -1,13 +1,37 @@
 import { BrandfetchClient } from "@deck-pack/brandfetch";
+import { archiveBrandProfile } from "@deck-pack/db/queries/archiveBrandProfile";
+import {
+  createBrandProfile,
+  duplicateBrandProfile,
+} from "@deck-pack/db/queries/createBrandProfile";
+import { createBrandProfileVersion } from "@deck-pack/db/queries/createBrandProfileVersion";
+import { createOrganizationWithOwner } from "@deck-pack/db/queries/createOrganizationWithOwner";
+import { deleteAllShortcutOverrides } from "@deck-pack/db/queries/deleteAllShortcutOverrides";
+import { deleteShortcutOverride } from "@deck-pack/db/queries/deleteShortcutOverride";
+import { findUserByEmail } from "@deck-pack/db/queries/findUserByEmail";
+import { getAgendaInstance } from "@deck-pack/db/queries/getAgendaInstance";
+import { getBrandProfileWithVersion } from "@deck-pack/db/queries/getBrandProfileWithVersion";
+import { insertAssetInsertion } from "@deck-pack/db/queries/insertAssetInsertion";
+import { listAllShortcutOverridesByUser } from "@deck-pack/db/queries/listShortcutOverridesByUser";
+import { listBrandProfilesByUser } from "@deck-pack/db/queries/listBrandProfilesByUser";
+import { listOrganizationsWithOwner } from "@deck-pack/db/queries/listOrganizationsWithOwner";
+import { setDefaultBrandProfile } from "@deck-pack/db/queries/setDefaultBrandProfile";
+import { syncAgenda } from "@deck-pack/db/queries/syncAgenda";
+import { updateBrandProfileMetadata } from "@deck-pack/db/queries/updateBrandProfileMetadata";
+import { upsertShortcutOverride } from "@deck-pack/db/queries/upsertShortcutOverride";
 import { Icons8Client } from "@deck-pack/icons8";
 import { PexelsClient } from "@deck-pack/pexels";
 
 import { createAddinRoutes } from "../domains/addin/routes";
 import { createAddinAssetService } from "../domains/addin/service";
-import { agendaRoutes } from "../domains/agenda/routes";
-import { brandProfileRoutes } from "../domains/brand-profiles/routes";
-import { organizationRoutes } from "../domains/organization/routes";
-import { shortcutRoutes } from "../domains/shortcuts/routes";
+import { createAgendaRoutes } from "../domains/agenda/routes";
+import { createAgendaService } from "../domains/agenda/service";
+import { createBrandProfileRoutes } from "../domains/brand-profiles/routes";
+import { createBrandProfileService } from "../domains/brand-profiles/service";
+import { createOrganizationRoutes } from "../domains/organization/routes";
+import { createOrganizationService } from "../domains/organization/service";
+import { createShortcutRoutes } from "../domains/shortcuts/routes";
+import { createShortcutService } from "../domains/shortcuts/service";
 import { systemRoutes } from "../domains/system/routes";
 
 import { router } from "./setup";
@@ -23,15 +47,45 @@ export function createAppRouter(deps: AddinRouterDeps) {
     brandfetch: new BrandfetchClient(deps.brandfetchApiKey),
     icons8: new Icons8Client(deps.icons8ApiKey),
     pexels: new PexelsClient(deps.pexelsApiKey),
+    insertAssetInsertion,
+  });
+
+  const organizationService = createOrganizationService({
+    findUserByEmail,
+    listOrganizationsWithOwner,
+    createOrganizationWithOwner,
+  });
+
+  const agendaService = createAgendaService({
+    syncAgenda,
+    getAgendaInstance,
+  });
+
+  const brandProfileService = createBrandProfileService({
+    listBrandProfilesByUser,
+    getBrandProfileWithVersion,
+    createBrandProfile,
+    createBrandProfileVersion,
+    updateBrandProfileMetadata,
+    duplicateBrandProfile,
+    setDefaultBrandProfile,
+    archiveBrandProfile,
+  });
+
+  const shortcutService = createShortcutService({
+    listAllShortcutOverridesByUser,
+    upsertShortcutOverride,
+    deleteShortcutOverride,
+    deleteAllShortcutOverrides,
   });
 
   return router({
     ...systemRoutes,
-    organization: router(organizationRoutes),
+    organization: router(createOrganizationRoutes(organizationService)),
     addin: router(createAddinRoutes(addinAssetService)),
-    agenda: router(agendaRoutes),
-    brandProfiles: router(brandProfileRoutes),
-    shortcuts: router(shortcutRoutes),
+    agenda: router(createAgendaRoutes(agendaService)),
+    brandProfiles: router(createBrandProfileRoutes(brandProfileService)),
+    shortcuts: router(createShortcutRoutes(shortcutService)),
   });
 }
 

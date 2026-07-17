@@ -2,9 +2,9 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import { PexelsRateLimitError } from "@deck-pack/pexels";
-import { insertAssetInsertion } from "@deck-pack/db/queries/insertAssetInsertion";
 
 import { protectedProcedure } from "../../api/procedures";
+import { unwrapServiceResult } from "../../api/resilience/service-result";
 
 import {
   assetDetailsResponseSchema,
@@ -196,25 +196,15 @@ export function createAddinRoutes(addinAssetService: AddinAssetService) {
         .input(trackAssetInsertionInputSchema)
         .output(trackAssetInsertionOutputSchema)
         .mutation(async ({ ctx, input }) => {
-          const row = await insertAssetInsertion({
-            tx: ctx.tx,
-            input: {
+          return unwrapServiceResult(
+            await addinAssetService.trackInsertion(ctx.tx, {
               userId: ctx.session!.user.id,
               assetType: input.assetType,
               externalId: input.externalId,
               client: input.client,
               metadata: input.metadata,
-            },
-          });
-
-          if (!row) {
-            throw new TRPCError({
-              code: "INTERNAL_SERVER_ERROR",
-              message: "Failed to track asset insertion",
-            });
-          }
-
-          return { id: row.id };
+            }),
+          );
         }),
     },
   };

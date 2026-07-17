@@ -9,14 +9,14 @@ import { useServices } from "@/services/services-context";
 export function useInsertionStrategy(): InsertionStrategy | null {
   const { isOfficeAvailable } = useEnvironment();
   const webCanvas = useWebCanvasOptional();
-  const { insertion, api } = useServices();
-  const tracker = useMemo(() => createInsertionTracker(api), [api]);
+  const { insertion, insertions, office } = useServices();
+  const tracker = useMemo(() => createInsertionTracker(insertions), [insertions]);
 
   return useMemo(() => {
     if (isOfficeAvailable) {
-      return insertion.createOfficeStrategy(tracker);
+      return insertion.createOfficeStrategy(office, tracker);
     }
 
     return webCanvas ? insertion.createCanvasStrategy(webCanvas, tracker) : null;
-  }, [api, insertion, isOfficeAvailable, tracker, webCanvas]);
+  }, [insertion, insertions, isOfficeAvailable, office, tracker, webCanvas]);
 }

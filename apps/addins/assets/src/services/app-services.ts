@@ -10,11 +10,16 @@ import { createCanvasStrategy, officeInsertionStrategyWithTracker } from "@/lib/
 import { getAuthClient } from "@/utils/auth";
 import { getTrpcClient } from "@/utils/trpc";
 
-import type { AppServices, ShortcutStore } from "./types";
+import type {
+  AppServices,
+  AssetStores,
+  AgendaStore,
+  BrandProfileStore,
+  InsertionStore,
+  ShortcutStore,
+} from "./types";
 
-function createShortcutStore(): ShortcutStore {
-  const api = getTrpcClient();
-
+function createShortcutStore(api: ReturnType<typeof getTrpcClient>): ShortcutStore {
   return {
     list: () => api.shortcuts.list.query(),
     setOverride: (input) => api.shortcuts.setOverride.mutate(input),
@@ -23,27 +28,88 @@ function createShortcutStore(): ShortcutStore {
   };
 }
 
-export function createAppServices(): AppServices {
-  const api = getTrpcClient();
+function createAssetStores(api: ReturnType<typeof getTrpcClient>): AssetStores {
+  const listSearch = (asset: "flags" | "logos" | "icons") => ({
+    search: async (query: string) => {
+      const response = await api.addin[asset].search.query({ query });
+      return response.results;
+    },
+    getDetails: (externalId: string) => api.addin[asset].getDetails.query({ externalId }),
+  });
 
   return {
-    api,
-    auth: getAuthClient(),
-    office: {
-      readSelectedShapes,
-      subscribeToSelectionChanges,
-      executeFormattingCommand,
-      runPowerPoint,
-      insertImageWithMetadata: (base64, metadata) =>
-        officeClient.insertImageWithMetadata(base64, metadata),
-      insertSvgWithMetadata: (svg, metadata) => officeClient.insertSvgWithMetadata(svg, metadata),
-      insertSlidesFromBase64: (base64, options) =>
-        officeClient.insertSlidesFromBase64(base64, options),
+    flags: listSearch("flags"),
+    logos: listSearch("logos"),
+    icons: listSearch("icons"),
+    photos: {
+      search: (input) => api.addin.photos.search.query(input),
     },
+    slides: {
+      search: (input) => api.addin.slides.search.query(input),
+    },
+    shapes: {
+      search: (input) => api.addin.shapes.search.query(input),
+    },
+  };
+}
+
+function createBrandProfileStore(api: ReturnType<typeof getTrpcClient>): BrandProfileStore {
+  return {
+    list: () => api.brandProfiles.list.query(),
+    get: (profileId, versionId) => api.brandProfiles.get.query({ profileId, versionId }),
+    create: (input) => api.brandProfiles.create.mutate(input),
+    update: (input) => api.brandProfiles.update.mutate(input),
+    duplicate: (input) => api.brandProfiles.duplicate.mutate(input),
+    setDefault: (profileId) => api.brandProfiles.setDefault.mutate({ profileId }),
+    archive: (profileId) => api.brandProfiles.archive.mutate({ profileId }),
+  };
+}
+
+function createAgendaStore(api: ReturnType<typeof getTrpcClient>): AgendaStore {
+  return {
+    sync: (input) => api.agenda.sync.mutate(input),
+    get: (documentAgendaId) => api.agenda.get.query({ documentAgendaId }),
+  };
+}
+
+function createInsertionStore(api: ReturnType<typeof getTrpcClient>): InsertionStore {
+  return {
+    track: ({ assetType, externalId, client, metadata }) => {
+      void api.addin.insertions.track
+        .mutate({ assetType, externalId, client, metadata })
+        .catch((error) => {
+          console.error("Failed to track asset insertion:", error);
+        });
+    },
+  };
+}
+
+export function createAppServices(): AppServices {
+  const api = getTrpcClient();
+  const office: AppServices["office"] = {
+    readSelectedShapes,
+    subscribeToSelectionChanges,
+    executeFormattingCommand,
+    runPowerPoint,
+    insertImageWithMetadata: (base64, metadata) =>
+      officeClient.insertImageWithMetadata(base64, metadata),
+    insertSvgWithMetadata: (svg, metadata) => officeClient.insertSvgWithMetadata(svg, metadata),
+    insertSlidesFromBase64: (base64, options) =>
+      officeClient.insertSlidesFromBase64(base64, options),
+  };
+
+  return {
+    auth: getAuthClient(),
+    assets: createAssetStores(api),
+    brandProfiles: createBrandProfileStore(api),
+    agenda: createAgendaStore(api),
+    insertions: createInsertionStore(api),
+    office,
     insertion: {
-      createOfficeStrategy: (tracker) => officeInsertionStrategyWithTracker(tracker),
+      createOfficeStrategy: (officeDeps, tracker) =>
+        officeInsertionStrategyWithTracker(officeDeps, tracker),
       createCanvasStrategy: (webCanvas, tracker) => createCanvasStrategy(webCanvas, tracker),
     },
-    shortcutStore: createShortcutStore(),
+    shortcutStore: createShortcutStore(api),
   };
 }

@@ -14,7 +14,7 @@ function createWrapper(services = createTestServices()) {
 }
 
 describe("useBrandProfiles", () => {
-  it("loads profiles from injected api client", async () => {
+  it("loads profiles from injected brand profile store", async () => {
     const list = vi.fn(async () => [
       {
         id: "profile-1",
@@ -31,11 +31,9 @@ describe("useBrandProfiles", () => {
     ]);
 
     const services = createTestServices({
-      api: {
-        brandProfiles: {
-          list: { query: list },
-        },
-      } as never,
+      brandProfiles: {
+        list,
+      },
     });
 
     const { result } = renderHook(() => useBrandProfiles(), {

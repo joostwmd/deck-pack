@@ -45,7 +45,7 @@ describe("navigation registry", () => {
   it("uses unique paths and shortcut ids for shortcut-backed pages", () => {
     const shortcutPages = getNavigationPagesWithShortcuts();
     const paths = shortcutPages.map((page) => page.path);
-    const shortcutIds = shortcutPages.map((page) => page.shortcut.id);
+    const shortcutIds = shortcutPages.map((page) => page.shortcut!.id);
 
     expect(new Set(paths).size).toBe(paths.length);
     expect(new Set(shortcutIds).size).toBe(shortcutIds.length);
@@ -53,7 +53,7 @@ describe("navigation registry", () => {
 
   it("uses Mod+Shift navigation shortcuts for shortcut-backed pages", () => {
     for (const page of getNavigationPagesWithShortcuts()) {
-      expect(page.shortcut.hotkey).toMatch(/^Mod\+Shift\+/);
+      expect(page.shortcut!.hotkey).toMatch(/^Mod\+Shift\+/);
     }
   });
 

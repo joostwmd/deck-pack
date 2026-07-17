@@ -41,7 +41,7 @@ interface AgendaSetupWizardProps {
 }
 
 export function AgendaSetupWizard({ onComplete }: AgendaSetupWizardProps) {
-  const { api } = useServices();
+  const { agenda } = useServices();
   const insertSectionShortcutDefs = useInsertSectionShortcutDefs();
   const [step, setStep] = useState<WizardStep>("structure");
   const [sections, setSections] = useState<DraftSection[]>([]);
@@ -189,7 +189,7 @@ export function AgendaSetupWizard({ onComplete }: AgendaSetupWizardProps) {
       const eventId = crypto.randomUUID();
       try {
         await syncAgendaToCloud(
-          api,
+          agenda,
           config,
           "created",
           eventId,
@@ -212,7 +212,7 @@ export function AgendaSetupWizard({ onComplete }: AgendaSetupWizardProps) {
       setCreating(false);
     }
   }, [
-    api,
+    agenda,
     capacity,
     headingShape,
     mappingErrors.length,

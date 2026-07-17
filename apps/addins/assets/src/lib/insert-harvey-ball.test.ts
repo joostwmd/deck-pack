@@ -55,7 +55,11 @@ describe("insertion strategy", () => {
 
   it("inserts SVG with metadata via office strategy", async () => {
     const track = vi.fn();
-    const strategy = officeInsertionStrategyWithTracker({ track });
+    const office = {
+      insertSvgWithMetadata,
+      insertImageWithMetadata,
+    };
+    const strategy = officeInsertionStrategyWithTracker(office, { track });
     const item = createHarveyBallItem(75);
 
     await strategy.insert(item);

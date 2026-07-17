@@ -35,10 +35,12 @@ export function useNavigationHotkeys({
       id: "openMenu",
       execute: () => onOpenMenu(),
     },
-    ...getNavigationPagesWithShortcuts().map((page) => ({
-      id: page.shortcut.id,
-      execute: () => navigateToPage(page.id),
-    })),
+    ...getNavigationPagesWithShortcuts()
+      .filter((page) => page.shortcut != null)
+      .map((page) => ({
+        id: page.shortcut!.id,
+        execute: () => navigateToPage(page.id),
+      })),
     {
       id: "openShortcuts",
       execute: () => navigateToPage("shortcuts"),

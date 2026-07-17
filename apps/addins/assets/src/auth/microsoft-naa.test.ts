@@ -41,7 +41,7 @@ describe("isNestedAppAuthBridgePresent", () => {
         postMessage: vi.fn(),
         addEventListener: vi.fn(),
       },
-    } as Window & typeof globalThis);
+    } as unknown as Window & typeof globalThis);
 
     expect(isNestedAppAuthBridgePresent()).toBe(true);
     await expect(checkNaaBrokerAvailable()).resolves.toBe(true);
@@ -60,7 +60,7 @@ describe("acquireMicrosoftTokens", () => {
         postMessage: vi.fn(),
         addEventListener: vi.fn(),
       },
-    } as Window & typeof globalThis);
+    } as unknown as Window & typeof globalThis);
 
     acquireTokenSilent.mockRejectedValue({
       name: "ServerError",
@@ -85,7 +85,7 @@ describe("acquireMicrosoftTokens", () => {
         postMessage: vi.fn(),
         addEventListener: vi.fn(),
       },
-    } as Window & typeof globalThis);
+    } as unknown as Window & typeof globalThis);
 
     acquireTokenSilent.mockRejectedValue(
       new InteractionRequiredAuthError("interaction_required"),

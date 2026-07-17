@@ -4,7 +4,7 @@ import { AssetSearchPanel } from "@/components/asset-picker/asset-search-panel";
 import { useServices } from "@/services/services-context";
 
 export function IconsPanel() {
-  const { api } = useServices();
+  const { assets } = useServices();
 
   return (
     <AssetSearchPanel
@@ -15,10 +15,8 @@ export function IconsPanel() {
       icon={Shapes}
       noResultsDescription="Try searching for a different keyword."
       noVariantsDescription="This icon has no style variants."
-      search={(query) =>
-        api.addin.icons.search.query({ query }).then((response) => response.results)
-      }
-      getDetails={(id) => api.addin.icons.getDetails.query({ externalId: id })}
+      search={(query) => assets.icons.search(query)}
+      getDetails={(id) => assets.icons.getDetails(id)}
       getInsertionMetadata={(_, variantId) => ({ ICON_PLATFORM: variantId })}
     />
   );

@@ -880,6 +880,9 @@ importers:
       '@tanstack/react-router':
         specifier: ^1.168.22
         version: 1.168.23(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      '@types/office-js':
+        specifier: ^1.0.514
+        version: 1.0.599
       '@types/react':
         specifier: ^19.2.10
         version: 19.2.14

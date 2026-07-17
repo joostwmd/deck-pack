@@ -2,7 +2,6 @@ import type { AssetListItem } from "@/lib/asset-types";
 import type { AppServices } from "@/services/types";
 import { createTestServices } from "@/testing/test-services";
 import {
-  createTrpcAssetHandlers,
   mockFlagDetails,
   mockIconDetails,
   mockLogoDetails,
@@ -18,11 +17,11 @@ function withAssetSearch(
 
   return {
     ...base,
-    api: {
-      ...base.api,
-      addin: {
-        ...base.api.addin,
-        [asset]: createTrpcAssetHandlers(search, getDetails),
+    assets: {
+      ...base.assets,
+      [asset]: {
+        search,
+        getDetails,
       },
     },
   };

@@ -16,8 +16,8 @@ export function useSlideSearchController(
   search: (input: SlideSearchRequest) => Promise<SlideSearchResponse>,
 ) {
   const { isOfficeAvailable } = useEnvironment();
-  const { office, api } = useServices();
-  const tracker = createInsertionTracker(api);
+  const { office, insertions } = useServices();
+  const tracker = createInsertionTracker(insertions);
   const flow = useSlideSearch(search);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const resultsId = useId();

@@ -4,11 +4,13 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "skipLibCheck": true,
+    "types": ["office-js"],
     "paths": {
       "@deck-pack/ui/*": ["./src/*"],
       "@/*": ["../../apps/addins/assets/src/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "stories/**/*.ts", "stories/**/*.tsx"],
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["node_modules", ".storybook", "src/**/*.stories.tsx"]
 }

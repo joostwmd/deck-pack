@@ -1,18 +1,8 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { agendaConfigV1Schema } from "@deck-pack/agenda";
 
 import { queueAgendaCloudEvent } from "./sync-agenda";
-
-vi.mock("@/utils/trpc", () => ({
-  trpcClient: {
-    agenda: {
-      sync: {
-        mutate: vi.fn(),
-      },
-    },
-  },
-}));
 
 describe("sync-agenda", () => {
   it("queues pending cloud events without duplicating ids", () => {

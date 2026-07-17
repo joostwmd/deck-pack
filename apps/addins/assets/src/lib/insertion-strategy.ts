@@ -1,8 +1,6 @@
-import { officeClient } from "@deck-pack/office-js";
-
 import type { WebCanvasContextValue } from "@/contexts/web-canvas-context";
 import type { AssetInsertPayload, AssetType } from "@/lib/asset-types";
-import type { InsertionTracker } from "@/services/types";
+import type { InsertionTracker, OfficeService } from "@/services/types";
 import { urlToBase64 } from "@/lib/url-to-base64";
 
 export interface InsertionItem {
@@ -21,14 +19,18 @@ export interface InsertionStrategy {
   insert: (item: InsertionItem) => Promise<void>;
 }
 
-async function insertOfficeItem(item: InsertionItem, tracker: InsertionTracker): Promise<void> {
+async function insertOfficeItem(
+  item: InsertionItem,
+  office: Pick<OfficeService, "insertImageWithMetadata" | "insertSvgWithMetadata">,
+  tracker: InsertionTracker,
+): Promise<void> {
   if (item.insert.type === "image") {
     if (!item.insert.imageUrl) {
       throw new Error("No image URL found");
     }
 
     const base64 = await urlToBase64(item.insert.imageUrl);
-    await officeClient.insertImageWithMetadata(base64, item.metadata);
+    await office.insertImageWithMetadata(base64, item.metadata);
 
     tracker.track({
       assetType: item.assetType,
@@ -43,7 +45,7 @@ async function insertOfficeItem(item: InsertionItem, tracker: InsertionTracker):
     throw new Error("No SVG found");
   }
 
-  await officeClient.insertSvgWithMetadata(item.insert.svg, item.metadata);
+  await office.insertSvgWithMetadata(item.insert.svg, item.metadata);
 
   tracker.track({
     assetType: item.assetType,
@@ -53,24 +55,16 @@ async function insertOfficeItem(item: InsertionItem, tracker: InsertionTracker):
   });
 }
 
-export function officeInsertionStrategyWithTracker(tracker: InsertionTracker): InsertionStrategy {
+export function officeInsertionStrategyWithTracker(
+  office: Pick<OfficeService, "insertImageWithMetadata" | "insertSvgWithMetadata">,
+  tracker: InsertionTracker,
+): InsertionStrategy {
   return {
     verb: "Insert",
     insertingVerb: "Inserting...",
-    insert: (item) => insertOfficeItem(item, tracker),
+    insert: (item) => insertOfficeItem(item, office, tracker),
   };
 }
-
-/** @deprecated Use officeInsertionStrategyWithTracker via services.insertion */
-export const officeInsertionStrategy: InsertionStrategy = {
-  verb: "Insert",
-  insertingVerb: "Inserting...",
-  insert: async (item) => {
-    const { createInsertionTracker } = await import("@/lib/track-asset-insertion");
-    const { getTrpcClient } = await import("@/utils/trpc");
-    return insertOfficeItem(item, createInsertionTracker(getTrpcClient()));
-  },
-};
 
 export function createCanvasStrategy(
   webCanvas: WebCanvasContextValue,

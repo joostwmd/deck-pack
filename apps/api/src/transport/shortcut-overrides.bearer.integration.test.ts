@@ -1,17 +1,24 @@
 import { serializeSignedCookie } from "better-call";
 import { createDb } from "@deck-pack/db";
+import { deleteAllShortcutOverrides } from "@deck-pack/db/queries/deleteAllShortcutOverrides";
+import { deleteShortcutOverride } from "@deck-pack/db/queries/deleteShortcutOverride";
+import { listAllShortcutOverridesByUser } from "@deck-pack/db/queries/listShortcutOverridesByUser";
+import { upsertShortcutOverride } from "@deck-pack/db/queries/upsertShortcutOverride";
 import { session, user } from "@deck-pack/db/schema/auth";
 import { ensureMigrationsApplied } from "@deck-pack/db/test-utils/ensure-migrations";
 import { tx } from "@deck-pack/db/transaction";
 import { eq, sql } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
+import { createShortcutService } from "../domains/shortcuts/service";
 import { createApp } from "../server";
-import {
-  loadCurrentShortcutOverrides,
-  resetAllShortcutOverridesForUser,
-  setShortcutOverrideForUser,
-} from "../domains/shortcuts/service";
+
+const shortcutService = createShortcutService({
+  listAllShortcutOverridesByUser,
+  upsertShortcutOverride,
+  deleteShortcutOverride,
+  deleteAllShortcutOverrides,
+});
 
 type SignedSessionFixture = {
   userId: string;
@@ -95,8 +102,7 @@ describe("shortcut overrides bearer transport", () => {
     const fixture = await createSignedSessionFixture("shortcuts-save");
     createdUserIds.push(fixture.userId);
 
-    const saved = await setShortcutOverrideForUser({
-      tx,
+    const saved = await shortcutService.setOverride(tx, {
       userId: fixture.userId,
       shortcutId: "photos",
       hotkey: "Mod+Alt+P",
@@ -105,31 +111,28 @@ describe("shortcut overrides bearer transport", () => {
     expect(saved.ok).toBe(true);
     if (!saved.ok) return;
 
-    expect(saved.override.isCustomized).toBe(true);
-    expect(saved.override.hotkey).toBe("Mod+Alt+P");
+    expect(saved.data.isCustomized).toBe(true);
+    expect(saved.data.hotkey).toBe("Mod+Alt+P");
 
-    const overrides = await loadCurrentShortcutOverrides({
-      tx,
-      userId: fixture.userId,
-    });
+    const listed = await shortcutService.list(tx, { userId: fixture.userId });
+    expect(listed.ok).toBe(true);
+    if (!listed.ok) return;
 
-    expect(overrides).toHaveLength(1);
-    expect(overrides[0]?.shortcutId).toBe("photos");
+    expect(listed.data.overrides).toHaveLength(1);
+    expect(listed.data.overrides[0]?.shortcutId).toBe("photos");
   });
 
   it("rejects overlapping internal conflicts", async () => {
     const fixture = await createSignedSessionFixture("shortcuts-conflict");
     createdUserIds.push(fixture.userId);
 
-    await setShortcutOverrideForUser({
-      tx,
+    await shortcutService.setOverride(tx, {
       userId: fixture.userId,
       shortcutId: "photos",
       hotkey: "Mod+Alt+X",
     });
 
-    const conflict = await setShortcutOverrideForUser({
-      tx,
+    const conflict = await shortcutService.setOverride(tx, {
       userId: fixture.userId,
       shortcutId: "logos",
       hotkey: "Mod+Alt+X",
@@ -137,22 +140,21 @@ describe("shortcut overrides bearer transport", () => {
 
     expect(conflict.ok).toBe(false);
     if (conflict.ok) return;
-    expect(conflict.conflict.shortcutId).toBe("photos");
+    expect(conflict.code).toBe("conflict");
+    expect(conflict.details).toMatchObject({ shortcutId: "photos" });
   });
 
   it("deletes overrides when saving the default hotkey", async () => {
     const fixture = await createSignedSessionFixture("shortcuts-reset-default");
     createdUserIds.push(fixture.userId);
 
-    await setShortcutOverrideForUser({
-      tx,
+    await shortcutService.setOverride(tx, {
       userId: fixture.userId,
       shortcutId: "photos",
       hotkey: "Mod+Alt+P",
     });
 
-    const reset = await setShortcutOverrideForUser({
-      tx,
+    const reset = await shortcutService.setOverride(tx, {
       userId: fixture.userId,
       shortcutId: "photos",
       hotkey: "Mod+Shift+P",
@@ -160,13 +162,12 @@ describe("shortcut overrides bearer transport", () => {
 
     expect(reset.ok).toBe(true);
     if (!reset.ok) return;
-    expect(reset.override.isCustomized).toBe(false);
+    expect(reset.data.isCustomized).toBe(false);
 
-    const overrides = await loadCurrentShortcutOverrides({
-      tx,
-      userId: fixture.userId,
-    });
-    expect(overrides).toHaveLength(0);
+    const listed = await shortcutService.list(tx, { userId: fixture.userId });
+    expect(listed.ok).toBe(true);
+    if (!listed.ok) return;
+    expect(listed.data.overrides).toHaveLength(0);
   });
 
   it("isolates overrides between users", async () => {
@@ -174,29 +175,25 @@ describe("shortcut overrides bearer transport", () => {
     const fixtureB = await createSignedSessionFixture("shortcuts-user-b");
     createdUserIds.push(fixtureA.userId, fixtureB.userId);
 
-    await setShortcutOverrideForUser({
-      tx,
+    await shortcutService.setOverride(tx, {
       userId: fixtureA.userId,
       shortcutId: "photos",
       hotkey: "Mod+Alt+P",
     });
 
-    const overridesA = await loadCurrentShortcutOverrides({
-      tx,
-      userId: fixtureA.userId,
-    });
-    const overridesB = await loadCurrentShortcutOverrides({
-      tx,
-      userId: fixtureB.userId,
-    });
+    const listedA = await shortcutService.list(tx, { userId: fixtureA.userId });
+    const listedB = await shortcutService.list(tx, { userId: fixtureB.userId });
 
-    expect(overridesA).toHaveLength(1);
-    expect(overridesB).toHaveLength(0);
+    expect(listedA.ok).toBe(true);
+    expect(listedB.ok).toBe(true);
+    if (!listedA.ok || !listedB.ok) return;
 
-    const deleted = await resetAllShortcutOverridesForUser({
-      tx,
-      userId: fixtureA.userId,
-    });
-    expect(deleted.deletedCount).toBe(1);
+    expect(listedA.data.overrides).toHaveLength(1);
+    expect(listedB.data.overrides).toHaveLength(0);
+
+    const deleted = await shortcutService.resetAll(tx, { userId: fixtureA.userId });
+    expect(deleted.ok).toBe(true);
+    if (!deleted.ok) return;
+    expect(deleted.data.deletedCount).toBe(1);
   });
 });
