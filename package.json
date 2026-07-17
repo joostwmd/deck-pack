@@ -66,7 +66,7 @@
     "docker:stop:api": "docker stop deck-pack-api-local",
     "docker:stop:ops": "docker stop deck-pack-ops-local",
     "test": "pnpm test:unit && pnpm test:integration",
-    "test:unit": "vitest run --config vitest.unit.config.ts",
+    "test:unit": "vitest run --config vitest.unit.config.ts && vitest run --config apps/addins/assets/vitest.config.ts",
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "test:integration:with-db": "pnpm db:start && pnpm test:integration",
     "check-types": "turbo check-types",

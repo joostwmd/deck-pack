@@ -8,7 +8,8 @@
     "types": ["office-js"],
     "paths": {
       "@deck-pack/ui/*": ["./src/*"],
-      "@/*": ["../../apps/addins/assets/src/*"]
+      "@/*": ["../../apps/addins/assets/src/*"],
+      "@fixtures/*": ["../../fixtures/*"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],

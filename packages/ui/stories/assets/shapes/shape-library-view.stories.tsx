@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ShapeLibraryView } from "@/features/shapes/shape-library-view";
 
 import { withAssetsPanel } from "../decorators";
-import { createShapeLibraryController } from "../fixtures/view-story-fixtures";
+import { createShapeLibraryController } from "@fixtures/view-story-fixtures";
 
 const meta = {
   title: "Assets/Shapes/ShapeLibraryView",

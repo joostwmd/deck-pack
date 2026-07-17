@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { SlideSearchView } from "@/features/slides/slide-search-view";
 
 import { withAssetsPanel } from "../decorators";
-import { createSlideSearchController } from "../fixtures/view-story-fixtures";
+import { createSlideSearchController } from "@fixtures/view-story-fixtures";
 
 const meta = {
   title: "Assets/Slides/SlideSearchView",

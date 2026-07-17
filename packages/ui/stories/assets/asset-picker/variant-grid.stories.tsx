@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { VariantGrid } from "@/components/asset-picker/variant-grid";
 
 import { withAssetsPanel } from "../decorators";
-import { mockFlagResults } from "../fixtures/asset-search";
+import { mockFlagResults } from "@fixtures/asset-search";
 
 const variants = [
   { id: "flag-nl-variant-0", name: "4:3", imageUrl: mockFlagResults[0]!.imageUrl },

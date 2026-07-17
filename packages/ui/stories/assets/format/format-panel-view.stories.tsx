@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { FormatPanelView } from "@/features/format/format-panel-view";
 
 import { withAssetsPanel } from "../decorators";
-import { createFormatPanelController } from "../fixtures/view-story-fixtures";
+import { createFormatPanelController } from "@fixtures/view-story-fixtures";
 
 const meta = {
   title: "Assets/Format/FormatPanelView",

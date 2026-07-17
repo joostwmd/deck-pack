@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { SearchResults } from "@/components/asset-picker/search-results";
 
 import { withAssetsPanel } from "../decorators";
-import { mockFlagResults } from "../fixtures/asset-search";
+import { mockFlagResults } from "@fixtures/asset-search";
 
 const meta = {
   title: "Assets/AssetPicker/SearchResults",

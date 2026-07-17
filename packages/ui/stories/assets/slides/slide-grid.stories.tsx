@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { SlideGrid } from "@/features/slides/slide-grid";
 
 import { withAssetsPanel } from "../decorators";
-import { mockSlideResults } from "../fixtures/view-story-fixtures";
+import { mockSlideResults } from "@fixtures/view-story-fixtures";
 
 const meta = {
   title: "Assets/Slides/SlideGrid",

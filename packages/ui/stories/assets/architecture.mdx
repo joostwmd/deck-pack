@@ -31,7 +31,8 @@ Production wiring lives in `services/app-services.ts` and is mounted from `route
 
 Storybook and tests use the same interface via `createTestServices()`:
 
-- `apps/addins/assets/src/testing/test-services.ts` — default mocked `AppServices`
+- `fixtures/test-services.ts` — default mocked `AppServices`
+- `fixtures/asset-search.ts` — shared mock search data and handlers
 - `packages/ui/stories/assets/decorators.tsx` — `StoryProviders` wraps `ServicesProvider`
 - `withTestServices(services?)` — decorator for stories that need custom API behaviour
 
@@ -44,7 +45,7 @@ Stories live under `packages/ui/stories/assets/` and import add-in code through 
 ### View stories (preferred for MCP manifest)
 
 1. Import the **view** component directly.
-2. Pass static fixture props from `fixtures/view-story-fixtures.ts`.
+2. Pass static fixture props from `@fixtures/view-story-fixtures`.
 3. Use `withAssetsPanel` for theme, shortcuts, and panel sizing.
 4. Add `tags: ['autodocs']` on the meta object.
 5. Document each primary story with a JSDoc `@summary` comment.
@@ -58,9 +59,14 @@ Use for end-to-end flows that prove services wiring (for example `FlagsPanel` wi
 
 ### Fixtures
 
-- Shared mock search data: `@/testing/fixtures/asset-search` (re-exported from `stories/assets/fixtures/`)
-- Panel service overrides: `stories/assets/fixtures/panel-test-services.ts`
-- View prop builders: `stories/assets/fixtures/view-story-fixtures.ts`
+All shared fixtures live at the repo root in `fixtures/` and are imported via the `@fixtures` alias:
+
+- `@fixtures/asset-search` — mock search results and handlers
+- `@fixtures/panel-test-services` — panel-specific `AppServices` overrides
+- `@fixtures/view-story-fixtures` — view/controller prop builders
+- `@fixtures/test-services` — `createTestServices()` factory
+
+Unit tests for the add-in live in `tests/addins/assets/` (mirroring `src/` structure).
 
 ## Adding a new feature panel
 
@@ -84,4 +90,4 @@ Prefer testing controllers and injectable hooks over snapshotting views. Views s
 - [ ] Container is the only exported component used by routes
 - [ ] Storybook view story exists with `autodocs` and `@summary`
 - [ ] Error/empty/loading stories tagged `!manifest`
-- [ ] Fixtures reused from `@/testing/fixtures` rather than duplicated in Storybook
+- [ ] Fixtures imported from `@fixtures/*` rather than duplicated in Storybook

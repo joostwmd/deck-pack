@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ShortcutListView } from "@/components/shortcut-settings/shortcut-list-view";
 
 import { withAssetsPanel } from "../decorators";
-import { createShortcutListGroups } from "../fixtures/view-story-fixtures";
+import { createShortcutListGroups } from "@fixtures/view-story-fixtures";
 
 const meta = {
   title: "Assets/Shortcuts/ShortcutListView",

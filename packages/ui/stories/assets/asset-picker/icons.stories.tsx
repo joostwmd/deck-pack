@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { IconsPanel } from "@/features/icons/icons-panel";
 
 import { withAssetsPanel } from "../decorators";
-import { iconsPickerConfig } from "../fixtures/asset-picker-configs";
+import { iconsPickerConfig } from "@fixtures/asset-picker-configs";
 
 const meta = {
   title: "Assets/AssetPicker/Icons",

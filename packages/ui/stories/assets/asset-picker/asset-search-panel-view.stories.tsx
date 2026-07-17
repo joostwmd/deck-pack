@@ -3,8 +3,8 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { AssetSearchPanelView } from "@/components/asset-picker/asset-search-panel-view";
 
 import { withAssetsPanel } from "../decorators";
-import { createAssetSearchPanelViewProps } from "../fixtures/view-story-fixtures";
-import { mockFlagResults } from "../fixtures/asset-search";
+import { createAssetSearchPanelViewProps } from "@fixtures/view-story-fixtures";
+import { mockFlagResults } from "@fixtures/asset-search";
 
 const meta = {
   title: "Assets/AssetPicker/AssetSearchPanelView",

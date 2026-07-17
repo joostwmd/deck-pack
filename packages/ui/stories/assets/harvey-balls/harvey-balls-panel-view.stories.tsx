@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { HarveyBallsPanelView } from "@/features/harvey-balls/harvey-balls-panel-view";
 
 import { withAssetsPanel } from "../decorators";
-import { createHarveyBallsPanelController } from "../fixtures/view-story-fixtures";
+import { createHarveyBallsPanelController } from "@fixtures/view-story-fixtures";
 
 const meta = {
   title: "Assets/HarveyBalls/HarveyBallsPanelView",

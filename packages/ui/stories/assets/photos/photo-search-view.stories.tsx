@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { PhotoSearchView } from "@/features/photos/photo-search-view";
 
 import { withAssetsPanel } from "../decorators";
-import { createPhotoSearchController } from "../fixtures/view-story-fixtures";
+import { createPhotoSearchController } from "@fixtures/view-story-fixtures";
 
 const meta = {
   title: "Assets/Photos/PhotoSearchView",

@@ -15,8 +15,8 @@ import { ShortcutBindingsProvider } from "@/providers/shortcut-bindings-provider
 import { routeTree } from "@/routeTree.gen";
 import { ServicesProvider } from "@/services/services-context";
 import type { AppServices } from "@/services/types";
-import type { DeepPartial } from "@/testing/deep-partial";
-import { createTestServices } from "@/testing/test-services";
+import type { DeepPartial } from "@fixtures/deep-partial";
+import { createTestServices } from "@fixtures/test-services";
 import { createAuthClient } from "@/utils/auth";
 
 import type { AppShellMode, AssetsRoute } from "./routes";

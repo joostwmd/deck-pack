@@ -12,6 +12,7 @@
     "rootDirs": ["."],
     "paths": {
       "@/*": ["./src/*"],
+      "@fixtures/*": ["../../../fixtures/*"],
       "@deck-pack/ui/*": ["../../packages/ui/src/*"]
     }
   }

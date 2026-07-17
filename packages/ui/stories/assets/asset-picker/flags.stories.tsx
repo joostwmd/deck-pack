@@ -4,9 +4,9 @@ import { expect, userEvent, waitFor, within } from "storybook/test";
 import { FlagsPanel } from "@/features/flags/flags-panel";
 
 import { withAssetsPanel, withTestServices } from "../decorators";
-import { mockEmptySearch, mockFailingSearch } from "../fixtures/asset-search";
-import { flagsPickerConfig } from "../fixtures/asset-picker-configs";
-import { createFlagsTestServices } from "../fixtures/panel-test-services";
+import { mockEmptySearch, mockFailingSearch } from "@fixtures/asset-search";
+import { flagsPickerConfig } from "@fixtures/asset-picker-configs";
+import { createFlagsTestServices } from "@fixtures/panel-test-services";
 
 const meta = {
   title: "Assets/AssetPicker/Flags",
