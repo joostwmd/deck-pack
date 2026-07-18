@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 
 import { organizationSubscriptions, plans } from "../schema/billing";
 import type { Transaction } from "../transaction";
@@ -21,7 +21,10 @@ export type UpdateOrganizationSubscriptionResult =
       createdAt: Date;
       updatedAt: Date;
     }
-  | { ok: false; reason: "not_found" | "plan_not_found" };
+  | {
+      ok: false;
+      reason: "not_found" | "plan_not_found" | "already_subscribed";
+    };
 
 export async function updateOrganizationSubscription({
   tx,
@@ -31,7 +34,11 @@ export async function updateOrganizationSubscription({
   input: UpdateOrganizationSubscriptionInput;
 }): Promise<UpdateOrganizationSubscriptionResult> {
   const [existing] = await tx
-    .select({ id: organizationSubscriptions.id })
+    .select({
+      id: organizationSubscriptions.id,
+      organizationId: organizationSubscriptions.organizationId,
+      status: organizationSubscriptions.status,
+    })
     .from(organizationSubscriptions)
     .where(eq(organizationSubscriptions.id, input.subscriptionId))
     .limit(1);
@@ -49,6 +56,25 @@ export async function updateOrganizationSubscription({
 
     if (!plan) {
       return { ok: false, reason: "plan_not_found" };
+    }
+  }
+
+  const nextStatus = input.status ?? existing.status;
+  if (nextStatus === "active") {
+    const [otherActive] = await tx
+      .select({ id: organizationSubscriptions.id })
+      .from(organizationSubscriptions)
+      .where(
+        and(
+          eq(organizationSubscriptions.organizationId, existing.organizationId),
+          eq(organizationSubscriptions.status, "active"),
+          ne(organizationSubscriptions.id, input.subscriptionId),
+        ),
+      )
+      .limit(1);
+
+    if (otherActive) {
+      return { ok: false, reason: "already_subscribed" };
     }
   }
 

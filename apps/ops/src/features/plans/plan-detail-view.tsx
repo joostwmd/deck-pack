@@ -1,32 +1,43 @@
 import { Button } from "@deck-pack/ui/components/system/button";
 import { Card, CardContent } from "@deck-pack/ui/components/system/card";
-import { Link } from "@tanstack/react-router";
 
 import { PlanFormFields } from "@/features/plans/plan-form-fields";
 import type { PlanAssetType } from "@/features/plans/asset-types";
+import type { Plan } from "@/services/types";
 
-export type NewPlanViewProps = {
+export type PlanDetailViewProps = {
+  loading: boolean;
+  errorMessage?: string;
+  plan?: Plan;
   name: string;
   onNameChange: (value: string) => void;
-  effectiveSlug: string;
-  derivedSlug: string;
+  slug: string;
   onSlugChange: (value: string) => void;
   limits: Record<PlanAssetType, string>;
   unlimited: Record<PlanAssetType, boolean>;
   onLimitChange: (assetType: PlanAssetType, value: string) => void;
   onUnlimitedChange: (assetType: PlanAssetType, unlimited: boolean) => void;
-  submitting: boolean;
+  saving: boolean;
+  dirty: boolean;
   onSubmit: (event: React.FormEvent) => void;
 };
 
-export function NewPlanView(props: NewPlanViewProps) {
+export function PlanDetailView(props: PlanDetailViewProps) {
+  if (props.loading) {
+    return <p className="text-muted-foreground text-sm">Loading…</p>;
+  }
+
+  if (props.errorMessage || !props.plan) {
+    return (
+      <p className="text-destructive text-sm">{props.errorMessage ?? "Plan not found"}</p>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-xl space-y-6">
       <div className="space-y-1">
-        <h1 className="text-xl font-semibold tracking-tight">New plan</h1>
-        <p className="text-muted-foreground text-sm">
-          Name the tier, then set monthly insert limits per asset class.
-        </p>
+        <h1 className="text-xl font-semibold tracking-tight">{props.plan.name}</h1>
+        <p className="text-muted-foreground font-mono text-sm">{props.plan.slug}</p>
       </div>
 
       <Card>
@@ -35,8 +46,7 @@ export function NewPlanView(props: NewPlanViewProps) {
             <PlanFormFields
               name={props.name}
               onNameChange={props.onNameChange}
-              slug={props.effectiveSlug}
-              slugPlaceholder={props.derivedSlug || "pro"}
+              slug={props.slug}
               onSlugChange={props.onSlugChange}
               limits={props.limits}
               unlimited={props.unlimited}
@@ -44,14 +54,9 @@ export function NewPlanView(props: NewPlanViewProps) {
               onUnlimitedChange={props.onUnlimitedChange}
             />
 
-            <div className="flex gap-2">
-              <Button type="submit" disabled={props.submitting}>
-                {props.submitting ? "Creating…" : "Create plan"}
-              </Button>
-              <Button type="button" variant="outline" render={<Link to="/plans" />}>
-                Cancel
-              </Button>
-            </div>
+            <Button type="submit" disabled={props.saving || !props.dirty}>
+              {props.saving ? "Saving…" : "Save changes"}
+            </Button>
           </form>
         </CardContent>
       </Card>

@@ -128,12 +128,20 @@ export type OrganizationSubscription = {
 
 export interface BillingStore {
   listPlans: () => Promise<Plan[]>;
+  getPlan: (planId: string) => Promise<Plan>;
   createPlan: (input: {
     name: string;
     slug: string;
     limits: PlanLimit[];
   }) => Promise<Plan>;
+  updatePlan: (input: {
+    planId: string;
+    name: string;
+    slug: string;
+    limits: PlanLimit[];
+  }) => Promise<Plan>;
   listOrganizationSubscriptions: () => Promise<OrganizationSubscription[]>;
+  getOrganizationSubscription: (subscriptionId: string) => Promise<OrganizationSubscription>;
   createOrganizationSubscription: (input: {
     organizationId: string;
     planId: string;

@@ -51,9 +51,13 @@ function createUsersStore(): UsersStore {
 function createBillingStore(): BillingStore {
   return {
     listPlans: () => trpcClient.billing.listPlans.query(),
+    getPlan: (planId) => trpcClient.billing.getPlan.query({ planId }),
     createPlan: (input) => trpcClient.billing.createPlan.mutate(input),
+    updatePlan: (input) => trpcClient.billing.updatePlan.mutate(input),
     listOrganizationSubscriptions: () =>
       trpcClient.billing.listOrganizationSubscriptions.query(),
+    getOrganizationSubscription: (subscriptionId) =>
+      trpcClient.billing.getOrganizationSubscription.query({ subscriptionId }),
     createOrganizationSubscription: (input) =>
       trpcClient.billing.createOrganizationSubscription.mutate(input),
     updateOrganizationSubscription: (input) =>

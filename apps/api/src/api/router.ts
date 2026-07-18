@@ -15,7 +15,9 @@ import { deleteUser } from "@deck-pack/db/queries/deleteUser";
 import { findUserByEmail } from "@deck-pack/db/queries/findUserByEmail";
 import { getAgendaInstance } from "@deck-pack/db/queries/getAgendaInstance";
 import { getBrandProfileWithVersion } from "@deck-pack/db/queries/getBrandProfileWithVersion";
+import { getOrganizationSubscription } from "@deck-pack/db/queries/getOrganizationSubscription";
 import { getOrganizationWithOwner } from "@deck-pack/db/queries/getOrganizationWithOwner";
+import { getPlan } from "@deck-pack/db/queries/getPlan";
 import { insertAssetInsertion } from "@deck-pack/db/queries/insertAssetInsertion";
 import { listAllShortcutOverridesByUser } from "@deck-pack/db/queries/listShortcutOverridesByUser";
 import { listBrandProfilesByUser } from "@deck-pack/db/queries/listBrandProfilesByUser";
@@ -29,6 +31,7 @@ import { syncAgenda } from "@deck-pack/db/queries/syncAgenda";
 import { updateBrandProfileMetadata } from "@deck-pack/db/queries/updateBrandProfileMetadata";
 import { updateOrganization } from "@deck-pack/db/queries/updateOrganization";
 import { updateOrganizationSubscription } from "@deck-pack/db/queries/updateOrganizationSubscription";
+import { updatePlan } from "@deck-pack/db/queries/updatePlan";
 import { upsertShortcutOverride } from "@deck-pack/db/queries/upsertShortcutOverride";
 import { Icons8Client } from "@deck-pack/integrations/icons8";
 import { PexelsClient } from "@deck-pack/integrations/pexels";
@@ -127,8 +130,11 @@ export function createAppRouter(deps: AddinRouterDeps) {
 
   const billingService = createBillingService({
     listPlans,
+    getPlan,
     createPlan,
+    updatePlan,
     listOrganizationSubscriptions,
+    getOrganizationSubscription,
     createOrganizationSubscription,
     updateOrganizationSubscription,
   });

@@ -88,7 +88,15 @@ export function PlansListView({ loading, errorMessage, plans }: PlansListViewPro
               ) : (
                 plans.map((plan) => (
                   <TableRow key={plan.id}>
-                    <TableCell className="font-medium">{plan.name}</TableCell>
+                    <TableCell className="font-medium">
+                      <Link
+                        to="/plans/$planId"
+                        params={{ planId: plan.id }}
+                        className="hover:underline"
+                      >
+                        {plan.name}
+                      </Link>
+                    </TableCell>
                     <TableCell className="text-muted-foreground font-mono text-xs">
                       {plan.slug}
                     </TableCell>

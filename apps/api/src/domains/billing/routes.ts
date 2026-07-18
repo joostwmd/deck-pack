@@ -11,11 +11,28 @@ import {
 } from "./schemas";
 import type { BillingService } from "./service";
 
+const subscriptionMutationSchema = z.object({
+  id: z.string(),
+  organizationId: z.string(),
+  planId: z.string(),
+  quantity: z.number().int(),
+  status: z.string(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
 export function createBillingRoutes(service: BillingService) {
   return {
     listPlans: platformAdminProcedure.output(z.array(planSchema)).query(async ({ ctx }) => {
       return unwrapServiceResult(await service.listPlans(ctx.tx));
     }),
+
+    getPlan: platformAdminProcedure
+      .input(z.object({ planId: z.string().trim().min(1) }))
+      .output(planSchema)
+      .query(async ({ ctx, input }) => {
+        return unwrapServiceResult(await service.getPlan(ctx.tx, input));
+      }),
 
     createPlan: platformAdminProcedure
       .input(
@@ -30,10 +47,31 @@ export function createBillingRoutes(service: BillingService) {
         return unwrapServiceResult(await service.createPlan(ctx.tx, input));
       }),
 
+    updatePlan: platformAdminProcedure
+      .input(
+        z.object({
+          planId: z.string().trim().min(1),
+          name: z.string().trim().min(1).max(256),
+          slug: planSlugSchema,
+          limits: planLimitsInputSchema,
+        }),
+      )
+      .output(planSchema)
+      .mutation(async ({ ctx, input }) => {
+        return unwrapServiceResult(await service.updatePlan(ctx.tx, input));
+      }),
+
     listOrganizationSubscriptions: platformAdminProcedure
       .output(z.array(organizationSubscriptionSchema))
       .query(async ({ ctx }) => {
         return unwrapServiceResult(await service.listOrganizationSubscriptions(ctx.tx));
+      }),
+
+    getOrganizationSubscription: platformAdminProcedure
+      .input(z.object({ subscriptionId: z.string().trim().min(1) }))
+      .output(organizationSubscriptionSchema)
+      .query(async ({ ctx, input }) => {
+        return unwrapServiceResult(await service.getOrganizationSubscription(ctx.tx, input));
       }),
 
     createOrganizationSubscription: platformAdminProcedure
@@ -44,17 +82,7 @@ export function createBillingRoutes(service: BillingService) {
           quantity: z.number().int().positive(),
         }),
       )
-      .output(
-        z.object({
-          id: z.string(),
-          organizationId: z.string(),
-          planId: z.string(),
-          quantity: z.number().int(),
-          status: z.string(),
-          createdAt: z.date(),
-          updatedAt: z.date(),
-        }),
-      )
+      .output(subscriptionMutationSchema)
       .mutation(async ({ ctx, input }) => {
         return unwrapServiceResult(await service.createOrganizationSubscription(ctx.tx, input));
       }),
@@ -76,17 +104,7 @@ export function createBillingRoutes(service: BillingService) {
             { message: "Provide at least one field to update" },
           ),
       )
-      .output(
-        z.object({
-          id: z.string(),
-          organizationId: z.string(),
-          planId: z.string(),
-          quantity: z.number().int(),
-          status: z.string(),
-          createdAt: z.date(),
-          updatedAt: z.date(),
-        }),
-      )
+      .output(subscriptionMutationSchema)
       .mutation(async ({ ctx, input }) => {
         return unwrapServiceResult(await service.updateOrganizationSubscription(ctx.tx, input));
       }),

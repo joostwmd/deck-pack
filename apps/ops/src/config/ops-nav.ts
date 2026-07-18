@@ -121,6 +121,16 @@ export function opsBreadcrumbs(
     ];
   }
 
+  const planDetailMatch = pathname.match(/^\/plans\/([^/]+)$/);
+  if (planDetailMatch && planDetailMatch[1] !== "new" && planDetailMatch[1] !== "subscriptions") {
+    const planId = planDetailMatch[1]!;
+    const label = dynamicLabels[`/plans/${planId}`] ?? "Plan";
+    return [
+      { label: "Plans", to: "/plans" },
+      { label },
+    ];
+  }
+
   if (pathname === "/plans/subscriptions") {
     return [
       { label: "Plans", to: "/plans" },
@@ -136,6 +146,18 @@ export function opsBreadcrumbs(
     ];
   }
 
+  const subscriptionDetailMatch = pathname.match(/^\/plans\/subscriptions\/([^/]+)$/);
+  if (subscriptionDetailMatch && subscriptionDetailMatch[1] !== "new") {
+    const subscriptionId = subscriptionDetailMatch[1]!;
+    const label =
+      dynamicLabels[`/plans/subscriptions/${subscriptionId}`] ?? "Subscription";
+    return [
+      { label: "Plans", to: "/plans" },
+      { label: "Subscriptions", to: "/plans/subscriptions" },
+      { label },
+    ];
+  }
+
   return [{ label: "Ops" }];
 }
 
@@ -144,7 +166,11 @@ export function isOpsNavItemActive(pathname: string, to: OpsNavRoute): boolean {
     return pathname === to || pathname.startsWith(`${to}/`);
   }
   if (to === "/plans") {
-    return pathname === to || pathname === "/plans/new";
+    return (
+      pathname === to ||
+      pathname === "/plans/new" ||
+      (/^\/plans\/[^/]+$/.test(pathname) && !pathname.startsWith("/plans/subscriptions"))
+    );
   }
   if (to === "/plans/subscriptions") {
     return pathname === to || pathname.startsWith(`${to}/`);
