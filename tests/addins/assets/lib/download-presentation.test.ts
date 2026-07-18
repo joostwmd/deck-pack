@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { PlacedCanvasItem } from "../contexts/web-canvas-context";
+import type { PlacedCanvasItem } from "@/contexts/web-canvas-context";
 import {
   CANVAS_ASPECT,
   SLIDE_HEIGHT_IN,

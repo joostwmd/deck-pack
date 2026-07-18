@@ -229,6 +229,12 @@ importers:
       '@deck-pack/auth':
         specifier: workspace:*
         version: link:../../packages/auth
+      '@deck-pack/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      '@deck-pack/env':
+        specifier: workspace:*
+        version: link:../../packages/env
       '@deck-pack/integrations':
         specifier: workspace:*
         version: link:../../packages/integrations

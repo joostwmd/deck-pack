@@ -52,14 +52,23 @@ export type AddinRouterDeps = {
   brandfetchApiKey: string;
   icons8ApiKey: string;
   pexelsApiKey: string;
+  pexels?: PexelsClient;
+  icons8?: Icons8Client;
+  brandfetch?: BrandfetchClient;
 };
 
 export function createAppRouter(deps: AddinRouterDeps) {
-  const photoService = createPhotoService({ pexels: new PexelsClient(deps.pexelsApiKey) });
+  const photoService = createPhotoService({
+    pexels: deps.pexels ?? new PexelsClient(deps.pexelsApiKey),
+  });
   const slideService = createSlideService();
   const shapeService = createShapeService();
-  const iconService = createIconService({ icons8: new Icons8Client(deps.icons8ApiKey) });
-  const logoService = createLogoService({ brandfetch: new BrandfetchClient(deps.brandfetchApiKey) });
+  const iconService = createIconService({
+    icons8: deps.icons8 ?? new Icons8Client(deps.icons8ApiKey),
+  });
+  const logoService = createLogoService({
+    brandfetch: deps.brandfetch ?? new BrandfetchClient(deps.brandfetchApiKey),
+  });
   const flagService = createFlagService();
   const addinService = createAddinService({ insertAssetInsertion });
 

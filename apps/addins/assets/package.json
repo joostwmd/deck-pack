@@ -15,8 +15,8 @@
     "validate": "office-addin-manifest validate ./manifests/manifest.dev.xml",
     "validate:staging": "office-addin-manifest validate ./manifests/manifest.staging.xml",
     "validate:prod": "office-addin-manifest validate ./manifests/manifest.prod.xml",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "test": "vitest run --config ../../../vitest.config.ts --project unit-jsdom",
+    "test:watch": "vitest --config ../../../vitest.config.ts --project unit-jsdom"
   },
   "dependencies": {
     "@deck-pack/agenda": "workspace:*",
