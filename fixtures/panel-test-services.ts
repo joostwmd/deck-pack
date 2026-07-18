@@ -1,4 +1,4 @@
-import type { AssetListItem } from "@/lib/asset-types";
+import type { AssetListItem } from "@/types/asset-types";
 import type { AppServices } from "@/services/types";
 
 import {

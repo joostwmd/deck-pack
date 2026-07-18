@@ -1,4 +1,4 @@
-import type { SlideSearchResult } from "@/features/slides/types";
+import type { SlideSearchResult } from "@/components/slides/types";
 import { fetchFileAsBase64 } from "@/lib/fetch-file-as-base64";
 import type { InsertionTracker, OfficeService } from "@/services/types";
 

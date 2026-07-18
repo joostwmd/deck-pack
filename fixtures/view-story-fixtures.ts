@@ -2,12 +2,12 @@ import { Flag, ImageSquare, Shapes } from "@phosphor-icons/react";
 import type { RefObject } from "react";
 import { createRef } from "react";
 
-import type { AssetSearchPanelViewProps } from "@/components/asset-picker/asset-search-panel-view";
-import type { HarveyBallsPanelViewProps } from "@/features/harvey-balls/harvey-balls-panel-view";
-import type { FormatPanelViewProps } from "@/features/format/format-panel-view";
-import type { PhotoSearchController } from "@/features/photos/use-photo-search-controller";
-import type { ShapeLibraryController } from "@/features/shapes/use-shape-library-controller";
-import type { SlideSearchController } from "@/features/slides/use-slide-search-controller";
+import type { AssetSearchPanelViewProps } from "@/components/asset-browser/asset-search-panel-view";
+import type { HarveyBallsPanelViewProps } from "@/components/harvey-balls/harvey-balls-panel-view";
+import type { FormatPanelViewProps } from "@/components/format/format-panel-view";
+import type { PhotoSearchController } from "@/components/photos/use-photo-search-controller";
+import type { ShapeLibraryController } from "@/components/shapes/use-shape-library-controller";
+import type { SlideSearchController } from "@/components/slides/use-slide-search-controller";
 import type { useAssetSearchFlow } from "@/hooks/use-asset-search-flow";
 import type { SelectionState } from "@/hooks/use-powerpoint-selection";
 import { DEFAULT_HARVEY_BALL_CONFIG, normalizeHarveyBallConfig, validateHarveyBallConfig } from "@/lib/harvey-ball-svg";

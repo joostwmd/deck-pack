@@ -20,11 +20,7 @@
   "dependencies": {
     "@deck-pack/agenda": "workspace:*",
     "@deck-pack/auth": "workspace:*",
-    "@deck-pack/brandfetch": "workspace:*",
-    "@deck-pack/db": "workspace:*",
-    "@deck-pack/env": "workspace:*",
-    "@deck-pack/icons8": "workspace:*",
-    "@deck-pack/pexels": "workspace:*",
+    "@deck-pack/integrations": "workspace:*",
     "@deck-pack/presentation-check": "workspace:*",
     "@deck-pack/shortcuts": "workspace:*",
     "@hono/node-server": "^1.14.4",

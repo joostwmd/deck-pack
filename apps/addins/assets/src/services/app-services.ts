@@ -31,10 +31,10 @@ function createShortcutStore(api: ReturnType<typeof getTrpcClient>): ShortcutSto
 function createAssetStores(api: ReturnType<typeof getTrpcClient>): AssetStores {
   const listSearch = (asset: "flags" | "logos" | "icons") => ({
     search: async (query: string) => {
-      const response = await api.addin[asset].search.query({ query });
+      const response = await api.assets[asset].search.query({ query });
       return response.results;
     },
-    getDetails: (externalId: string) => api.addin[asset].getDetails.query({ externalId }),
+    getDetails: (externalId: string) => api.assets[asset].getDetails.query({ externalId }),
   });
 
   return {
@@ -42,13 +42,13 @@ function createAssetStores(api: ReturnType<typeof getTrpcClient>): AssetStores {
     logos: listSearch("logos"),
     icons: listSearch("icons"),
     photos: {
-      search: (input) => api.addin.photos.search.query(input),
+      search: (input) => api.assets.photos.search.query(input),
     },
     slides: {
-      search: (input) => api.addin.slides.search.query(input),
+      search: (input) => api.assets.slides.search.query(input),
     },
     shapes: {
-      search: (input) => api.addin.shapes.search.query(input),
+      search: (input) => api.assets.shapes.search.query(input),
     },
   };
 }

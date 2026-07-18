@@ -1,4 +1,4 @@
-import type { IconDetailsResponse, IconSearchResponse } from "@deck-pack/icons8";
+import type { IconDetailsResponse, IconSearchResponse } from "@deck-pack/integrations/icons8";
 
 import type { AssetDetailsResponse, AssetSearchResponse } from "../assets/types";
 import { capitalize } from "../../lib/strings";

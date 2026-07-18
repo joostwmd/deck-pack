@@ -1,11 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { CheckPanel } from "@/features/check/check-panel";
+import { CheckPage } from "@/pages/check/check-page";
 
 export const Route = createFileRoute("/_protected/$environment/check")({
   component: CheckPage,
 });
-
-function CheckPage() {
-  return <CheckPanel />;
-}

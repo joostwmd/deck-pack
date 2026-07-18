@@ -100,7 +100,7 @@ export function getDisplayShortcutDefs(
     get("flags"),
     get("icons"),
     get("photos"),
-    get("balls"),
+    get("harvey-balls"),
     get("slides"),
     get("shapes"),
     get("agenda"),

@@ -1,13 +1,13 @@
 import { useNavigate } from "@tanstack/react-router";
 
 import { useShortcutCommands } from "@/hooks/use-shortcut-commands";
-import type { AppEnvironment } from "@/lib/navigation";
+import type { AppEnvironment } from "@/constants/navigation";
 import {
   getNavigationPagesWithShortcuts,
   getPageRouteParams,
   getPageRouteTo,
   type NavigationPageId,
-} from "@/lib/navigation";
+} from "@/constants/navigation";
 
 interface UseNavigationHotkeysOptions {
   environment: AppEnvironment;

@@ -1,7 +1,7 @@
 import type { Icon } from "@phosphor-icons/react";
 import { Flag, Image, Shapes } from "@phosphor-icons/react";
 
-import type { AssetDetailsResponse, AssetListItem, AssetType } from "@/lib/asset-types";
+import type { AssetDetailsResponse, AssetListItem, AssetType } from "@/types/asset-types";
 
 import {
   mockFlagDetails,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { applyValidation, recorderReducer } from "@/components/shortcut-settings/recorder-state";
+import { applyValidation, recorderReducer } from "@/components/shortcuts/settings/recorder-state";
 
 const conflictShortcut = {
   id: "photos" as const,

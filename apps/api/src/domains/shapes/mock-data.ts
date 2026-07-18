@@ -1,6 +1,6 @@
 import type { z } from "zod";
 
-import type { shapeSearchInputSchema, shapeSearchResponseSchema } from "../addin/schemas";
+import type { shapeSearchInputSchema, shapeSearchResponseSchema } from "./schemas";
 
 export interface ShapeCatalogEntry {
   id: string;

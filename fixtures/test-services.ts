@@ -1,4 +1,4 @@
-import type { SlideAspectRatio } from "@/features/slides/types";
+import type { SlideAspectRatio } from "@/components/slides/types";
 import type { AppServices, AssetListSearchStore } from "@/services/types";
 import { createCanvasStrategy, officeInsertionStrategyWithTracker } from "@/lib/insertion-strategy";
 import { createInsertionTracker } from "@/lib/track-asset-insertion";
@@ -23,8 +23,8 @@ const mockSession = {
 };
 
 function createListSearchStore(
-  search: (query: string) => Promise<import("@/lib/asset-types").AssetListItem[]>,
-  getDetails: (id: string) => Promise<import("@/lib/asset-types").AssetDetailsResponse>,
+  search: (query: string) => Promise<import("@/types/asset-types").AssetListItem[]>,
+  getDetails: (id: string) => Promise<import("@/types/asset-types").AssetDetailsResponse>,
 ): AssetListSearchStore {
   return { search, getDetails };
 }

@@ -1,4 +1,4 @@
-import { BrandfetchClient } from "@deck-pack/brandfetch";
+import { BrandfetchClient } from "@deck-pack/integrations/brandfetch";
 import { archiveBrandProfile } from "@deck-pack/db/queries/archiveBrandProfile";
 import {
   createBrandProfile,
@@ -19,19 +19,31 @@ import { setDefaultBrandProfile } from "@deck-pack/db/queries/setDefaultBrandPro
 import { syncAgenda } from "@deck-pack/db/queries/syncAgenda";
 import { updateBrandProfileMetadata } from "@deck-pack/db/queries/updateBrandProfileMetadata";
 import { upsertShortcutOverride } from "@deck-pack/db/queries/upsertShortcutOverride";
-import { Icons8Client } from "@deck-pack/icons8";
-import { PexelsClient } from "@deck-pack/pexels";
+import { Icons8Client } from "@deck-pack/integrations/icons8";
+import { PexelsClient } from "@deck-pack/integrations/pexels";
 
 import { createAddinRoutes } from "../domains/addin/routes";
-import { createAddinAssetService } from "../domains/addin/service";
+import { createAddinService } from "../domains/addin/service";
 import { createAgendaRoutes } from "../domains/agenda/routes";
 import { createAgendaService } from "../domains/agenda/service";
 import { createBrandProfileRoutes } from "../domains/brand-profiles/routes";
 import { createBrandProfileService } from "../domains/brand-profiles/service";
+import { createFlagRoutes } from "../domains/flags/routes";
+import { createFlagService } from "../domains/flags/service";
+import { createIconRoutes } from "../domains/icons/routes";
+import { createIconService } from "../domains/icons/service";
+import { createLogoRoutes } from "../domains/logos/routes";
+import { createLogoService } from "../domains/logos/service";
 import { createOrganizationRoutes } from "../domains/organization/routes";
 import { createOrganizationService } from "../domains/organization/service";
+import { createPhotoRoutes } from "../domains/photos/routes";
+import { createPhotoService } from "../domains/photos/service";
+import { createShapeRoutes } from "../domains/shapes/routes";
+import { createShapeService } from "../domains/shapes/service";
 import { createShortcutRoutes } from "../domains/shortcuts/routes";
 import { createShortcutService } from "../domains/shortcuts/service";
+import { createSlideRoutes } from "../domains/slides/routes";
+import { createSlideService } from "../domains/slides/service";
 import { systemRoutes } from "../domains/system/routes";
 
 import { router } from "./setup";
@@ -43,12 +55,13 @@ export type AddinRouterDeps = {
 };
 
 export function createAppRouter(deps: AddinRouterDeps) {
-  const addinAssetService = createAddinAssetService({
-    brandfetch: new BrandfetchClient(deps.brandfetchApiKey),
-    icons8: new Icons8Client(deps.icons8ApiKey),
-    pexels: new PexelsClient(deps.pexelsApiKey),
-    insertAssetInsertion,
-  });
+  const photoService = createPhotoService({ pexels: new PexelsClient(deps.pexelsApiKey) });
+  const slideService = createSlideService();
+  const shapeService = createShapeService();
+  const iconService = createIconService({ icons8: new Icons8Client(deps.icons8ApiKey) });
+  const logoService = createLogoService({ brandfetch: new BrandfetchClient(deps.brandfetchApiKey) });
+  const flagService = createFlagService();
+  const addinService = createAddinService({ insertAssetInsertion });
 
   const organizationService = createOrganizationService({
     findUserByEmail,
@@ -82,7 +95,15 @@ export function createAppRouter(deps: AddinRouterDeps) {
   return router({
     ...systemRoutes,
     organization: router(createOrganizationRoutes(organizationService)),
-    addin: router(createAddinRoutes(addinAssetService)),
+    assets: router({
+      photos: router(createPhotoRoutes(photoService)),
+      slides: router(createSlideRoutes(slideService)),
+      shapes: router(createShapeRoutes(shapeService)),
+      icons: router(createIconRoutes(iconService)),
+      logos: router(createLogoRoutes(logoService)),
+      flags: router(createFlagRoutes(flagService)),
+    }),
+    addin: router(createAddinRoutes(addinService)),
     agenda: router(createAgendaRoutes(agendaService)),
     brandProfiles: router(createBrandProfileRoutes(brandProfileService)),
     shortcuts: router(createShortcutRoutes(shortcutService)),

@@ -1,11 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { FormatPanel } from "@/features/format/format-panel";
+import { FormatPage } from "@/pages/format/format-page";
 
 export const Route = createFileRoute("/_protected/$environment/format")({
   component: FormatPage,
 });
-
-function FormatPage() {
-  return <FormatPanel />;
-}

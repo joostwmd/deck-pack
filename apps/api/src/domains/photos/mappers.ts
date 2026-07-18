@@ -1,4 +1,4 @@
-import type { PexelsPhoto, PexelsSearchResponse } from "@deck-pack/pexels";
+import type { PexelsPhoto, PexelsSearchResponse } from "@deck-pack/integrations/pexels";
 
 export interface PhotoSearchResult {
   id: string;

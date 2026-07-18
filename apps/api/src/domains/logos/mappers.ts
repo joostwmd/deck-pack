@@ -1,4 +1,4 @@
-import type { BrandfetchDetailsResponse, BrandfetchSearchResponse } from "@deck-pack/brandfetch";
+import type { BrandfetchDetailsResponse, BrandfetchSearchResponse } from "@deck-pack/integrations/brandfetch";
 
 import type { AssetDetailsResponse, AssetSearchResponse } from "../assets/types";
 import { capitalize } from "../../lib/strings";

@@ -4,7 +4,8 @@
   "workspaces": [
     "apps/*",
     "apps/addins/*",
-    "packages/*"
+    "packages/*",
+    "storybook"
   ],
   "type": "module",
   "scripts": {
@@ -66,7 +67,7 @@
     "docker:stop:api": "docker stop deck-pack-api-local",
     "docker:stop:ops": "docker stop deck-pack-ops-local",
     "test": "pnpm test:unit && pnpm test:integration",
-    "test:unit": "vitest run --config vitest.unit.config.ts && vitest run --config apps/addins/assets/vitest.config.ts",
+    "test:unit": "vitest run --config vitest.unit.config.ts && vitest run --config packages/observability/vitest.config.ts && vitest run --config apps/addins/assets/vitest.config.ts",
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "test:integration:with-db": "pnpm db:start && pnpm test:integration",
     "check-types": "turbo check-types",
@@ -75,8 +76,8 @@
     "dev:portal": "turbo -F @deck-pack/portal dev",
     "dev:assets": "turbo -F @deck-pack/assets dev",
     "dev:addin-one": "turbo -F @deck-pack/assets dev",
-    "storybook": "turbo -F @deck-pack/ui storybook",
-    "build-storybook": "turbo -F @deck-pack/ui build-storybook",
+    "storybook": "turbo -F @deck-pack/storybook storybook",
+    "build-storybook": "turbo -F @deck-pack/storybook build-storybook",
     "sideload:assets": "pnpm -F @deck-pack/assets sideload",
     "sideload:assets:staging": "pnpm -F @deck-pack/assets sideload:staging",
     "sideload:assets:prod": "pnpm -F @deck-pack/assets sideload:prod",

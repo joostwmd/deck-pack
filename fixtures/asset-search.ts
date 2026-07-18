@@ -1,4 +1,4 @@
-import type { AssetDetailsResponse, AssetListItem } from "@/lib/asset-types";
+import type { AssetDetailsResponse, AssetListItem } from "@/types/asset-types";
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));

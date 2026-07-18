@@ -23,6 +23,7 @@
     "@deck-pack/api": "workspace:*",
     "@deck-pack/auth": "workspace:*",
     "@deck-pack/env": "workspace:*",
+    "@deck-pack/observability": "workspace:*",
     "@deck-pack/office-js": "workspace:*",
     "@deck-pack/presentation-check": "workspace:*",
     "@deck-pack/presentation-formatting": "workspace:*",

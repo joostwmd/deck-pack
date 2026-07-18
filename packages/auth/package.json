@@ -11,11 +11,11 @@
   },
   "dependencies": {
     "@deck-pack/db": "workspace:*",
-    "@deck-pack/email": "workspace:*",
     "@deck-pack/env": "workspace:*",
     "better-auth": "catalog:",
     "dotenv": "catalog:",
     "jose": "^6.2.3",
+    "resend": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

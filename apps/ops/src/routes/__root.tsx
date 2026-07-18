@@ -1,4 +1,5 @@
 import { Toaster } from "@deck-pack/ui/components/system/sonner";
+import { AppErrorBoundary } from "@deck-pack/observability";
 import type { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { HeadContent, Outlet, createRootRouteWithContext } from "@tanstack/react-router";
@@ -38,7 +39,7 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 
 function RootComponent() {
   return (
-    <>
+    <AppErrorBoundary>
       <HeadContent />
       <ThemeProvider
         attribute="class"
@@ -53,6 +54,6 @@ function RootComponent() {
       </ThemeProvider>
       <TanStackRouterDevtools position="bottom-left" />
       <ReactQueryDevtools position="bottom" buttonPosition="bottom-right" />
-    </>
+    </AppErrorBoundary>
   );
 }

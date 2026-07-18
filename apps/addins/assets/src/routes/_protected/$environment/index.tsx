@@ -1,6 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
-import { DEFAULT_NAVIGATION_PAGE_ID, getPageRouteTo } from "@/lib/navigation";
+import { DEFAULT_NAVIGATION_PAGE_ID, getPageRouteTo } from "@/constants/navigation";
 
 export const Route = createFileRoute("/_protected/$environment/")({
   beforeLoad: ({ params }) => {

@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
-import type { AssetDetailsResponse, AssetListItem, SelectedAssetEntity } from "@/lib/asset-types";
+import type { AssetDetailsResponse, AssetListItem, SelectedAssetEntity } from "@/types/asset-types";
 
 import { useAssetSearch } from "./use-asset-search";
 import { useAssetVariants } from "./use-asset-variants";

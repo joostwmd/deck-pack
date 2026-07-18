@@ -1,5 +1,5 @@
 import type { WebCanvasContextValue } from "@/contexts/web-canvas-context";
-import type { AssetInsertPayload, AssetType } from "@/lib/asset-types";
+import type { AssetInsertPayload, AssetType } from "@/types/asset-types";
 import type { InsertionTracker, OfficeService } from "@/services/types";
 import { urlToBase64 } from "@/lib/url-to-base64";
 

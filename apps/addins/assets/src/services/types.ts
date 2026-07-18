@@ -10,14 +10,14 @@ import type {
 import type { ShortcutId, ShortcutOverride } from "@deck-pack/shortcuts";
 
 import type { WebCanvasContextValue } from "@/contexts/web-canvas-context";
-import type { PhotoFilters, PhotoSearchResponse } from "@/features/photos/types";
-import type { ShapeSearchResponse } from "@/features/shapes/types";
-import type { SlideAspectRatio, SlideSearchResponse, SlideSort } from "@/features/slides/types";
+import type { PhotoFilters, PhotoSearchResponse } from "@/components/photos/types";
+import type { ShapeSearchResponse } from "@/components/shapes/types";
+import type { SlideAspectRatio, SlideSearchResponse, SlideSort } from "@/components/slides/types";
 import type {
   AssetDetailsResponse,
   AssetListItem,
   AssetType,
-} from "@/lib/asset-types";
+} from "@/types/asset-types";
 import type { InsertionStrategy } from "@/lib/insertion-strategy";
 
 export type AuthClient = ReturnType<typeof createAppAuthClient>;

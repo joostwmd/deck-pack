@@ -20,6 +20,13 @@ describe("migrateShortcutOverridesToCurrent", () => {
       UnsupportedShortcutSchemaVersionError,
     );
   });
+
+  it("migrates v1 balls overrides to harvey-balls", () => {
+    const overrides = [{ shortcutId: "balls" as const, hotkey: "Mod+Alt+B", schemaVersion: 1 }];
+    expect(migrateShortcutOverridesToCurrent(1, overrides)).toEqual([
+      { shortcutId: "harvey-balls", hotkey: "Mod+Alt+B", schemaVersion: 2 },
+    ]);
+  });
 });
 
 describe("groupOverridesBySchemaVersion", () => {

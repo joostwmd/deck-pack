@@ -1,8 +1,8 @@
 import { Outlet, createFileRoute, notFound } from "@tanstack/react-router";
 
-import { OfficeLayout } from "@/features/layouts/office-layout";
-import { WebLayout } from "@/features/layouts/web-layout";
-import { isAppEnvironment } from "@/lib/navigation";
+import { OfficeLayout } from "@/components/shell/office-layout";
+import { WebLayout } from "@/components/shell/web-layout";
+import { isAppEnvironment } from "@/constants/navigation";
 
 export const Route = createFileRoute("/_protected/$environment")({
   beforeLoad: ({ params }) => {

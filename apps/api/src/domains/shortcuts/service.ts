@@ -78,7 +78,7 @@ export function createShortcutService(deps: ShortcutServiceDeps) {
     list: async (tx: Transaction, input: { userId: string }) => {
       const overrides = await loadCurrentShortcutOverrides(tx, input.userId);
       return serviceOk({
-        schemaVersion: 1 as const,
+        schemaVersion: SHORTCUT_SCHEMA_VERSION,
         overrides,
       });
     },

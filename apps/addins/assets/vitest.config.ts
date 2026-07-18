@@ -52,7 +52,6 @@ export default defineConfig({
       { find: "@fixtures", replacement: path.resolve(repoRoot, "fixtures") },
       { find: /^@\/(.*)/, replacement: `${path.resolve(assetsRoot, "src")}/$1` },
     ],
-    tsconfigPaths: true,
   },
   server: {
     fs: {

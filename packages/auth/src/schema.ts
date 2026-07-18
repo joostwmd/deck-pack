@@ -6,7 +6,7 @@ import { createOpsAuth, type AuthDb } from "./index";
  * No queries are ever executed, so a fake DB is fine.
  *
  * This file is safe to import without any env set. It must remain that way —
- * do not import `@deck-pack/env`, `@deck-pack/db`, or `@deck-pack/email` here.
+ * do not import `@deck-pack/env`, `@deck-pack/db`, or Resend/email helpers here.
  */
 export const auth = createOpsAuth({
   db: {} as AuthDb,

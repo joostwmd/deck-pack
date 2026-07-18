@@ -1,4 +1,4 @@
-import type { AssetType } from "@/lib/asset-types";
+import type { AssetType } from "@/types/asset-types";
 import type { InsertionStore } from "@/services/types";
 
 export function createInsertionTracker(insertions: InsertionStore) {

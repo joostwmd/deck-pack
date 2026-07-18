@@ -2,11 +2,20 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
 import ReactDOM from "react-dom/client";
 
+import { env } from "@deck-pack/env/web";
+import { initBrowserSentry } from "@deck-pack/observability";
 import { Loader } from "@deck-pack/ui/components/system/loader";
 import { ServicesProvider } from "./services/services-context";
 import { routeTree } from "./routeTree.gen";
 import { queryClient, trpc } from "./utils/trpc";
 import { authClient } from "./utils/auth";
+
+initBrowserSentry({
+  dsn: env.VITE_SENTRY_DSN,
+  environment: import.meta.env.MODE,
+  app: "ops",
+  tracePropagationTargets: [env.VITE_SERVER_URL],
+});
 
 const router = createRouter({
   routeTree,

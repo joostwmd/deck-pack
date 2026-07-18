@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 
-import type { AssetListItem } from "@/lib/asset-types";
+import type { AssetListItem } from "@/types/asset-types";
 import { getUserFacingApiErrorMessage } from "@/lib/user-facing-api-error";
 
 export interface AssetVariantsResult<TDetails = any> {

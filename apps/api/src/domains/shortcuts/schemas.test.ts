@@ -35,8 +35,8 @@ describe("shortcut schemas", () => {
 
   it("parses list output envelope", () => {
     const parsed = listShortcutsOutputSchema.parse({
-      schemaVersion: 1,
-      overrides: [{ shortcutId: "photos", hotkey: "Mod+Alt+P", schemaVersion: 1 }],
+      schemaVersion: 2,
+      overrides: [{ shortcutId: "photos", hotkey: "Mod+Alt+P", schemaVersion: 2 }],
     });
 
     expect(parsed.overrides).toHaveLength(1);
