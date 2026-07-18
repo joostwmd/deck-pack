@@ -18,6 +18,7 @@ import { listAllShortcutOverridesByUser } from "@deck-pack/db/queries/listShortc
 import { listBrandProfilesByUser } from "@deck-pack/db/queries/listBrandProfilesByUser";
 import { listOrganizationMembers } from "@deck-pack/db/queries/listOrganizationMembers";
 import { listOrganizationsWithOwner } from "@deck-pack/db/queries/listOrganizationsWithOwner";
+import { listUsersWithMembership } from "@deck-pack/db/queries/listUsersWithMembership";
 import { setDefaultBrandProfile } from "@deck-pack/db/queries/setDefaultBrandProfile";
 import { syncAgenda } from "@deck-pack/db/queries/syncAgenda";
 import { updateBrandProfileMetadata } from "@deck-pack/db/queries/updateBrandProfileMetadata";
@@ -48,6 +49,8 @@ import { createShortcutRoutes } from "../domains/shortcuts/routes";
 import { createShortcutService } from "../domains/shortcuts/service";
 import { createSlideRoutes } from "../domains/slides/routes";
 import { createSlideService } from "../domains/slides/service";
+import { createUsersRoutes } from "../domains/users/routes";
+import { createUsersService } from "../domains/users/service";
 import { systemRoutes } from "../domains/system/routes";
 
 import { router } from "./setup";
@@ -109,9 +112,14 @@ export function createAppRouter(deps: AddinRouterDeps) {
     deleteAllShortcutOverrides,
   });
 
+  const usersService = createUsersService({
+    listUsersWithMembership,
+  });
+
   return router({
     ...systemRoutes,
     organization: router(createOrganizationRoutes(organizationService)),
+    users: router(createUsersRoutes(usersService)),
     assets: router({
       photos: router(createPhotoRoutes(photoService)),
       slides: router(createSlideRoutes(slideService)),

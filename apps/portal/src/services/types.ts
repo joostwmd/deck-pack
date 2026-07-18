@@ -20,6 +20,7 @@ export interface AuthService {
     input: { email: string; password: string; name: string },
     callbacks?: Parameters<AuthClient["signUp"]["email"]>[1],
   ) => ReturnType<AuthClient["signUp"]["email"]>;
+  stopImpersonating: () => ReturnType<AuthClient["admin"]["stopImpersonating"]>;
 }
 
 export interface PortalAppServices {

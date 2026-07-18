@@ -13,6 +13,7 @@ function createAuthService(): AuthService {
     signInWithEmailOtp: (input) => auth.signIn.emailOtp(input),
     signInWithEmail: (input, callbacks) => auth.signIn.email(input, callbacks),
     signUpWithEmail: (input, callbacks) => auth.signUp.email(input, callbacks),
+    stopImpersonating: () => auth.admin.stopImpersonating(),
   };
 }
 

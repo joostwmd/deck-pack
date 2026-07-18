@@ -25,6 +25,8 @@ export interface AuthService {
     input: { email: string; password: string; name: string },
     callbacks?: Parameters<AuthClient["signUp"]["email"]>[1],
   ) => ReturnType<AuthClient["signUp"]["email"]>;
+  impersonateUser: (userId: string) => ReturnType<AuthClient["admin"]["impersonateUser"]>;
+  stopImpersonating: () => ReturnType<AuthClient["admin"]["stopImpersonating"]>;
 }
 
 export type OrganizationSummary = {
@@ -49,6 +51,19 @@ export type OrganizationMember = {
   createdAt: Date;
 };
 
+export type PlatformUser = {
+  id: string;
+  name: string;
+  email: string;
+  role: string | null;
+  emailVerified: boolean;
+  banned: boolean;
+  createdAt: Date;
+  organizationId: string | null;
+  organizationName: string | null;
+  memberRole: string | null;
+};
+
 export interface OrganizationStore {
   lookupUser: (email: string) => Promise<
     | { found: true; name: string; email: string; hasOrg: boolean }
@@ -70,7 +85,12 @@ export interface OrganizationStore {
   deleteOrganization: (organizationId: string) => Promise<{ organizationId: string }>;
 }
 
+export interface UsersStore {
+  listUsers: () => Promise<PlatformUser[]>;
+}
+
 export interface OpsAppServices {
   auth: AuthService;
   organization: OrganizationStore;
+  users: UsersStore;
 }

@@ -1,7 +1,12 @@
 import { authClient } from "@/utils/auth";
 import { trpcClient } from "@/utils/trpc";
 
-import type { AuthService, OpsAppServices, OrganizationStore } from "./types";
+import type {
+  AuthService,
+  OpsAppServices,
+  OrganizationStore,
+  UsersStore,
+} from "./types";
 
 function createAuthService(): AuthService {
   const auth = authClient;
@@ -14,6 +19,8 @@ function createAuthService(): AuthService {
     signInWithEmailOtp: (input) => auth.signIn.emailOtp(input),
     signInWithEmail: (input, callbacks) => auth.signIn.email(input, callbacks),
     signUpWithEmail: (input, callbacks) => auth.signUp.email(input, callbacks),
+    impersonateUser: (userId) => auth.admin.impersonateUser({ userId }),
+    stopImpersonating: () => auth.admin.stopImpersonating(),
   };
 }
 
@@ -33,9 +40,16 @@ function createOrganizationStore(): OrganizationStore {
   };
 }
 
+function createUsersStore(): UsersStore {
+  return {
+    listUsers: () => trpcClient.users.listUsers.query(),
+  };
+}
+
 export function createAppServices(): OpsAppServices {
   return {
     auth: createAuthService(),
     organization: createOrganizationStore(),
+    users: createUsersStore(),
   };
 }
