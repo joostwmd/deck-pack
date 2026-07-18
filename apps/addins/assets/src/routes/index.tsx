@@ -5,7 +5,7 @@ import {
   DEFAULT_NAVIGATION_PAGE_ID,
   getPageRouteParams,
   getPageRouteTo,
-} from "@/lib/navigation";
+} from "@/constants/navigation";
 
 export const Route = createFileRoute("/")({
   component: HomeComponent,

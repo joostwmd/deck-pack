@@ -1,0 +1,16 @@
+{
+  "extends": "@deck-pack/config/tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "skipLibCheck": true,
+    "types": ["office-js"],
+    "paths": {
+      "@deck-pack/ui/*": ["../packages/ui/src/*"],
+      "@/*": ["../apps/addins/assets/src/*"],
+      "@fixtures/*": ["../fixtures/*"]
+    }
+  },
+  "include": ["stories/**/*.ts", "stories/**/*.tsx", ".storybook/**/*.ts", ".storybook/**/*.tsx"]
+}

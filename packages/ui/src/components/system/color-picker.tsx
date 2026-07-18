@@ -568,7 +568,9 @@ function ColorPicker(props: ColorPickerProps) {
         stateRef.current.open = value;
 
         if (propsRef.current.onOpenChange) {
-          propsRef.current.onOpenChange(value);
+          propsRef.current.onOpenChange(value, {} as Parameters<
+            NonNullable<typeof propsRef.current.onOpenChange>
+          >[1]);
         }
 
         store.notify();
@@ -724,7 +726,7 @@ function ColorPickerImpl(props: ColorPickerImplProps) {
 }
 
 function ColorPickerTrigger(
-  props: React.ComponentProps<typeof PopoverTrigger>,
+  props: React.ComponentProps<typeof Button> & { asChild?: boolean },
 ) {
   const { asChild, disabled, ...triggerProps } = props;
 
@@ -732,17 +734,38 @@ function ColorPickerTrigger(
 
   const isDisabled = disabled || context.disabled;
 
-  const TriggerPrimitive = asChild ? SlotPrimitive.Slot : Button;
+  if (asChild) {
+    const { className, children } = triggerProps;
+    const resolvedClassName = typeof className === "function" ? undefined : className;
+
+    return (
+      <PopoverTrigger
+        disabled={isDisabled}
+        render={
+          <SlotPrimitive.Slot
+            data-slot="color-picker-trigger"
+            className={resolvedClassName}
+          >
+            {children}
+          </SlotPrimitive.Slot>
+        }
+      />
+    );
+  }
 
   return (
-    <PopoverTrigger disabled={isDisabled} render={<TriggerPrimitive data-slot="color-picker-trigger" {...triggerProps} />}></PopoverTrigger>
+    <PopoverTrigger
+      disabled={isDisabled}
+      render={<Button data-slot="color-picker-trigger" {...triggerProps} />}
+    />
   );
 }
 
 function ColorPickerContent(
-  props: React.ComponentProps<typeof PopoverContent>,
+  props: React.ComponentProps<typeof PopoverContent> & { asChild?: boolean },
 ) {
-  const { asChild, className, children, ...popoverContentProps } = props;
+  const { asChild, className, children, align, alignOffset, side, sideOffset, ...popoverContentProps } =
+    props;
 
   const context = useColorPickerContext(CONTENT_NAME);
 
@@ -752,8 +775,8 @@ function ColorPickerContent(
     return (
       <ContentPrimitive
         data-slot="color-picker-content"
-        {...popoverContentProps}
         className={cn("flex w-[340px] flex-col gap-4 p-4", className)}
+        {...(popoverContentProps as React.ComponentProps<"div">)}
       >
         {children}
       </ContentPrimitive>
@@ -1141,7 +1164,7 @@ function ColorPickerFormatSelect(props: ColorPickerFormatSelectProps) {
       data-slot="color-picker-format-select"
       {...selectProps}
       value={format}
-      onValueChange={onFormatChange}
+      onValueChange={(value) => onFormatChange(value as ColorFormat)}
       disabled={isDisabled}
     >
       <SelectTrigger

@@ -25,7 +25,7 @@ export function createOpsAuthClient(config: { baseURL: string }) {
   });
 }
 
-function captureBearerTokenFromResponse(
+export function captureBearerTokenFromResponse(
   store: BearerSessionStore,
   response: Response,
 ): void {

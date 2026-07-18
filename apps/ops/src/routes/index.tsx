@@ -1,16 +1,13 @@
-import { OtpSignup, type OtpSignupStep } from "@deck-pack/ui/components/composite/otp-signup";
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
-import { toast } from "sonner";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
-import { authClient } from "@/utils/auth";
+import { OtpSignInView } from "@/features/auth/otp-sign-in-view";
+import { useOtpSignInController } from "@/features/auth/use-otp-sign-in-controller";
 
 const OPS_EMAIL_DOMAIN = "code.berlin";
-const OTP_LENGTH = 6;
 
 export const Route = createFileRoute("/")({
-  beforeLoad: async () => {
-    const session = await authClient.getSession();
+  beforeLoad: async ({ context }) => {
+    const session = await context.authClient.getSession();
     if (session.data && session.data.user.role === "admin") {
       redirect({
         to: "/dashboard",
@@ -21,96 +18,22 @@ export const Route = createFileRoute("/")({
   component: HomeComponent,
 });
 
-function displayNameFromEmail(email: string): string {
-  const localPart = email.split("@")[0] ?? "User";
-  return localPart
-    .split(/[._-]/)
-    .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
-    .join(" ");
-}
-
 function HomeComponent() {
-  const navigate = useNavigate();
+  const viewProps = useOtpSignInController({
+    successPath: "/dashboard",
+    emailHelperText: `Sign in with your @${OPS_EMAIL_DOMAIN} address.`,
+    titleEmailStep: "Internal dashboard",
+    descriptionEmailStep: "We’ll email you a one-time code. It expires in a few minutes.",
+    header: (
+      <>
+        <h1 className="text-2xl font-bold">Deck Pack Ops</h1>
+        <p className="text-sm text-muted-foreground">Internal dashboard</p>
+        <p className="text-sm text-muted-foreground">
+          We’ll email you a one-time code. It expires in a few minutes.
+        </p>
+      </>
+    ),
+  });
 
-  const [step, setStep] = useState<OtpSignupStep>("email");
-  const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState("");
-  const [sending, setSending] = useState(false);
-  const [verifying, setVerifying] = useState(false);
-
-  const handleSendCode = async () => {
-    const trimmed = email.trim().toLowerCase();
-    if (!trimmed) {
-      toast.error("Enter your email to continue");
-      return;
-    }
-    setSending(true);
-    try {
-      const { error } = await authClient.emailOtp.sendVerificationOtp({
-        email: trimmed,
-        type: "sign-in",
-      });
-      if (error) {
-        toast.error(error.message ?? "Could not send the code. Try again in a moment.");
-        return;
-      }
-      setOtp("");
-      setStep("otp");
-    } finally {
-      setSending(false);
-    }
-  };
-
-  const handleVerify = async () => {
-    if (otp.length < OTP_LENGTH) {
-      toast.error(`Enter all ${String(OTP_LENGTH)} digits.`);
-      return;
-    }
-    const trimmed = email.trim().toLowerCase();
-    setVerifying(true);
-    try {
-      const { error } = await authClient.signIn.emailOtp({
-        email: trimmed,
-        otp,
-        name: displayNameFromEmail(trimmed),
-      });
-      if (error) {
-        toast.error(error.message ?? "That code did not work.");
-        return;
-      }
-      toast.success("You’re signed in");
-      void navigate({ to: "/dashboard" });
-    } finally {
-      setVerifying(false);
-    }
-  };
-
-  return (
-    <div className="container flex min-h-[min(100dvh,48rem)] flex-col items-center justify-center px-2 py-8">
-      <h1 className="text-2xl font-bold">Deck Pack Ops</h1>
-      <p className="text-sm text-muted-foreground">Internal dashboard</p>
-      <p className="text-sm text-muted-foreground">
-        We’ll email you a one-time code. It expires in a few minutes.
-      </p>
-      <OtpSignup
-        step={step}
-        email={email}
-        onEmailChange={setEmail}
-        otp={otp}
-        onOtpChange={setOtp}
-        onSubmitEmail={() => void handleSendCode()}
-        onSubmitOtp={() => void handleVerify()}
-        onBack={() => {
-          setStep("email");
-          setOtp("");
-        }}
-        sending={sending}
-        verifying={verifying}
-        otpLength={OTP_LENGTH}
-        emailHelperText={`Sign in with your @${OPS_EMAIL_DOMAIN} address.`}
-        titleEmailStep="Internal dashboard"
-        descriptionEmailStep="We’ll email you a one-time code. It expires in a few minutes."
-      />
-    </div>
-  );
+  return <OtpSignInView {...viewProps} />;
 }

@@ -1,9 +1,12 @@
 import type { AppRouter } from "@deck-pack/api/routers/index";
 import { env } from "@deck-pack/env/web";
+import { captureClientException } from "@deck-pack/observability";
 import { createTrpcBrowserBundle } from "@deck-pack/trpc-client";
+import { toast } from "sonner";
 
 import { getBearerToken } from "@/auth/bearer-session-store";
 import { useOfficeBearerMode } from "@/auth/office-auth-mode";
+import { isAuthenticationError } from "@/lib/user-facing-api-error";
 
 let trpcBundle: ReturnType<typeof createTrpcBrowserBundle<AppRouter>> | null = null;
 
@@ -19,6 +22,20 @@ export function createTrpcClient(): ReturnType<typeof createTrpcBrowserBundle<Ap
           return token ? `Bearer ${token}` : null;
         }
       : undefined,
+    onQueryError: (error, query) => {
+      if (!isAuthenticationError(error)) {
+        captureClientException(error, { tags: { source: "react-query" } });
+      }
+
+      toast.error(error.message, {
+        action: {
+          label: "retry",
+          onClick: () => {
+            query.invalidate();
+          },
+        },
+      });
+    },
   });
 
   return trpcBundle;
@@ -31,10 +48,3 @@ export function getTrpcClient(): ReturnType<typeof createTrpcBrowserBundle<AppRo
 
   return trpcBundle!.trpcClient;
 }
-
-/** @deprecated Prefer getTrpcClient(); kept for modules imported after bootstrap. */
-export const trpcClient = new Proxy({} as ReturnType<typeof createTrpcBrowserBundle<AppRouter>>["trpcClient"], {
-  get(_target, property, receiver) {
-    return Reflect.get(getTrpcClient(), property, receiver);
-  },
-});

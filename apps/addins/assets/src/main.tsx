@@ -1,6 +1,8 @@
 import "./router-register";
 
 import { detectOffice } from "@deck-pack/office-js";
+import { env } from "@deck-pack/env/web";
+import { initBrowserSentry } from "@deck-pack/observability";
 import { RouterProvider, createMemoryHistory, createRouter } from "@tanstack/react-router";
 import ReactDOM from "react-dom/client";
 
@@ -13,6 +15,13 @@ function getInitialEntry() {
 }
 
 async function bootstrap() {
+  initBrowserSentry({
+    dsn: env.VITE_SENTRY_DSN,
+    environment: import.meta.env.MODE,
+    app: "addin",
+    tracePropagationTargets: [env.VITE_SERVER_URL],
+  });
+
   setOfficeBearerMode(await detectOffice());
 
   const [{ createAuthClient }, { createTrpcClient }, { routeTree }] = await Promise.all([

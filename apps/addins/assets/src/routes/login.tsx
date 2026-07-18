@@ -12,7 +12,7 @@ import {
   DEFAULT_NAVIGATION_PAGE_ID,
   getPageRouteParams,
   getPageRouteTo,
-} from "@/lib/navigation";
+} from "@/constants/navigation";
 import { getAuthClient } from "@/utils/auth";
 import { env } from "@deck-pack/env/web";
 

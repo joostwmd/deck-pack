@@ -5,7 +5,7 @@ import type {
   ShapeSearchRequest,
   ShapeSearchResponse,
   ShapeSearchResult,
-} from "@/features/shapes/types";
+} from "@/components/shapes/types";
 import { getUserFacingApiErrorMessage } from "@/lib/user-facing-api-error";
 
 const EMPTY_FACETS: ShapeSearchFacets = {

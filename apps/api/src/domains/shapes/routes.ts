@@ -1,0 +1,25 @@
+import { TRPCError } from "@trpc/server";
+
+import { protectedProcedure } from "../../api/procedures";
+
+import { shapeSearchInputSchema, shapeSearchResponseSchema } from "./schemas";
+import type { ShapeService } from "./service";
+
+export function createShapeRoutes(shapeService: ShapeService) {
+  return {
+    search: protectedProcedure
+      .input(shapeSearchInputSchema)
+      .output(shapeSearchResponseSchema)
+      .query(async ({ input }) => {
+        try {
+          return await shapeService.search(input);
+        } catch (error) {
+          console.error("Shape search error:", error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to search shapes",
+          });
+        }
+      }),
+  };
+}

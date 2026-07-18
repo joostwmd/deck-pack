@@ -1,11 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { FlagsPanel } from "@/features/flags/flags-panel";
+import { FlagsPage } from "@/pages/flags/flags-page";
 
 export const Route = createFileRoute("/_protected/$environment/flags")({
   component: FlagsPage,
 });
-
-function FlagsPage() {
-  return <FlagsPanel />;
-}

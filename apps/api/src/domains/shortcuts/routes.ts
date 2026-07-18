@@ -1,4 +1,3 @@
-import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {
   listShortcutsOutputSchema,
@@ -10,70 +9,49 @@ import {
 } from "@deck-pack/shortcuts";
 
 import { protectedProcedure } from "../../api/procedures";
+import { unwrapServiceResult } from "../../api/resilience/service-result";
 
-import {
-  loadCurrentShortcutOverrides,
-  resetAllShortcutOverridesForUser,
-  resetShortcutOverrideForUser,
-  setShortcutOverrideForUser,
-} from "./service";
+import type { ShortcutService } from "./service";
 
 const setShortcutOverrideOutputSchema = shortcutOverrideSchema.extend({
   isCustomized: z.boolean(),
 });
 
-export const shortcutRoutes = {
-  list: protectedProcedure.output(listShortcutsOutputSchema).query(async ({ ctx }) => {
-    const overrides = await loadCurrentShortcutOverrides({
-      tx: ctx.tx,
-      userId: ctx.session!.user.id,
-    });
-
-    return {
-      schemaVersion: 1,
-      overrides,
-    };
-  }),
-
-  setOverride: protectedProcedure
-    .input(setShortcutOverrideInputSchema)
-    .output(setShortcutOverrideOutputSchema)
-    .mutation(async ({ ctx, input }) => {
-      const result = await setShortcutOverrideForUser({
-        tx: ctx.tx,
-        userId: ctx.session!.user.id,
-        shortcutId: input.shortcutId,
-        hotkey: input.hotkey,
-      });
-
-      if (!result.ok) {
-        throw new TRPCError({
-          code: "CONFLICT",
-          message: `Shortcut already assigned to "${result.conflict.description}"`,
-          cause: result.conflict,
-        });
-      }
-
-      return result.override;
+export function createShortcutRoutes(service: ShortcutService) {
+  return {
+    list: protectedProcedure.output(listShortcutsOutputSchema).query(async ({ ctx }) => {
+      return unwrapServiceResult(await service.list(ctx.tx, { userId: ctx.session!.user.id }));
     }),
 
-  resetOverride: protectedProcedure
-    .input(resetShortcutOverrideInputSchema)
-    .output(resetShortcutOutputSchema)
-    .mutation(async ({ ctx, input }) => {
-      return resetShortcutOverrideForUser({
-        tx: ctx.tx,
-        userId: ctx.session!.user.id,
-        shortcutId: input.shortcutId,
-      });
-    }),
+    setOverride: protectedProcedure
+      .input(setShortcutOverrideInputSchema)
+      .output(setShortcutOverrideOutputSchema)
+      .mutation(async ({ ctx, input }) => {
+        return unwrapServiceResult(
+          await service.setOverride(ctx.tx, {
+            userId: ctx.session!.user.id,
+            shortcutId: input.shortcutId,
+            hotkey: input.hotkey,
+          }),
+        );
+      }),
 
-  resetAll: protectedProcedure
-    .output(resetAllShortcutsOutputSchema)
-    .mutation(async ({ ctx }) => {
-      return resetAllShortcutOverridesForUser({
-        tx: ctx.tx,
-        userId: ctx.session!.user.id,
-      });
-    }),
-};
+    resetOverride: protectedProcedure
+      .input(resetShortcutOverrideInputSchema)
+      .output(resetShortcutOutputSchema)
+      .mutation(async ({ ctx, input }) => {
+        return unwrapServiceResult(
+          await service.resetOverride(ctx.tx, {
+            userId: ctx.session!.user.id,
+            shortcutId: input.shortcutId,
+          }),
+        );
+      }),
+
+    resetAll: protectedProcedure
+      .output(resetAllShortcutsOutputSchema)
+      .mutation(async ({ ctx }) => {
+        return unwrapServiceResult(await service.resetAll(ctx.tx, { userId: ctx.session!.user.id }));
+      }),
+  };
+}

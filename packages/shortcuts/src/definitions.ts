@@ -34,7 +34,7 @@ export const SHORTCUT_DEFINITIONS: readonly ShortcutDefinition[] = [
   nav("flags", "Mod+Shift+F", "Flags"),
   nav("icons", "Mod+Shift+I", "Icons"),
   nav("photos", "Mod+Shift+P", "Photos"),
-  nav("balls", "Mod+Shift+B", "Balls"),
+  nav("harvey-balls", "Mod+Shift+B", "Harvey balls"),
   nav("slides", "Mod+Shift+S", "Slides"),
   nav("shapes", "Mod+Shift+H", "Shapes"),
   nav("agenda", "Mod+Shift+A", "Agenda"),

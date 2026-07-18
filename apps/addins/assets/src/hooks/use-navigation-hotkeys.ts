@@ -1,13 +1,13 @@
 import { useNavigate } from "@tanstack/react-router";
 
 import { useShortcutCommands } from "@/hooks/use-shortcut-commands";
-import type { AppEnvironment } from "@/lib/navigation";
+import type { AppEnvironment } from "@/constants/navigation";
 import {
   getNavigationPagesWithShortcuts,
   getPageRouteParams,
   getPageRouteTo,
   type NavigationPageId,
-} from "@/lib/navigation";
+} from "@/constants/navigation";
 
 interface UseNavigationHotkeysOptions {
   environment: AppEnvironment;
@@ -35,10 +35,12 @@ export function useNavigationHotkeys({
       id: "openMenu",
       execute: () => onOpenMenu(),
     },
-    ...getNavigationPagesWithShortcuts().map((page) => ({
-      id: page.shortcut.id,
-      execute: () => navigateToPage(page.id),
-    })),
+    ...getNavigationPagesWithShortcuts()
+      .filter((page) => page.shortcut != null)
+      .map((page) => ({
+        id: page.shortcut!.id,
+        execute: () => navigateToPage(page.id),
+      })),
     {
       id: "openShortcuts",
       execute: () => navigateToPage("shortcuts"),

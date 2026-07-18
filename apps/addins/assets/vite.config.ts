@@ -1,5 +1,6 @@
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
+import { createSentryVitePlugins } from "@deck-pack/observability/vite";
 import react from "@vitejs/plugin-react";
 import * as devCerts from "office-addin-dev-certs";
 import { defineConfig } from "vite";
@@ -28,6 +29,9 @@ export default defineConfig(async () => {
   const httpsOptions = await getHttpsOptions();
 
   return {
+    build: {
+      sourcemap: "hidden" as const,
+    },
     server: {
       ...(process.env.NODE_ENV !== "production" && { https: httpsOptions }),
       port: 3003,
@@ -60,6 +64,7 @@ export default defineConfig(async () => {
         autoCodeSplitting: true,
       }),
       react(),
+      ...createSentryVitePlugins(),
     ],
   };
 });

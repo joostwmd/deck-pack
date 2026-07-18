@@ -1,5 +1,5 @@
-import type { AssetPanelMode } from "@/lib/asset-types";
-import { isAppEnvironment } from "@/lib/navigation";
+import type { AssetPanelMode } from "@/types/asset-types";
+import { isAppEnvironment } from "@/constants/navigation";
 
 export function toAssetPanelMode(environment: string): AssetPanelMode {
   if (!isAppEnvironment(environment)) {

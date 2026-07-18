@@ -7,7 +7,7 @@ export const shortcutIdSchema = z.enum([
   "flags",
   "icons",
   "photos",
-  "balls",
+  "harvey-balls",
   "slides",
   "shapes",
   "agenda",

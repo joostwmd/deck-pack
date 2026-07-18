@@ -1,5 +1,5 @@
 import { SHORTCUT_SCHEMA_VERSION } from "./constants";
-import type { ShortcutOverride } from "./schemas";
+import type { ShortcutId, ShortcutOverride } from "./schemas";
 
 export class UnsupportedShortcutSchemaVersionError extends Error {
   readonly version: number;
@@ -15,7 +15,22 @@ export type ShortcutMigration = (
   overrides: readonly ShortcutOverride[],
 ) => readonly ShortcutOverride[];
 
-const migrations: ShortcutMigration[] = [];
+function migrateV1ToV2(overrides: readonly ShortcutOverride[]): readonly ShortcutOverride[] {
+  return overrides.map((override) => {
+    const shortcutId =
+      override.shortcutId === ("balls" as ShortcutId)
+        ? ("harvey-balls" as ShortcutId)
+        : override.shortcutId;
+
+    return {
+      ...override,
+      shortcutId,
+      schemaVersion: 2,
+    };
+  });
+}
+
+const migrations: ShortcutMigration[] = [migrateV1ToV2];
 
 export function migrateShortcutOverridesToCurrent(
   sourceVersion: number,

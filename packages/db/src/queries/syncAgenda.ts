@@ -12,6 +12,7 @@ export type SyncAgendaInput = {
   configurationHash: string;
   sectionCount: number;
   generatedSlideCount: number;
+  skipSnapshotUpdate?: boolean;
   event: {
     id: string;
     eventType: string;
@@ -63,7 +64,7 @@ export async function syncAgenda({
     }
 
     instanceId = created.id;
-  } else if (input.revision >= existing.revision) {
+  } else if (!input.skipSnapshotUpdate) {
     await tx
       .update(agendaInstances)
       .set({

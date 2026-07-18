@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 
-import type { AssetInsertPayload } from "@/lib/asset-types";
+import type { AssetInsertPayload } from "@/types/asset-types";
 
 export interface PlacedCanvasItem {
   instanceId: string;

@@ -4,7 +4,7 @@ import type {
   slideAspectRatioSchema,
   slideSearchInputSchema,
   slideSearchResponseSchema,
-} from "../addin/schemas";
+} from "./schemas";
 
 export interface SlideCatalogEntry {
   id: string;

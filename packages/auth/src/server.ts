@@ -1,6 +1,6 @@
 import { createAppAuth, createOpsAuth } from "./index";
 import { createDb } from "@deck-pack/db";
-import { sendOtpEmail } from "@deck-pack/email";
+import { sendOtpEmail } from "./email";
 import { env } from "@deck-pack/env/server";
 
 const db = createDb();

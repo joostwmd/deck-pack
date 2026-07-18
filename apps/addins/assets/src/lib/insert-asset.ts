@@ -1,4 +1,4 @@
-import type { AssetDetailsResponse, AssetType } from "@/lib/asset-types";
+import type { AssetDetailsResponse, AssetType } from "@/types/asset-types";
 import type { InsertionTracker, OfficeService } from "@/services/types";
 import { urlToBase64 } from "@/lib/url-to-base64";
 

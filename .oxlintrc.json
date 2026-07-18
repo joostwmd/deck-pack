@@ -18,6 +18,76 @@
   },
   "overrides": [
     {
+      "files": ["apps/api/src/domains/**/routes.ts"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": ["drizzle-orm", "@deck-pack/db"]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["apps/api/src/domains/**/service.ts"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": ["@trpc/server"]
+          }
+        ]
+      }
+    },
+    {
+      "files": [
+        "apps/*/src/components/**/*.{ts,tsx}",
+        "apps/*/src/hooks/**/*.{ts,tsx}",
+        "apps/*/src/lib/**/*.{ts,tsx}",
+        "apps/*/src/features/**/*.{ts,tsx}"
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": ["@/utils/trpc", "@/utils/auth"]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["apps/*/src/**/*-view.tsx"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": ["@/services"]
+          }
+        ]
+      }
+    },
+    {
+      "files": [
+        "apps/addins/assets/src/lib/**/*.{ts,tsx}",
+        "apps/addins/assets/src/hooks/**/*.{ts,tsx}",
+        "apps/addins/assets/src/features/**/*.{ts,tsx}",
+        "apps/addins/assets/src/components/**/*.{ts,tsx}"
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "@deck-pack/office-js",
+                "importNames": ["officeClient"]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
       "files": [
         "apps/portal/**/*.{ts,tsx,js,jsx}",
         "apps/ops/**/*.{ts,tsx,js,jsx}",

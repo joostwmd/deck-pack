@@ -10,11 +10,12 @@ import {
 } from "@deck-pack/ui/components/system/dropdown-menu";
 import { Skeleton } from "@deck-pack/ui/components/system/skeleton";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { authClient } from "@/utils/auth";
+import { useServices } from "@/services/services-context";
 
 export default function UserMenu() {
   const navigate = useNavigate();
-  const { data: session, isPending } = authClient.useSession();
+  const { auth } = useServices();
+  const { data: session, isPending } = auth.useSession();
 
   if (isPending) {
     return <Skeleton className="h-9 w-24" />;
@@ -41,7 +42,7 @@ export default function UserMenu() {
           <DropdownMenuItem
             variant="destructive"
             onClick={() => {
-              void authClient.signOut({
+              void auth.signOut({
                 fetchOptions: {
                   onSuccess: () => {
                     void navigate({

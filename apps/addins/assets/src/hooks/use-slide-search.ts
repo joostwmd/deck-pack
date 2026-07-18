@@ -10,7 +10,7 @@ import type {
   SlideSearchResponse,
   SlideSearchResult,
   SlideSort,
-} from "@/features/slides/types";
+} from "@/components/slides/types";
 
 const EMPTY_FACETS: SlideSearchFacets = {
   categories: [],

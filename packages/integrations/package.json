@@ -1,0 +1,38 @@
+{
+  "name": "@deck-pack/integrations",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./pexels": {
+      "default": "./src/pexels/index.ts"
+    },
+    "./pexels/*": {
+      "default": "./src/pexels/*.ts"
+    },
+    "./brandfetch": {
+      "default": "./src/brandfetch/index.ts"
+    },
+    "./brandfetch/*": {
+      "default": "./src/brandfetch/*.ts"
+    },
+    "./icons8": {
+      "default": "./src/icons8/index.ts"
+    },
+    "./icons8/*": {
+      "default": "./src/icons8/*.ts"
+    }
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@deck-pack/config": "workspace:*",
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

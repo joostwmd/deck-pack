@@ -1,11 +1,15 @@
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
+import { createSentryVitePlugins } from "@deck-pack/observability/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
 export default defineConfig({
   server: {
     port: 3002,
+  },
+  build: {
+    sourcemap: "hidden",
   },
   resolve: {
     tsconfigPaths: true,
@@ -17,5 +21,6 @@ export default defineConfig({
       autoCodeSplitting: true,
     }),
     react(),
+    ...createSentryVitePlugins(),
   ],
 });
