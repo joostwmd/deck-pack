@@ -90,8 +90,82 @@ export interface UsersStore {
   deleteUser: (userId: string) => Promise<{ userId: string }>;
 }
 
+export type PlanLimit = {
+  assetType:
+    | "logo"
+    | "flag"
+    | "icon"
+    | "harvey_ball"
+    | "photo"
+    | "slide"
+    | "shape";
+  /** Null means unlimited. */
+  insertsPerMonth: number | null;
+};
+
+export type Plan = {
+  id: string;
+  name: string;
+  slug: string;
+  limits: PlanLimit[];
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type OrganizationSubscription = {
+  id: string;
+  organizationId: string;
+  organizationName: string;
+  organizationSlug: string;
+  planId: string;
+  planName: string;
+  planSlug: string;
+  quantity: number;
+  status: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export interface BillingStore {
+  listPlans: () => Promise<Plan[]>;
+  createPlan: (input: {
+    name: string;
+    slug: string;
+    limits: PlanLimit[];
+  }) => Promise<Plan>;
+  listOrganizationSubscriptions: () => Promise<OrganizationSubscription[]>;
+  createOrganizationSubscription: (input: {
+    organizationId: string;
+    planId: string;
+    quantity: number;
+  }) => Promise<{
+    id: string;
+    organizationId: string;
+    planId: string;
+    quantity: number;
+    status: string;
+    createdAt: Date;
+    updatedAt: Date;
+  }>;
+  updateOrganizationSubscription: (input: {
+    subscriptionId: string;
+    planId?: string;
+    quantity?: number;
+    status?: "active" | "canceled";
+  }) => Promise<{
+    id: string;
+    organizationId: string;
+    planId: string;
+    quantity: number;
+    status: string;
+    createdAt: Date;
+    updatedAt: Date;
+  }>;
+}
+
 export interface OpsAppServices {
   auth: AuthService;
   organization: OrganizationStore;
   users: UsersStore;
+  billing: BillingStore;
 }

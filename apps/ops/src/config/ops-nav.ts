@@ -53,7 +53,9 @@ export type OpsBreadcrumb = {
     | "/gallery/slides"
     | "/gallery/flags"
     | "/plans"
-    | "/plans/subscriptions";
+    | "/plans/subscriptions"
+    | "/plans/new"
+    | "/plans/subscriptions/new";
 };
 
 export type OpsBreadcrumbOptions = {
@@ -112,10 +114,25 @@ export function opsBreadcrumbs(
     return [{ label: "Plans" }];
   }
 
+  if (pathname === "/plans/new") {
+    return [
+      { label: "Plans", to: "/plans" },
+      { label: "New" },
+    ];
+  }
+
   if (pathname === "/plans/subscriptions") {
     return [
       { label: "Plans", to: "/plans" },
       { label: "Subscriptions" },
+    ];
+  }
+
+  if (pathname === "/plans/subscriptions/new") {
+    return [
+      { label: "Plans", to: "/plans" },
+      { label: "Subscriptions", to: "/plans/subscriptions" },
+      { label: "New" },
     ];
   }
 
@@ -127,7 +144,10 @@ export function isOpsNavItemActive(pathname: string, to: OpsNavRoute): boolean {
     return pathname === to || pathname.startsWith(`${to}/`);
   }
   if (to === "/plans") {
-    return pathname === to;
+    return pathname === to || pathname === "/plans/new";
+  }
+  if (to === "/plans/subscriptions") {
+    return pathname === to || pathname.startsWith(`${to}/`);
   }
   return pathname === to || pathname.startsWith(`${to}/`);
 }

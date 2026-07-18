@@ -5,7 +5,9 @@ import {
   duplicateBrandProfile,
 } from "@deck-pack/db/queries/createBrandProfile";
 import { createBrandProfileVersion } from "@deck-pack/db/queries/createBrandProfileVersion";
+import { createOrganizationSubscription } from "@deck-pack/db/queries/createOrganizationSubscription";
 import { createOrganizationWithOwner } from "@deck-pack/db/queries/createOrganizationWithOwner";
+import { createPlan } from "@deck-pack/db/queries/createPlan";
 import { deleteAllShortcutOverrides } from "@deck-pack/db/queries/deleteAllShortcutOverrides";
 import { deleteOrganization } from "@deck-pack/db/queries/deleteOrganization";
 import { deleteShortcutOverride } from "@deck-pack/db/queries/deleteShortcutOverride";
@@ -18,12 +20,15 @@ import { insertAssetInsertion } from "@deck-pack/db/queries/insertAssetInsertion
 import { listAllShortcutOverridesByUser } from "@deck-pack/db/queries/listShortcutOverridesByUser";
 import { listBrandProfilesByUser } from "@deck-pack/db/queries/listBrandProfilesByUser";
 import { listOrganizationMembers } from "@deck-pack/db/queries/listOrganizationMembers";
+import { listOrganizationSubscriptions } from "@deck-pack/db/queries/listOrganizationSubscriptions";
 import { listOrganizationsWithOwner } from "@deck-pack/db/queries/listOrganizationsWithOwner";
+import { listPlans } from "@deck-pack/db/queries/listPlans";
 import { listUsersWithMembership } from "@deck-pack/db/queries/listUsersWithMembership";
 import { setDefaultBrandProfile } from "@deck-pack/db/queries/setDefaultBrandProfile";
 import { syncAgenda } from "@deck-pack/db/queries/syncAgenda";
 import { updateBrandProfileMetadata } from "@deck-pack/db/queries/updateBrandProfileMetadata";
 import { updateOrganization } from "@deck-pack/db/queries/updateOrganization";
+import { updateOrganizationSubscription } from "@deck-pack/db/queries/updateOrganizationSubscription";
 import { upsertShortcutOverride } from "@deck-pack/db/queries/upsertShortcutOverride";
 import { Icons8Client } from "@deck-pack/integrations/icons8";
 import { PexelsClient } from "@deck-pack/integrations/pexels";
@@ -32,6 +37,8 @@ import { createAddinRoutes } from "../domains/addin/routes";
 import { createAddinService } from "../domains/addin/service";
 import { createAgendaRoutes } from "../domains/agenda/routes";
 import { createAgendaService } from "../domains/agenda/service";
+import { createBillingRoutes } from "../domains/billing/routes";
+import { createBillingService } from "../domains/billing/service";
 import { createBrandProfileRoutes } from "../domains/brand-profiles/routes";
 import { createBrandProfileService } from "../domains/brand-profiles/service";
 import { createFlagRoutes } from "../domains/flags/routes";
@@ -118,10 +125,19 @@ export function createAppRouter(deps: AddinRouterDeps) {
     deleteUser,
   });
 
+  const billingService = createBillingService({
+    listPlans,
+    createPlan,
+    listOrganizationSubscriptions,
+    createOrganizationSubscription,
+    updateOrganizationSubscription,
+  });
+
   return router({
     ...systemRoutes,
     organization: router(createOrganizationRoutes(organizationService)),
     users: router(createUsersRoutes(usersService)),
+    billing: router(createBillingRoutes(billingService)),
     assets: router({
       photos: router(createPhotoRoutes(photoService)),
       slides: router(createSlideRoutes(slideService)),

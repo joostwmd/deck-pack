@@ -3,6 +3,7 @@ import { trpcClient } from "@/utils/trpc";
 
 import type {
   AuthService,
+  BillingStore,
   OpsAppServices,
   OrganizationStore,
   UsersStore,
@@ -47,10 +48,24 @@ function createUsersStore(): UsersStore {
   };
 }
 
+function createBillingStore(): BillingStore {
+  return {
+    listPlans: () => trpcClient.billing.listPlans.query(),
+    createPlan: (input) => trpcClient.billing.createPlan.mutate(input),
+    listOrganizationSubscriptions: () =>
+      trpcClient.billing.listOrganizationSubscriptions.query(),
+    createOrganizationSubscription: (input) =>
+      trpcClient.billing.createOrganizationSubscription.mutate(input),
+    updateOrganizationSubscription: (input) =>
+      trpcClient.billing.updateOrganizationSubscription.mutate(input),
+  };
+}
+
 export function createAppServices(): OpsAppServices {
   return {
     auth: createAuthService(),
     organization: createOrganizationStore(),
     users: createUsersStore(),
+    billing: createBillingStore(),
   };
 }

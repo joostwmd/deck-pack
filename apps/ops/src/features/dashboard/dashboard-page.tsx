@@ -50,7 +50,7 @@ const SECTIONS = [
   },
   {
     title: "Subscriptions",
-    description: "Active subscriptions and seat assignments",
+    description: "Org plan entitlements and seat counts",
     to: "/plans/subscriptions",
     icon: Receipt,
   },

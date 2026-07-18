@@ -1,7 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { PlansPage } from "@/features/plans/plans-page";
+import { PlansListPanel } from "@/features/plans/plans-list-panel";
 
 export const Route = createFileRoute("/_protected/plans/")({
-  component: PlansPage,
+  component: PlansListPage,
 });
+
+function PlansListPage() {
+  return <PlansListPanel />;
+}
