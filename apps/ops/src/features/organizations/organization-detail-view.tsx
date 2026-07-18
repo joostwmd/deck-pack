@@ -1,3 +1,4 @@
+import { Badge } from "@deck-pack/ui/components/system/badge";
 import { Button } from "@deck-pack/ui/components/system/button";
 import {
   Card,
@@ -17,7 +18,6 @@ import {
   TableHeader,
   TableRow,
 } from "@deck-pack/ui/components/system/table";
-import { Link } from "@tanstack/react-router";
 
 import { organizationRoleLabel } from "@/features/organizations/role-label";
 import type { OrganizationDetail, OrganizationMember } from "@/services/types";
@@ -59,21 +59,13 @@ export function OrganizationDetailView({
 
   if (errorMessage || !organization) {
     return (
-      <div className="space-y-4">
-        <Button variant="ghost" size="sm" className="-ml-2" render={<Link to="/organizations" />}>
-          ← Back to organizations
-        </Button>
-        <p className="text-destructive text-sm">{errorMessage ?? "Organization not found"}</p>
-      </div>
+      <p className="text-destructive text-sm">{errorMessage ?? "Organization not found"}</p>
     );
   }
 
   return (
     <div className="space-y-6">
       <div>
-        <Button variant="ghost" size="sm" className="mb-2 -ml-2" render={<Link to="/organizations" />}>
-          ← Back to organizations
-        </Button>
         <h1 className="text-xl font-semibold">{organization.name}</h1>
         <p className="text-muted-foreground text-sm">
           {organization.memberCount} member{organization.memberCount === 1 ? "" : "s"} · Owner{" "}
@@ -129,7 +121,7 @@ export function OrganizationDetailView({
         ) : (
           <div className="rounded-md border">
             <Table>
-              <TableCaption>
+              <TableCaption className="pb-4">
                 {members.length === 0
                   ? "No members yet."
                   : `${String(members.length)} member${members.length === 1 ? "" : "s"}`}
@@ -154,7 +146,9 @@ export function OrganizationDetailView({
                     <TableRow key={member.memberId}>
                       <TableCell className="font-medium">{member.name}</TableCell>
                       <TableCell>{member.email}</TableCell>
-                      <TableCell>{organizationRoleLabel(member.role)}</TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">{organizationRoleLabel(member.role)}</Badge>
+                      </TableCell>
                       <TableCell className="text-muted-foreground">
                         {member.createdAt.toLocaleString()}
                       </TableCell>

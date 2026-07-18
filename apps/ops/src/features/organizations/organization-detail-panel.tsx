@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { useBreadcrumbLabel } from "@/components/breadcrumb-label-context";
 import { OrganizationDetailView } from "@/features/organizations/organization-detail-view";
 import { useServices } from "@/services/services-context";
 
@@ -21,6 +22,11 @@ export function OrganizationDetailPanel({ orgId }: { orgId: string }) {
     queryKey: ["organization", "members", orgId],
     queryFn: () => organization.listMembers(orgId),
   });
+
+  useBreadcrumbLabel(
+    `/organizations/${orgId}`,
+    detailQuery.data?.name ?? (detailQuery.isLoading ? "Loading…" : "Organization"),
+  );
 
   useEffect(() => {
     if (detailQuery.data) {

@@ -34,9 +34,6 @@ export function NewOrganizationView(props: NewOrganizationViewProps) {
   return (
     <div className="mx-auto max-w-lg space-y-6">
       <div>
-        <Button variant="ghost" size="sm" className="mb-2 -ml-2" render={<Link to="/organizations" />}>
-          ← Back to organizations
-        </Button>
         <h1 className="text-xl font-semibold">New organization</h1>
         <p className="text-muted-foreground text-sm">
           Create a customer org and assign an owner by email.

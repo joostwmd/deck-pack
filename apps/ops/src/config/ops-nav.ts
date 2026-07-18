@@ -42,32 +42,84 @@ export const OPS_NAV_GROUPS: OpsNavGroup[] = [
   },
 ];
 
-const PAGE_LABELS: Record<string, string> = {
-  "/dashboard": "Dashboard",
-  "/organizations": "Organizations",
-  "/organizations/new": "New organization",
-  "/users": "Users",
-  "/gallery/shapes": "Shapes",
-  "/gallery/slides": "Slides",
-  "/gallery/flags": "Flags",
-  "/plans": "Plans",
-  "/plans/subscriptions": "Subscriptions",
+/** Clickable parent crumbs use known app routes; omit `to` for the current page. */
+export type OpsBreadcrumb = {
+  label: string;
+  to?:
+    | "/dashboard"
+    | "/organizations"
+    | "/users"
+    | "/gallery/shapes"
+    | "/gallery/slides"
+    | "/gallery/flags"
+    | "/plans"
+    | "/plans/subscriptions";
 };
 
-export function opsPageLabel(pathname: string): string {
-  if (PAGE_LABELS[pathname]) {
-    return PAGE_LABELS[pathname];
+export type OpsBreadcrumbOptions = {
+  /** Dynamic labels keyed by path segment / full path, e.g. org detail name. */
+  dynamicLabels?: Record<string, string | undefined>;
+};
+
+export function opsBreadcrumbs(
+  pathname: string,
+  options: OpsBreadcrumbOptions = {},
+): OpsBreadcrumb[] {
+  const { dynamicLabels = {} } = options;
+
+  if (pathname === "/dashboard" || pathname === "/") {
+    return [{ label: "Dashboard" }];
   }
-  if (pathname.startsWith("/organizations/")) {
-    return "Organizations";
+
+  if (pathname === "/organizations") {
+    return [{ label: "Organizations" }];
   }
-  if (pathname.startsWith("/gallery/")) {
-    return "Gallery";
+
+  if (pathname === "/organizations/new") {
+    return [
+      { label: "Organizations", to: "/organizations" },
+      { label: "New" },
+    ];
   }
-  if (pathname.startsWith("/plans/")) {
-    return "Billing";
+
+  const orgDetailMatch = pathname.match(/^\/organizations\/([^/]+)$/);
+  if (orgDetailMatch) {
+    const orgId = orgDetailMatch[1]!;
+    const label = dynamicLabels[`/organizations/${orgId}`] ?? dynamicLabels.organization ?? "Organization";
+    return [
+      { label: "Organizations", to: "/organizations" },
+      { label },
+    ];
   }
-  return "Ops";
+
+  if (pathname === "/users") {
+    return [{ label: "Users" }];
+  }
+
+  if (pathname === "/gallery/shapes") {
+    return [{ label: "Shapes" }];
+  }
+
+  if (pathname === "/gallery/slides") {
+    return [{ label: "Slides" }];
+  }
+
+  if (pathname === "/gallery/flags") {
+    return [{ label: "Flags" }];
+  }
+
+  if (pathname === "/plans") {
+    return [{ label: "Plans" }];
+  }
+
+  if (pathname === "/plans/subscriptions") {
+    return [
+      { label: "Plans", to: "/plans" },
+      { label: "Subscriptions" },
+    ];
+  }
+
+  return [{ label: "Ops" }];
 }
 
 export function isOpsNavItemActive(pathname: string, to: OpsNavRoute): boolean {
