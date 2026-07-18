@@ -11,13 +11,16 @@ import { deleteShortcutOverride } from "@deck-pack/db/queries/deleteShortcutOver
 import { findUserByEmail } from "@deck-pack/db/queries/findUserByEmail";
 import { getAgendaInstance } from "@deck-pack/db/queries/getAgendaInstance";
 import { getBrandProfileWithVersion } from "@deck-pack/db/queries/getBrandProfileWithVersion";
+import { getOrganizationWithOwner } from "@deck-pack/db/queries/getOrganizationWithOwner";
 import { insertAssetInsertion } from "@deck-pack/db/queries/insertAssetInsertion";
 import { listAllShortcutOverridesByUser } from "@deck-pack/db/queries/listShortcutOverridesByUser";
 import { listBrandProfilesByUser } from "@deck-pack/db/queries/listBrandProfilesByUser";
+import { listOrganizationMembers } from "@deck-pack/db/queries/listOrganizationMembers";
 import { listOrganizationsWithOwner } from "@deck-pack/db/queries/listOrganizationsWithOwner";
 import { setDefaultBrandProfile } from "@deck-pack/db/queries/setDefaultBrandProfile";
 import { syncAgenda } from "@deck-pack/db/queries/syncAgenda";
 import { updateBrandProfileMetadata } from "@deck-pack/db/queries/updateBrandProfileMetadata";
+import { updateOrganization } from "@deck-pack/db/queries/updateOrganization";
 import { upsertShortcutOverride } from "@deck-pack/db/queries/upsertShortcutOverride";
 import { Icons8Client } from "@deck-pack/integrations/icons8";
 import { PexelsClient } from "@deck-pack/integrations/pexels";
@@ -76,6 +79,9 @@ export function createAppRouter(deps: AddinRouterDeps) {
     findUserByEmail,
     listOrganizationsWithOwner,
     createOrganizationWithOwner,
+    getOrganizationWithOwner,
+    listOrganizationMembers,
+    updateOrganization,
   });
 
   const agendaService = createAgendaService({

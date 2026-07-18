@@ -30,10 +30,13 @@ export function NewOrganizationPanel() {
   const createMutation = useMutation({
     mutationFn: (input: { name: string; slug: string; ownerEmail: string }) =>
       organization.createOrganization(input),
-    onSuccess: () => {
+    onSuccess: (result) => {
       void queryClient.invalidateQueries({ queryKey: ["organization", "list"] });
       toast.success("Organization created");
-      void navigate({ to: "/organizations" });
+      void navigate({
+        to: "/organizations/$orgId",
+        params: { orgId: result.organizationId },
+      });
     },
     onError: (error: Error) => {
       toast.error(error.message);

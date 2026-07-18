@@ -4,7 +4,10 @@ import type { ContentfulStatusCode } from "hono/utils/http-status";
 
 import { env } from "@deck-pack/env/server";
 
-export const securityHeadersMiddleware = secureHeaders();
+/** Allow browser frontends (different ports/origins) to read API responses. */
+export const securityHeadersMiddleware = secureHeaders({
+  crossOriginResourcePolicy: "cross-origin",
+});
 
 const CORS_ALLOW_METHODS = "GET, POST, PUT, DELETE, OPTIONS";
 const CORS_ALLOW_HEADERS = "Content-Type, Authorization, X-Requested-With, Accept, Origin";
@@ -18,23 +21,26 @@ export function resolveCorsOrigin(requestOrigin: string | undefined): string | n
   return env.CORS_ORIGINS.includes(requestOrigin) ? requestOrigin : null;
 }
 
+function setCorsHeaders(headers: Headers, matchedOrigin: string | null): void {
+  if (matchedOrigin) {
+    headers.set("Access-Control-Allow-Origin", matchedOrigin);
+    headers.set("Access-Control-Allow-Credentials", "true");
+    headers.append("Vary", "Origin");
+  }
+
+  headers.set("Access-Control-Allow-Methods", CORS_ALLOW_METHODS);
+  headers.set("Access-Control-Allow-Headers", CORS_ALLOW_HEADERS);
+  headers.set("Access-Control-Expose-Headers", CORS_EXPOSE_HEADERS);
+}
+
 /** Apply CORS headers to a Response (e.g. Better Auth handler output). */
 export function applyCorsToResponse(
   requestOrigin: string | undefined,
   response: Response,
 ): Response {
   const matchedOrigin = resolveCorsOrigin(requestOrigin);
-  if (!matchedOrigin) {
-    return response;
-  }
-
   const headers = new Headers(response.headers);
-  headers.set("Access-Control-Allow-Origin", matchedOrigin);
-  headers.set("Access-Control-Allow-Credentials", "true");
-  headers.set("Vary", "Origin");
-  headers.set("Access-Control-Allow-Methods", CORS_ALLOW_METHODS);
-  headers.set("Access-Control-Allow-Headers", CORS_ALLOW_HEADERS);
-  headers.set("Access-Control-Expose-Headers", CORS_EXPOSE_HEADERS);
+  setCorsHeaders(headers, matchedOrigin);
 
   return new Response(response.body, {
     status: response.status,
@@ -43,22 +49,20 @@ export function applyCorsToResponse(
   });
 }
 
+/**
+ * CORS for all routes. Headers are applied *after* `next()` so they stick on
+ * raw `Response` returns from `@hono/trpc-server` / Better Auth wrappers.
+ */
 export const corsMiddleware: MiddlewareHandler = async (c, next) => {
   const matchedOrigin = resolveCorsOrigin(c.req.header("Origin"));
 
-  if (matchedOrigin) {
-    c.header("Access-Control-Allow-Origin", matchedOrigin);
-    c.header("Access-Control-Allow-Credentials", "true");
-    c.header("Vary", "Origin");
-  }
-
-  c.header("Access-Control-Allow-Methods", CORS_ALLOW_METHODS);
-  c.header("Access-Control-Allow-Headers", CORS_ALLOW_HEADERS);
-  c.header("Access-Control-Expose-Headers", CORS_EXPOSE_HEADERS);
-
   if (c.req.method === "OPTIONS") {
-    return c.text("", 204 as ContentfulStatusCode);
+    const headers = new Headers();
+    setCorsHeaders(headers, matchedOrigin);
+    return new Response(null, { status: 204 as ContentfulStatusCode, headers });
   }
 
   await next();
+
+  setCorsHeaders(c.res.headers, matchedOrigin);
 };

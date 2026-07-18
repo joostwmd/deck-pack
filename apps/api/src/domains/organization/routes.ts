@@ -9,6 +9,30 @@ import {
 } from "./schemas";
 import type { OrganizationService } from "./service";
 
+const organizationIdSchema = z.string().trim().min(1);
+
+const organizationSummarySchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  slug: z.string(),
+  createdAt: z.date(),
+  ownerEmail: z.string().nullable(),
+});
+
+const organizationDetailSchema = organizationSummarySchema.extend({
+  ownerName: z.string().nullable(),
+  memberCount: z.number().int().nonnegative(),
+});
+
+const organizationMemberSchema = z.object({
+  memberId: z.string(),
+  userId: z.string(),
+  name: z.string(),
+  email: z.string(),
+  role: z.string(),
+  createdAt: z.date(),
+});
+
 export function createOrganizationRoutes(service: OrganizationService) {
   return {
     lookupUser: platformAdminProcedure
@@ -29,19 +53,27 @@ export function createOrganizationRoutes(service: OrganizationService) {
       }),
 
     listOrganizations: platformAdminProcedure
-      .output(
-        z.array(
-          z.object({
-            id: z.string(),
-            name: z.string(),
-            slug: z.string(),
-            createdAt: z.date(),
-            ownerEmail: z.string().nullable(),
-          }),
-        ),
-      )
+      .output(z.array(organizationSummarySchema))
       .query(async ({ ctx }) => {
         return unwrapServiceResult(await service.listOrganizations(ctx.tx));
+      }),
+
+    getOrganization: platformAdminProcedure
+      .input(z.object({ organizationId: organizationIdSchema }))
+      .output(organizationDetailSchema)
+      .query(async ({ ctx, input }) => {
+        return unwrapServiceResult(
+          await service.getOrganization(ctx.tx, { organizationId: input.organizationId }),
+        );
+      }),
+
+    listMembers: platformAdminProcedure
+      .input(z.object({ organizationId: organizationIdSchema }))
+      .output(z.array(organizationMemberSchema))
+      .query(async ({ ctx, input }) => {
+        return unwrapServiceResult(
+          await service.listMembers(ctx.tx, { organizationId: input.organizationId }),
+        );
       }),
 
     createOrganization: platformAdminProcedure
@@ -61,6 +93,26 @@ export function createOrganizationRoutes(service: OrganizationService) {
       )
       .mutation(async ({ ctx, input }) => {
         return unwrapServiceResult(await service.createOrganization(ctx.tx, input));
+      }),
+
+    updateOrganization: platformAdminProcedure
+      .input(
+        z.object({
+          organizationId: organizationIdSchema,
+          name: z.string().trim().min(1).max(256),
+          slug: slugSchema,
+        }),
+      )
+      .output(
+        z.object({
+          id: z.string(),
+          name: z.string(),
+          slug: z.string(),
+          createdAt: z.date(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        return unwrapServiceResult(await service.updateOrganization(ctx.tx, input));
       }),
   };
 }

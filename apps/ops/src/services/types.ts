@@ -27,25 +27,46 @@ export interface AuthService {
   ) => ReturnType<AuthClient["signUp"]["email"]>;
 }
 
+export type OrganizationSummary = {
+  id: string;
+  name: string;
+  slug: string;
+  createdAt: Date;
+  ownerEmail: string | null;
+};
+
+export type OrganizationDetail = OrganizationSummary & {
+  ownerName: string | null;
+  memberCount: number;
+};
+
+export type OrganizationMember = {
+  memberId: string;
+  userId: string;
+  name: string;
+  email: string;
+  role: string;
+  createdAt: Date;
+};
+
 export interface OrganizationStore {
   lookupUser: (email: string) => Promise<
     | { found: true; name: string; email: string; hasOrg: boolean }
     | { found: false }
   >;
-  listOrganizations: () => Promise<
-    Array<{
-      id: string;
-      name: string;
-      slug: string;
-      createdAt: Date;
-      ownerEmail: string | null;
-    }>
-  >;
+  listOrganizations: () => Promise<OrganizationSummary[]>;
+  getOrganization: (organizationId: string) => Promise<OrganizationDetail>;
+  listMembers: (organizationId: string) => Promise<OrganizationMember[]>;
   createOrganization: (input: {
     name: string;
     slug: string;
     ownerEmail: string;
   }) => Promise<{ organizationId: string; userId: string; isNewUser: boolean }>;
+  updateOrganization: (input: {
+    organizationId: string;
+    name: string;
+    slug: string;
+  }) => Promise<{ id: string; name: string; slug: string; createdAt: Date }>;
 }
 
 export interface OpsAppServices {

@@ -1,10 +1,10 @@
-import { getAuthClient } from "@/utils/auth";
+import { authClient } from "@/utils/auth";
 import { trpcClient } from "@/utils/trpc";
 
 import type { AuthService, OpsAppServices, OrganizationStore } from "./types";
 
 function createAuthService(): AuthService {
-  const auth = getAuthClient();
+  const auth = authClient;
 
   return {
     getSession: () => auth.getSession(),
@@ -23,7 +23,11 @@ function createOrganizationStore(): OrganizationStore {
   return {
     lookupUser: (email) => api.organization.lookupUser.query({ email }),
     listOrganizations: () => api.organization.listOrganizations.query(),
+    getOrganization: (organizationId) =>
+      api.organization.getOrganization.query({ organizationId }),
+    listMembers: (organizationId) => api.organization.listMembers.query({ organizationId }),
     createOrganization: (input) => api.organization.createOrganization.mutate(input),
+    updateOrganization: (input) => api.organization.updateOrganization.mutate(input),
   };
 }
 

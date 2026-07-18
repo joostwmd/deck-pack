@@ -1,4 +1,12 @@
 import { Button } from "@deck-pack/ui/components/system/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@deck-pack/ui/components/system/table";
 import { Link } from "@tanstack/react-router";
 
 export type OrganizationsListViewProps = {
@@ -35,37 +43,45 @@ export function OrganizationsListView({
       ) : errorMessage ? (
         <p className="text-destructive text-sm">{errorMessage}</p>
       ) : (
-        <div className="overflow-x-auto rounded-md border">
-          <table className="w-full min-w-[640px] text-left text-sm">
-            <thead className="bg-muted/50 border-b">
-              <tr>
-                <th className="px-3 py-2 font-medium">Name</th>
-                <th className="px-3 py-2 font-medium">Slug</th>
-                <th className="px-3 py-2 font-medium">Owner email</th>
-                <th className="px-3 py-2 font-medium">Created</th>
-              </tr>
-            </thead>
-            <tbody>
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Slug</TableHead>
+                <TableHead>Owner email</TableHead>
+                <TableHead>Created</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {organizations.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="text-muted-foreground px-3 py-8 text-center">
+                <TableRow>
+                  <TableCell colSpan={4} className="text-muted-foreground h-24 text-center">
                     No organizations yet. Create one to get started.
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ) : (
                 organizations.map((org) => (
-                  <tr key={org.id} className="border-b last:border-0">
-                    <td className="px-3 py-2 font-medium">{org.name}</td>
-                    <td className="text-muted-foreground px-3 py-2">{org.slug}</td>
-                    <td className="px-3 py-2">{org.ownerEmail ?? "—"}</td>
-                    <td className="text-muted-foreground px-3 py-2">
+                  <TableRow key={org.id}>
+                    <TableCell className="font-medium">
+                      <Link
+                        to="/organizations/$orgId"
+                        params={{ orgId: org.id }}
+                        className="hover:underline"
+                      >
+                        {org.name}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">{org.slug}</TableCell>
+                    <TableCell>{org.ownerEmail ?? "—"}</TableCell>
+                    <TableCell className="text-muted-foreground">
                       {org.createdAt.toLocaleString()}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       )}
     </div>
