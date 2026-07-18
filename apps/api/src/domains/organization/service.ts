@@ -3,6 +3,7 @@ import type { Transaction } from "@deck-pack/db/transaction";
 import { serviceFail, serviceOk, type ServiceResult } from "../../api/resilience/service-result";
 
 import type { createOrganizationWithOwner } from "@deck-pack/db/queries/createOrganizationWithOwner";
+import type { deleteOrganization } from "@deck-pack/db/queries/deleteOrganization";
 import type { findUserByEmail } from "@deck-pack/db/queries/findUserByEmail";
 import type { getOrganizationWithOwner } from "@deck-pack/db/queries/getOrganizationWithOwner";
 import type { listOrganizationMembers } from "@deck-pack/db/queries/listOrganizationMembers";
@@ -16,6 +17,7 @@ export type OrganizationServiceDeps = {
   getOrganizationWithOwner: typeof getOrganizationWithOwner;
   listOrganizationMembers: typeof listOrganizationMembers;
   updateOrganization: typeof updateOrganization;
+  deleteOrganization: typeof deleteOrganization;
 };
 
 export function createOrganizationService(deps: OrganizationServiceDeps) {
@@ -166,6 +168,22 @@ export function createOrganizationService(deps: OrganizationServiceDeps) {
         slug: result.slug,
         createdAt: result.createdAt,
       });
+    },
+
+    deleteOrganization: async (
+      tx: Transaction,
+      input: { organizationId: string },
+    ): Promise<ServiceResult<{ organizationId: string }>> => {
+      const result = await deps.deleteOrganization({
+        tx,
+        organizationId: input.organizationId,
+      });
+
+      if (!result.ok) {
+        return serviceFail("not_found", { message: "Organization not found" });
+      }
+
+      return serviceOk({ organizationId: result.organizationId });
     },
   };
 }

@@ -28,6 +28,8 @@ function createOrganizationStore(): OrganizationStore {
     listMembers: (organizationId) => api.organization.listMembers.query({ organizationId }),
     createOrganization: (input) => api.organization.createOrganization.mutate(input),
     updateOrganization: (input) => api.organization.updateOrganization.mutate(input),
+    deleteOrganization: (organizationId) =>
+      api.organization.deleteOrganization.mutate({ organizationId }),
   };
 }
 

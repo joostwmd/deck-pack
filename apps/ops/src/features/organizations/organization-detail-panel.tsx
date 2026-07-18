@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -7,6 +8,7 @@ import { OrganizationDetailView } from "@/features/organizations/organization-de
 import { useServices } from "@/services/services-context";
 
 export function OrganizationDetailPanel({ orgId }: { orgId: string }) {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { organization } = useServices();
 
@@ -52,6 +54,20 @@ export function OrganizationDetailPanel({ orgId }: { orgId: string }) {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: () => organization.deleteOrganization(orgId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["organization", "list"] });
+      void queryClient.removeQueries({ queryKey: ["organization", "detail", orgId] });
+      void queryClient.removeQueries({ queryKey: ["organization", "members", orgId] });
+      toast.success("Organization deleted");
+      void navigate({ to: "/organizations" });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+
   const dirty =
     Boolean(detailQuery.data) &&
     (name.trim() !== detailQuery.data?.name || slug.trim() !== detailQuery.data?.slug);
@@ -80,6 +96,10 @@ export function OrganizationDetailPanel({ orgId }: { orgId: string }) {
       saving={updateMutation.isPending}
       onSubmit={handleSubmit}
       dirty={dirty}
+      deleting={deleteMutation.isPending}
+      onDelete={async () => {
+        await deleteMutation.mutateAsync();
+      }}
     />
   );
 }

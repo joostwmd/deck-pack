@@ -114,5 +114,14 @@ export function createOrganizationRoutes(service: OrganizationService) {
       .mutation(async ({ ctx, input }) => {
         return unwrapServiceResult(await service.updateOrganization(ctx.tx, input));
       }),
+
+    deleteOrganization: platformAdminProcedure
+      .input(z.object({ organizationId: organizationIdSchema }))
+      .output(z.object({ organizationId: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        return unwrapServiceResult(
+          await service.deleteOrganization(ctx.tx, { organizationId: input.organizationId }),
+        );
+      }),
   };
 }

@@ -67,6 +67,7 @@ export interface OrganizationStore {
     name: string;
     slug: string;
   }) => Promise<{ id: string; name: string; slug: string; createdAt: Date }>;
+  deleteOrganization: (organizationId: string) => Promise<{ organizationId: string }>;
 }
 
 export interface OpsAppServices {

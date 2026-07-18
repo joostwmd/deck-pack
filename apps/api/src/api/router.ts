@@ -7,6 +7,7 @@ import {
 import { createBrandProfileVersion } from "@deck-pack/db/queries/createBrandProfileVersion";
 import { createOrganizationWithOwner } from "@deck-pack/db/queries/createOrganizationWithOwner";
 import { deleteAllShortcutOverrides } from "@deck-pack/db/queries/deleteAllShortcutOverrides";
+import { deleteOrganization } from "@deck-pack/db/queries/deleteOrganization";
 import { deleteShortcutOverride } from "@deck-pack/db/queries/deleteShortcutOverride";
 import { findUserByEmail } from "@deck-pack/db/queries/findUserByEmail";
 import { getAgendaInstance } from "@deck-pack/db/queries/getAgendaInstance";
@@ -82,6 +83,7 @@ export function createAppRouter(deps: AddinRouterDeps) {
     getOrganizationWithOwner,
     listOrganizationMembers,
     updateOrganization,
+    deleteOrganization,
   });
 
   const agendaService = createAgendaService({
