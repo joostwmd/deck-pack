@@ -12,7 +12,7 @@ import {
   mockLogoSearch,
 } from "@fixtures/asset-search";
 
-export interface AssetPickerStoryConfig {
+export interface AssetBrowserStoryConfig {
   assetType: AssetType;
   assetLabel: string;
   headerText: string;
@@ -27,7 +27,7 @@ export interface AssetPickerStoryConfig {
   searchHint: string;
 }
 
-export const flagsPickerConfig: AssetPickerStoryConfig = {
+export const flagsBrowserConfig: AssetBrowserStoryConfig = {
   assetType: "flag",
   assetLabel: "Flag",
   headerText: "Search and insert country flags into your presentation.",
@@ -40,7 +40,7 @@ export const flagsPickerConfig: AssetPickerStoryConfig = {
   searchHint: 'Try searching "nether", "germany", or "france".',
 };
 
-export const logosPickerConfig: AssetPickerStoryConfig = {
+export const logosBrowserConfig: AssetBrowserStoryConfig = {
   assetType: "logo",
   assetLabel: "Logo",
   headerText: "Search and insert brand logos into your presentation.",
@@ -53,7 +53,7 @@ export const logosPickerConfig: AssetPickerStoryConfig = {
   searchHint: 'Try searching "acme" or "deck".',
 };
 
-export const iconsPickerConfig: AssetPickerStoryConfig = {
+export const iconsBrowserConfig: AssetBrowserStoryConfig = {
   assetType: "icon",
   assetLabel: "Icon",
   headerText: "Search and insert icons into your presentation.",
@@ -67,10 +67,10 @@ export const iconsPickerConfig: AssetPickerStoryConfig = {
   searchHint: 'Try searching "arrow" or "star".',
 };
 
-export const assetPickerConfigs = {
-  flags: flagsPickerConfig,
-  logos: logosPickerConfig,
-  icons: iconsPickerConfig,
+export const assetBrowserConfigs = {
+  flags: flagsBrowserConfig,
+  logos: logosBrowserConfig,
+  icons: iconsBrowserConfig,
 } as const;
 
-export type AssetPickerConfigKey = keyof typeof assetPickerConfigs;
+export type AssetBrowserConfigKey = keyof typeof assetBrowserConfigs;

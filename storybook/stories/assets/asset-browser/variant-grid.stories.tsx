@@ -11,7 +11,7 @@ const variants = [
 ];
 
 const meta = {
-  title: "Assets/AssetPicker/VariantGrid",
+  title: "Assets/AssetBrowser/VariantGrid",
   component: VariantGrid,
   tags: ["autodocs"],
   decorators: [withAssetsPanel],

@@ -1,9 +1,3 @@
-import { Button } from "@deck-pack/ui/components/system/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@deck-pack/ui/components/system/popover";
 import {
   Select,
   SelectContent,
@@ -12,8 +6,9 @@ import {
   SelectValue,
 } from "@deck-pack/ui/components/system/select";
 import { cn } from "@deck-pack/ui/lib/utils";
-import { FunnelSimple, X } from "@phosphor-icons/react";
-import type { ReactNode } from "react";
+import { X } from "@phosphor-icons/react";
+
+import { FilterField, FiltersPopover } from "@/components/asset-browser/filters-popover";
 
 import type { SlideAspectRatio, SlideFilters, SlideSearchFacets, SlideSort } from "./types";
 
@@ -30,39 +25,6 @@ interface SlideFiltersBarProps {
   sort: SlideSort;
   onFiltersChange: (filters: SlideFilters) => void;
   onSortChange: (sort: SlideSort) => void;
-}
-
-interface FilterFieldProps<T extends string> {
-  id: string;
-  label: string;
-  placeholder: string;
-  value: T | undefined;
-  onChange: (value: T | undefined) => void;
-  children: ReactNode;
-}
-
-function FilterField<T extends string>({
-  id,
-  label,
-  placeholder,
-  value,
-  onChange,
-  children,
-}: FilterFieldProps<T>) {
-  return (
-    <div className="flex flex-col gap-1">
-      <label htmlFor={id} className="text-xs font-medium text-foreground">
-        {label}
-      </label>
-
-      <Select value={value} onValueChange={(nextValue) => onChange(nextValue as T)}>
-        <SelectTrigger id={id} size="sm" className="h-8 w-full min-w-0">
-          <SelectValue placeholder={placeholder} />
-        </SelectTrigger>
-        <SelectContent>{children}</SelectContent>
-      </Select>
-    </div>
-  );
 }
 
 function toggleTag(tags: string[] | undefined, tag: string) {
@@ -127,102 +89,65 @@ export function SlideFiltersBar({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
-        <Popover>
-          <PopoverTrigger
-            render={
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="relative shrink-0 gap-1.5 px-2.5"
-                aria-label={
-                  activeFilterCount > 0
-                    ? `Filters, ${activeFilterCount} active`
-                    : "Open slide filters"
-                }
-              >
-                <FunnelSimple className="size-4" aria-hidden />
-                <span className="text-xs font-medium">Filters</span>
-                {activeFilterCount > 0 ? (
-                  <span className="inline-flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
-                    {activeFilterCount}
-                  </span>
-                ) : null}
-              </Button>
-            }
-          />
+        <FiltersPopover
+          activeFilterCount={activeFilterCount}
+          ariaLabel="Open slide filters"
+          onClearAll={clearAll}
+        >
+          <FilterField
+            id="slide-category-filter"
+            label="Category"
+            placeholder="Any category"
+            value={filters.category}
+            onChange={(value) => updateFilter("category", value)}
+          >
+            {facets.categories.map((category) => (
+              <SelectItem key={category} value={category}>
+                {category}
+              </SelectItem>
+            ))}
+          </FilterField>
 
-          <PopoverContent align="end" className="w-[min(18rem,calc(100vw-2rem))] gap-3 p-3">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-sm font-medium text-foreground">Filters</p>
-              {activeFilterCount > 0 ? (
-                <button
-                  type="button"
-                  className="text-xs font-medium text-primary hover:underline"
-                  onClick={clearAll}
-                >
-                  Clear all
-                </button>
-              ) : null}
+          <FilterField
+            id="slide-aspect-ratio-filter"
+            label="Aspect ratio"
+            placeholder="Any aspect ratio"
+            value={filters.aspectRatio}
+            onChange={(value) => updateFilter("aspectRatio", value as SlideAspectRatio)}
+          >
+            {facets.aspectRatios.map((aspectRatio) => (
+              <SelectItem key={aspectRatio} value={aspectRatio}>
+                {aspectRatio}
+              </SelectItem>
+            ))}
+          </FilterField>
+
+          <div className="flex flex-col gap-1.5">
+            <p className="text-xs font-medium text-foreground">Tags</p>
+            <div className="flex flex-wrap gap-1.5">
+              {facets.tags.map((tag) => {
+                const isActive = filters.tags?.includes(tag) ?? false;
+
+                return (
+                  <button
+                    key={tag}
+                    type="button"
+                    aria-pressed={isActive}
+                    className={cn(
+                      "rounded-full border px-2 py-0.5 text-xs font-medium transition-colors",
+                      isActive
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border text-muted-foreground hover:bg-muted/60",
+                    )}
+                    onClick={() => updateFilter("tags", toggleTag(filters.tags, tag))}
+                  >
+                    {tag}
+                  </button>
+                );
+              })}
             </div>
-
-            <div className="flex flex-col gap-2.5">
-              <FilterField
-                id="slide-category-filter"
-                label="Category"
-                placeholder="Any category"
-                value={filters.category}
-                onChange={(value) => updateFilter("category", value)}
-              >
-                {facets.categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
-              </FilterField>
-
-              <FilterField
-                id="slide-aspect-ratio-filter"
-                label="Aspect ratio"
-                placeholder="Any aspect ratio"
-                value={filters.aspectRatio}
-                onChange={(value) => updateFilter("aspectRatio", value as SlideAspectRatio)}
-              >
-                {facets.aspectRatios.map((aspectRatio) => (
-                  <SelectItem key={aspectRatio} value={aspectRatio}>
-                    {aspectRatio}
-                  </SelectItem>
-                ))}
-              </FilterField>
-
-              <div className="flex flex-col gap-1.5">
-                <p className="text-xs font-medium text-foreground">Tags</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {facets.tags.map((tag) => {
-                    const isActive = filters.tags?.includes(tag) ?? false;
-
-                    return (
-                      <button
-                        key={tag}
-                        type="button"
-                        aria-pressed={isActive}
-                        className={cn(
-                          "rounded-full border px-2 py-0.5 text-xs font-medium transition-colors",
-                          isActive
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-border text-muted-foreground hover:bg-muted/60",
-                        )}
-                        onClick={() => updateFilter("tags", toggleTag(filters.tags, tag))}
-                      >
-                        {tag}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          </PopoverContent>
-        </Popover>
+          </div>
+        </FiltersPopover>
 
         <Select value={sort} onValueChange={(value) => onSortChange(value as SlideSort)}>
           <SelectTrigger size="sm" className="h-8 min-w-[7.5rem] shrink-0">

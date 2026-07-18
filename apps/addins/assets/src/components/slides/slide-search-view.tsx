@@ -1,14 +1,16 @@
 import { PresentationChart } from "@phosphor-icons/react";
 
+import { AssetBrowserShell } from "@/components/asset-browser/asset-browser-shell";
 import { EmptyState } from "@/components/asset-browser/empty-state";
 import { ErrorState } from "@/components/asset-browser/error-state";
 import { InsertSection } from "@/components/asset-browser/insert-section";
+import { ScreenHeader } from "@/components/asset-browser/screen-header";
 import { SearchBar } from "@/components/asset-browser/search-bar";
 import { ShortcutKeys } from "@/components/shortcuts/shortcut-hint";
+import type { SlideSearchController } from "@/hooks/use-slide-search-controller";
 
 import { SlideFiltersBar } from "./slide-filters";
 import { SlideGrid } from "./slide-grid";
-import type { SlideSearchController } from "@/hooks/use-slide-search-controller";
 
 interface SlideSearchViewProps {
   controller: SlideSearchController;
@@ -28,17 +30,22 @@ export function SlideSearchView({ controller }: SlideSearchViewProps) {
     insertSectionShortcutDefs,
   } = controller;
 
-  return (
-    <div className="flex flex-1 flex-col">
-      <div className="sr-only" aria-live="polite" aria-atomic="true">
-        {flow.isSearching
-          ? "Searching for slides"
-          : flow.hasLoaded && flow.results.length > 0
-            ? `${flow.results.length} slides loaded`
-            : ""}
-      </div>
+  const liveMessage = flow.isSearching
+    ? "Searching for slides"
+    : flow.hasLoaded && flow.results.length > 0
+      ? `${flow.results.length} slides loaded`
+      : "";
 
-      <div className="px-4 pt-3">
+  return (
+    <AssetBrowserShell
+      liveMessage={liveMessage}
+      header={
+        <ScreenHeader
+          title="Slides"
+          text="Browse and insert slide templates into your presentation."
+        />
+      }
+      toolbar={
         <section className="flex flex-col gap-3">
           <SearchBar
             ref={searchInputRef}
@@ -60,7 +67,10 @@ export function SlideSearchView({ controller }: SlideSearchViewProps) {
             onFiltersChange={flow.updateFilters}
             onSortChange={flow.updateSort}
           />
-
+        </section>
+      }
+      results={
+        <>
           {flow.error ? (
             <ErrorState
               title="Could not search for slides"
@@ -89,21 +99,18 @@ export function SlideSearchView({ controller }: SlideSearchViewProps) {
               description="Try a different keyword or clear your filters to browse the library."
             />
           ) : null}
-        </section>
-      </div>
-
-      <div className="flex flex-1 flex-col px-4 pb-3">
-        <div className="mt-auto flex flex-col gap-2 pt-3">
-          <InsertSection
-            disabled={insertDisabled}
-            isInserting={isInserting}
-            label="Insert"
-            insertingLabel="Inserting..."
-            shortcutDefs={insertSectionShortcutDefs}
-            onClick={handleInsert}
-          />
-        </div>
-      </div>
-    </div>
+        </>
+      }
+      footer={
+        <InsertSection
+          disabled={insertDisabled}
+          isInserting={isInserting}
+          label="Insert"
+          insertingLabel="Inserting..."
+          shortcutDefs={insertSectionShortcutDefs}
+          onClick={handleInsert}
+        />
+      }
+    />
   );
 }

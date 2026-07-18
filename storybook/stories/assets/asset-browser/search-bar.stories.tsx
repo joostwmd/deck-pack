@@ -2,13 +2,13 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
 import { SearchBar } from "@/components/asset-browser/search-bar";
-import { ShortcutKeys } from "@/components/shortcut-hint";
+import { ShortcutKeys } from "@/components/shortcuts/shortcut-hint";
 import { SHORTCUTS } from "@/lib/shortcuts";
 
 import { withAssetsPanel } from "../decorators";
 
 const meta = {
-  title: "Assets/AssetPicker/SearchBar",
+  title: "Assets/AssetBrowser/SearchBar",
   component: SearchBar,
   tags: ["autodocs"],
   decorators: [withAssetsPanel],

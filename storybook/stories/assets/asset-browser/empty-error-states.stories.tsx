@@ -7,7 +7,7 @@ import { ErrorState } from "@/components/asset-browser/error-state";
 import { withAssetsPanel } from "../decorators";
 
 const meta = {
-  title: "Assets/AssetPicker/EmptyErrorStates",
+  title: "Assets/AssetBrowser/EmptyErrorStates",
   tags: ["autodocs"],
   decorators: [withAssetsPanel],
   parameters: {

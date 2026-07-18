@@ -6,7 +6,7 @@ import { withAssetsPanel } from "../decorators";
 import { mockFlagResults } from "@fixtures/asset-search";
 
 const meta = {
-  title: "Assets/AssetPicker/SearchResults",
+  title: "Assets/AssetBrowser/SearchResults",
   component: SearchResults,
   tags: ["autodocs"],
   decorators: [withAssetsPanel],

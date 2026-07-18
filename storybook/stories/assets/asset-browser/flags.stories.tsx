@@ -1,36 +1,36 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 
-import { FlagsPanel } from "@/pages/flags/flags-page";
+import { FlagsPage } from "@/pages/flags/flags-page";
 
 import { withAssetsPanel, withTestServices } from "../decorators";
 import { mockEmptySearch, mockFailingSearch } from "@fixtures/asset-search";
-import { flagsPickerConfig } from "@fixtures/asset-picker-configs";
+import { flagsBrowserConfig } from "@fixtures/asset-browser-configs";
 import { createFlagsTestServices } from "@fixtures/panel-test-services";
 
 const meta = {
-  title: "Assets/AssetPicker/Flags",
-  component: FlagsPanel,
+  title: "Assets/AssetBrowser/Flags",
+  component: FlagsPage,
   tags: ["autodocs"],
   parameters: {
     layout: "fullscreen",
     docs: {
       description: {
-        component: `Connected flag search panel using \`FlagsPanel\` and test services. ${flagsPickerConfig.searchHint} Wait ~500ms after typing for debounced search.`,
+        component: `Connected flag search page using \`FlagsPage\` and test services. ${flagsBrowserConfig.searchHint} Wait ~500ms after typing for debounced search.`,
       },
     },
   },
-} satisfies Meta<typeof FlagsPanel>;
+} satisfies Meta<typeof FlagsPage>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 /**
- * @summary Default flag search panel wired to mock tRPC handlers via ServicesProvider.
+ * @summary Default flag search page wired to mock tRPC handlers via ServicesProvider.
  */
 export const Default: Story = {
   decorators: [withAssetsPanel],
-  render: () => <FlagsPanel />,
+  render: () => <FlagsPage />,
 };
 
 /**
@@ -38,7 +38,7 @@ export const Default: Story = {
  */
 export const SelectCountry: Story = {
   decorators: [withAssetsPanel],
-  render: () => <FlagsPanel />,
+  render: () => <FlagsPage />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const input = canvas.getByPlaceholderText(/search flags/i);
@@ -71,7 +71,7 @@ export const SelectCountry: Story = {
 export const NoResults: Story = {
   tags: ["!manifest"],
   decorators: [withTestServices(createFlagsTestServices(mockEmptySearch))],
-  render: () => <FlagsPanel />,
+  render: () => <FlagsPage />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const input = canvas.getByPlaceholderText(/search flags/i);
@@ -93,7 +93,7 @@ export const NoResults: Story = {
 export const SearchError: Story = {
   tags: ["!manifest"],
   decorators: [withTestServices(createFlagsTestServices(mockFailingSearch))],
-  render: () => <FlagsPanel />,
+  render: () => <FlagsPage />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const input = canvas.getByPlaceholderText(/search flags/i);

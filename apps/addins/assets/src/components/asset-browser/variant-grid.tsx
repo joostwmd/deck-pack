@@ -1,8 +1,6 @@
-import { cn } from "@deck-pack/ui/lib/utils";
-import { useEffect, useRef } from "react";
-
 import type { AssetListItem } from "@/types/asset-types";
 
+import { SelectableGrid } from "./selectable-grid";
 import { VariantItem } from "./variant-item";
 
 interface VariantGridProps {
@@ -20,26 +18,8 @@ export function VariantGrid({
   onSelect,
   className,
 }: VariantGridProps) {
-  const gridRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const highlightedItem = gridRef.current?.querySelector<HTMLButtonElement>(
-      '[data-highlighted="true"]',
-    );
-
-    if (!highlightedItem) return;
-
-    highlightedItem.focus({ preventScroll: true });
-    highlightedItem.scrollIntoView({ block: "nearest", inline: "nearest" });
-  }, [highlightedId]);
-
   return (
-    <div
-      ref={gridRef}
-      role="radiogroup"
-      aria-label="Asset variants"
-      className={cn("grid w-full grid-cols-2 gap-3", className)}
-    >
+    <SelectableGrid ariaLabel="Asset variants" highlightedId={highlightedId} className={className}>
       {variants.map((variant) => (
         <VariantItem
           key={variant.id}
@@ -49,6 +29,6 @@ export function VariantGrid({
           onSelect={onSelect}
         />
       ))}
-    </div>
+    </SelectableGrid>
   );
 }

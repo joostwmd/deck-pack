@@ -7,7 +7,7 @@ import { createAssetSearchPanelViewProps } from "@fixtures/view-story-fixtures";
 import { mockFlagResults } from "@fixtures/asset-search";
 
 const meta = {
-  title: "Assets/AssetPicker/AssetSearchPanelView",
+  title: "Assets/AssetBrowser/AssetSearchPanelView",
   component: AssetSearchPanelView,
   tags: ["autodocs"],
   decorators: [withAssetsPanel],

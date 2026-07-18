@@ -1,5 +1,4 @@
-import { cn } from "@deck-pack/ui/lib/utils";
-import { useEffect, useRef } from "react";
+import { SelectableGrid } from "@/components/asset-browser/selectable-grid";
 
 import { ShapeCard } from "./shape-card";
 import type { ShapeSearchResult } from "./types";
@@ -19,27 +18,11 @@ export function ShapeGrid({
   onSelect,
   className,
 }: ShapeGridProps) {
-  const gridRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const highlightedItem = gridRef.current?.querySelector<HTMLButtonElement>(
-      '[data-highlighted="true"]',
-    );
-
-    if (!highlightedItem) {
-      return;
-    }
-
-    highlightedItem.focus({ preventScroll: true });
-    highlightedItem.scrollIntoView({ block: "nearest", inline: "nearest" });
-  }, [highlightedId]);
-
   return (
-    <div
-      ref={gridRef}
-      role="radiogroup"
-      aria-label="Shape library results"
-      className={cn("grid w-full grid-cols-2 gap-3", className)}
+    <SelectableGrid
+      ariaLabel="Shape library results"
+      highlightedId={highlightedId}
+      className={className}
     >
       {shapes.map((shape) => (
         <ShapeCard
@@ -50,6 +33,6 @@ export function ShapeGrid({
           onSelect={onSelect}
         />
       ))}
-    </div>
+    </SelectableGrid>
   );
 }

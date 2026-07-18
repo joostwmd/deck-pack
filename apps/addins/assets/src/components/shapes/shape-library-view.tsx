@@ -1,13 +1,14 @@
 import { Shapes } from "@phosphor-icons/react";
 
+import { AssetBrowserShell } from "@/components/asset-browser/asset-browser-shell";
 import { EmptyState } from "@/components/asset-browser/empty-state";
 import { ErrorState } from "@/components/asset-browser/error-state";
 import { InsertSection } from "@/components/asset-browser/insert-section";
 import { ScreenHeader } from "@/components/asset-browser/screen-header";
+import type { ShapeLibraryController } from "@/hooks/use-shape-library-controller";
 
 import { ShapeCategoryTabs } from "./shape-category-tabs";
 import { ShapeGrid } from "./shape-grid";
-import type { ShapeLibraryController } from "@/hooks/use-shape-library-controller";
 
 interface ShapeLibraryViewProps {
   controller: ShapeLibraryController;
@@ -25,29 +26,30 @@ export function ShapeLibraryView({ controller }: ShapeLibraryViewProps) {
     insertSectionShortcutDefs,
   } = controller;
 
+  const liveMessage = flow.isLoading
+    ? "Loading shapes"
+    : flow.hasLoaded && flow.results.length > 0
+      ? `${flow.results.length} shapes loaded`
+      : "";
+
   return (
-    <div className="flex flex-1 flex-col">
-      <div className="sr-only" aria-live="polite" aria-atomic="true">
-        {flow.isLoading
-          ? "Loading shapes"
-          : flow.hasLoaded && flow.results.length > 0
-            ? `${flow.results.length} shapes loaded`
-            : ""}
-      </div>
-
-      <ScreenHeader
-        title="Shapes"
-        text="Browse and insert advanced shapes into your presentation."
-      />
-
-      <div className="px-4 pt-3">
-        <section className="flex flex-col gap-3">
-          <ShapeCategoryTabs
-            categories={flow.facets.categories}
-            activeCategory={flow.category}
-            onChange={flow.updateCategory}
-          />
-
+    <AssetBrowserShell
+      liveMessage={liveMessage}
+      header={
+        <ScreenHeader
+          title="Shapes"
+          text="Browse and insert advanced shapes into your presentation."
+        />
+      }
+      toolbar={
+        <ShapeCategoryTabs
+          categories={flow.facets.categories}
+          activeCategory={flow.category}
+          onChange={flow.updateCategory}
+        />
+      }
+      results={
+        <>
           {flow.error ? (
             <ErrorState
               title="Could not load shapes"
@@ -76,21 +78,18 @@ export function ShapeLibraryView({ controller }: ShapeLibraryViewProps) {
               description={emptyDescription}
             />
           ) : null}
-        </section>
-      </div>
-
-      <div className="flex flex-1 flex-col px-4 pb-3">
-        <div className="mt-auto flex flex-col gap-2 pt-3">
-          <InsertSection
-            disabled={insertDisabled}
-            isInserting={isInserting}
-            label={insertLabel}
-            insertingLabel={insertingLabel}
-            shortcutDefs={insertSectionShortcutDefs}
-            onClick={handleInsert}
-          />
-        </div>
-      </div>
-    </div>
+        </>
+      }
+      footer={
+        <InsertSection
+          disabled={insertDisabled}
+          isInserting={isInserting}
+          label={insertLabel}
+          insertingLabel={insertingLabel}
+          shortcutDefs={insertSectionShortcutDefs}
+          onClick={handleInsert}
+        />
+      }
+    />
   );
 }

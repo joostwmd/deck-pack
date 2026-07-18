@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { ShortcutHints, ShortcutKeys, ShortcutRow } from "@/components/shortcut-hint";
+import { ShortcutHints, ShortcutKeys, ShortcutRow } from "@/components/shortcuts/shortcut-hint";
 import {
   NAVIGATE_RESULTS_DISPLAY,
   NAVIGATE_VARIANTS_DISPLAY,

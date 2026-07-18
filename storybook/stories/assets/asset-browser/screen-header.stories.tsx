@@ -5,7 +5,7 @@ import { ScreenHeader } from "@/components/asset-browser/screen-header";
 import { withAssetsPanel } from "../decorators";
 
 const meta = {
-  title: "Assets/AssetPicker/ScreenHeader",
+  title: "Assets/AssetBrowser/ScreenHeader",
   component: ScreenHeader,
   tags: ["autodocs"],
   decorators: [withAssetsPanel],

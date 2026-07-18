@@ -1,18 +1,6 @@
-import { Button } from "@deck-pack/ui/components/system/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@deck-pack/ui/components/system/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@deck-pack/ui/components/system/select";
-import { FunnelSimple } from "@phosphor-icons/react";
-import type { ReactNode } from "react";
+import { SelectItem } from "@deck-pack/ui/components/system/select";
+
+import { FilterField, FiltersPopover } from "@/components/asset-browser/filters-popover";
 
 import type { PhotoFilters, PhotoLocale, PhotoNamedColor, PhotoOrientation, PhotoSize } from "./types";
 
@@ -61,39 +49,6 @@ interface PhotoFiltersProps {
   onChange: (filters: PhotoFilters) => void;
 }
 
-interface FilterFieldProps<T extends string> {
-  id: string;
-  label: string;
-  placeholder: string;
-  value: T | undefined;
-  onChange: (value: T | undefined) => void;
-  children: ReactNode;
-}
-
-function FilterField<T extends string>({
-  id,
-  label,
-  placeholder,
-  value,
-  onChange,
-  children,
-}: FilterFieldProps<T>) {
-  return (
-    <div className="flex flex-col gap-1">
-      <label htmlFor={id} className="text-xs font-medium text-foreground">
-        {label}
-      </label>
-
-      <Select value={value} onValueChange={(nextValue) => onChange(nextValue as T)}>
-        <SelectTrigger id={id} size="sm" className="h-8 w-full min-w-0">
-          <SelectValue placeholder={placeholder} />
-        </SelectTrigger>
-        <SelectContent>{children}</SelectContent>
-      </Select>
-    </div>
-  );
-}
-
 export function PhotoFiltersBar({ filters, activeFilterCount, onChange }: PhotoFiltersProps) {
   const clearAll = () => onChange({});
 
@@ -111,110 +66,73 @@ export function PhotoFiltersBar({ filters, activeFilterCount, onChange }: PhotoF
   };
 
   return (
-    <Popover>
-      <PopoverTrigger
-        render={
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="relative shrink-0 gap-1.5 px-2.5"
-            aria-label={
-              activeFilterCount > 0
-                ? `Filters, ${activeFilterCount} active`
-                : "Open photo filters"
-            }
-          >
-            <FunnelSimple className="size-4" aria-hidden />
-            <span className="text-xs font-medium">Filters</span>
-            {activeFilterCount > 0 ? (
-              <span className="inline-flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
-                {activeFilterCount}
-              </span>
-            ) : null}
-          </Button>
-        }
-      />
+    <FiltersPopover
+      activeFilterCount={activeFilterCount}
+      ariaLabel="Open photo filters"
+      onClearAll={clearAll}
+    >
+      <FilterField
+        id="photo-orientation-filter"
+        label="Orientation"
+        placeholder="Any orientation"
+        value={filters.orientation}
+        onChange={(value) => updateFilter("orientation", value)}
+      >
+        {ORIENTATION_OPTIONS.map((option) => (
+          <SelectItem key={option.value} value={option.value}>
+            {option.label}
+          </SelectItem>
+        ))}
+      </FilterField>
 
-      <PopoverContent align="end" className="w-[min(18rem,calc(100vw-2rem))] gap-3 p-3">
-        <div className="flex items-center justify-between gap-2">
-          <p className="text-sm font-medium text-foreground">Filters</p>
-          {activeFilterCount > 0 ? (
-            <button
-              type="button"
-              className="text-xs font-medium text-primary hover:underline"
-              onClick={clearAll}
-            >
-              Clear all
-            </button>
-          ) : null}
-        </div>
+      <FilterField
+        id="photo-color-filter"
+        label="Color"
+        placeholder="Any color"
+        value={filters.color}
+        onChange={(value) => updateFilter("color", value)}
+      >
+        {COLOR_OPTIONS.map((option) => (
+          <SelectItem key={option.value} value={option.value}>
+            <span className="inline-flex items-center gap-2">
+              <span
+                className="size-3 rounded-full border border-border/60"
+                style={{ backgroundColor: option.swatch }}
+                aria-hidden
+              />
+              {option.label}
+            </span>
+          </SelectItem>
+        ))}
+      </FilterField>
 
-        <div className="flex flex-col gap-2.5">
-          <FilterField
-            id="photo-orientation-filter"
-            label="Orientation"
-            placeholder="Any orientation"
-            value={filters.orientation}
-            onChange={(value) => updateFilter("orientation", value)}
-          >
-            {ORIENTATION_OPTIONS.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </FilterField>
+      <FilterField
+        id="photo-size-filter"
+        label="Minimum size"
+        placeholder="Any size"
+        value={filters.size}
+        onChange={(value) => updateFilter("size", value)}
+      >
+        {SIZE_OPTIONS.map((option) => (
+          <SelectItem key={option.value} value={option.value}>
+            {option.label}
+          </SelectItem>
+        ))}
+      </FilterField>
 
-          <FilterField
-            id="photo-color-filter"
-            label="Color"
-            placeholder="Any color"
-            value={filters.color}
-            onChange={(value) => updateFilter("color", value)}
-          >
-            {COLOR_OPTIONS.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                <span className="inline-flex items-center gap-2">
-                  <span
-                    className="size-3 rounded-full border border-border/60"
-                    style={{ backgroundColor: option.swatch }}
-                    aria-hidden
-                  />
-                  {option.label}
-                </span>
-              </SelectItem>
-            ))}
-          </FilterField>
-
-          <FilterField
-            id="photo-size-filter"
-            label="Minimum size"
-            placeholder="Any size"
-            value={filters.size}
-            onChange={(value) => updateFilter("size", value)}
-          >
-            {SIZE_OPTIONS.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </FilterField>
-
-          <FilterField
-            id="photo-locale-filter"
-            label="Search locale"
-            placeholder="Default locale"
-            value={filters.locale}
-            onChange={(value) => updateFilter("locale", value)}
-          >
-            {LOCALE_OPTIONS.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </FilterField>
-        </div>
-      </PopoverContent>
-    </Popover>
+      <FilterField
+        id="photo-locale-filter"
+        label="Search locale"
+        placeholder="Default locale"
+        value={filters.locale}
+        onChange={(value) => updateFilter("locale", value)}
+      >
+        {LOCALE_OPTIONS.map((option) => (
+          <SelectItem key={option.value} value={option.value}>
+            {option.label}
+          </SelectItem>
+        ))}
+      </FilterField>
+    </FiltersPopover>
   );
 }
