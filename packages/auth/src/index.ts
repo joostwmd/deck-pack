@@ -37,6 +37,7 @@ function baseAuthOptions(
   >,
 ): BetterAuthOptions {
   const { db, secret, baseURL, trustedOrigins } = deps;
+  const secureCookies = baseURL.startsWith("https://");
 
   return {
     database: drizzleAdapter(db, {
@@ -49,8 +50,8 @@ function baseAuthOptions(
     basePath: "/api/auth",
     advanced: {
       defaultCookieAttributes: {
-        sameSite: "none",
-        secure: true,
+        sameSite: secureCookies ? "none" : "lax",
+        secure: secureCookies,
         httpOnly: true,
       },
       cookiePrefix: "deckpack",

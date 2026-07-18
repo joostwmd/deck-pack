@@ -18,7 +18,7 @@ import { registerErrorHandlers } from "./transport/error-handling";
 import { registerHealthRoutes } from "./transport/health-checks";
 import { requestContextMiddleware } from "./transport/request-context";
 import { requestLoggingMiddleware } from "./transport/request-logging";
-import { corsMiddleware, securityHeadersMiddleware } from "./transport/security";
+import { corsMiddleware, securityHeadersMiddleware, applyCorsToResponse } from "./transport/security";
 import type { AppEnv } from "./types";
 
 export type CreateAppOptions = {
@@ -42,7 +42,10 @@ export function createApp(options?: CreateAppOptions) {
 
   app.use("*", securityHeadersMiddleware);
 
-  app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));
+  app.on(["POST", "GET"], "/api/auth/*", async (c) => {
+    const response = await auth.handler(c.req.raw);
+    return applyCorsToResponse(c.req.header("Origin"), response);
+  });
 
   app.use("*", requestContextMiddleware);
   app.use("*", requestLoggingMiddleware);

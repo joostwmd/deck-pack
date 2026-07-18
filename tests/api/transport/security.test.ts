@@ -14,7 +14,7 @@ vi.hoisted(() => {
   process.env.NODE_ENV ??= "test";
 });
 
-import { corsMiddleware } from "@deck-pack/api/transport/security";
+import { corsMiddleware, applyCorsToResponse } from "@deck-pack/api/transport/security";
 
 describe("corsMiddleware", () => {
   it("exposes set-auth-token for bearer session capture", async () => {
@@ -30,5 +30,20 @@ describe("corsMiddleware", () => {
 
     expect(response.headers.get("Access-Control-Expose-Headers")).toContain("set-auth-token");
     expect(response.headers.get("Access-Control-Expose-Headers")).toContain("X-Request-Id");
+  });
+
+  it("applyCorsToResponse adds allow-origin for trusted origins", () => {
+    const origin = process.env.CORS_ORIGINS!.split(",")[0]!.trim();
+    const wrapped = applyCorsToResponse(
+      origin,
+      new Response(JSON.stringify(null), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+
+    expect(wrapped.headers.get("Access-Control-Allow-Origin")).toBe(origin);
+    expect(wrapped.headers.get("Access-Control-Allow-Credentials")).toBe("true");
+    expect(wrapped.headers.get("Access-Control-Expose-Headers")).toContain("set-auth-token");
   });
 });

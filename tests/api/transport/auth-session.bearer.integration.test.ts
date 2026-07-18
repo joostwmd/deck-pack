@@ -39,10 +39,12 @@ describe("bearer session transport", () => {
     const bearerResponse = await app.request("/api/auth/get-session", {
       headers: {
         Authorization: `Bearer ${fixture.bearerToken}`,
+        Origin: process.env.CORS_ORIGINS!.split(",")[0]!.trim(),
       },
     });
 
     expect(bearerResponse.status).toBe(200);
+    expect(bearerResponse.headers.get("Access-Control-Allow-Origin")).toBeTruthy();
     const bearerBody = (await bearerResponse.json()) as { user?: { email?: string } } | null;
     expect(bearerBody?.user?.email).toBe(fixture.email);
   });
@@ -97,6 +99,9 @@ describe("bearer session transport", () => {
     });
 
     expect(response.status).toBe(200);
+    expect(response.headers.get("Access-Control-Allow-Origin")).toBe(
+      process.env.CORS_ORIGINS!.split(",")[0]!.trim(),
+    );
     const body = (await response.json()) as { user?: { email?: string } } | null;
     expect(body?.user?.email).toBe(fixture.email);
   });
