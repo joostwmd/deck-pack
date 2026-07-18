@@ -1,12 +1,10 @@
-import type { createAppAuthClient } from "@deck-pack/auth/client";
+import type { AuthClient } from "@deck-pack/auth/client";
 import { env } from "@deck-pack/env/web";
 
 import { getBearerToken } from "@/auth/bearer-session-store";
 import { acquireMicrosoftTokensSilently } from "@/auth/microsoft-naa";
 import { isNaaSupported } from "@/auth/naa-support";
 import { useOfficeBearerMode } from "@/auth/office-auth-mode";
-
-type AppAuthClient = ReturnType<typeof createAppAuthClient>;
 
 let restoreAttempt: Promise<boolean> | null = null;
 
@@ -20,13 +18,13 @@ let restoreAttempt: Promise<boolean> | null = null;
  *
  * Returns true when a signed-in session should now be available.
  */
-export function restoreOfficeSession(authClient: AppAuthClient): Promise<boolean> {
+export function restoreOfficeSession(authClient: AuthClient): Promise<boolean> {
   // One attempt per task pane lifetime; concurrent callers share the result.
   restoreAttempt ??= attemptRestore(authClient);
   return restoreAttempt;
 }
 
-async function attemptRestore(authClient: AppAuthClient): Promise<boolean> {
+async function attemptRestore(authClient: AuthClient): Promise<boolean> {
   if (!useOfficeBearerMode()) return false;
   if (!isNaaSupported()) return false;
 

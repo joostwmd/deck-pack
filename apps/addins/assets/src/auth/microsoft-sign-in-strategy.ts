@@ -1,4 +1,4 @@
-import type { createAppAuthClient } from "@deck-pack/auth/client";
+import type { AuthClient } from "@deck-pack/auth/client";
 
 import type { EnvironmentType } from "@/contexts/EnvironmentContext";
 
@@ -12,7 +12,7 @@ export interface MicrosoftSignInStrategy {
   signIn(): Promise<MicrosoftSignInResult>;
 }
 
-type AppAuthClient = ReturnType<typeof createAppAuthClient>;
+type AppAuthClient = AuthClient;
 
 function authErrorMessage(error: unknown, fallback: string): string {
   if (error && typeof error === "object" && "message" in error) {

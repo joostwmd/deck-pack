@@ -8,22 +8,11 @@ export type BearerSessionStore = {
   clearToken: () => void;
 };
 
-export type AppAuthClientOptions = {
+export type AuthClientOptions = {
   baseURL: string;
   /** When provided, auth requests carry a Better Auth bearer session (Office add-in). */
   bearer?: BearerSessionStore;
 };
-
-/**
- * Browser client for the internal ops dashboard (`/api/auth/ops`).
- */
-export function createOpsAuthClient(config: { baseURL: string }) {
-  return createReactAuthClient({
-    baseURL: config.baseURL,
-    basePath: "/api/auth/ops",
-    plugins: [emailOTPClient(), adminClient()],
-  });
-}
 
 export function captureBearerTokenFromResponse(
   store: BearerSessionStore,
@@ -36,16 +25,17 @@ export function captureBearerTokenFromResponse(
 }
 
 /**
- * Browser client for customer-facing apps — portal, addins, etc. (`/api/auth/app`).
+ * Browser client for all DeckPack frontends (ops, portal, add-in).
  */
-export function createAppAuthClient(config: AppAuthClientOptions) {
+export function createAuthClient(config: AuthClientOptions) {
   const { baseURL, bearer: bearerStore } = config;
 
   return createReactAuthClient({
     baseURL,
-    basePath: "/api/auth/app",
+    basePath: "/api/auth",
     plugins: [
       emailOTPClient(),
+      adminClient(),
       organizationClient({
         ac,
         roles: { organizationOwner, organizationAdmin, organizationMember },
@@ -64,3 +54,5 @@ export function createAppAuthClient(config: AppAuthClientOptions) {
       : undefined,
   });
 }
+
+export type AuthClient = ReturnType<typeof createAuthClient>;

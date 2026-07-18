@@ -1,8 +1,8 @@
-import type { createAppAuthClient } from "@deck-pack/auth/client";
+import type { AuthClient } from "@deck-pack/auth/client";
 import type { createTrpcBrowserBundle } from "@deck-pack/trpc-client";
 import type { AppRouter } from "@deck-pack/api/routers/index";
 
-export type AuthClient = ReturnType<typeof createAppAuthClient>;
+export type { AuthClient };
 export type TrpcClient = ReturnType<typeof createTrpcBrowserBundle<AppRouter>>["trpcClient"];
 
 export interface AuthService {

@@ -53,6 +53,9 @@ jobs:
       BETTER_AUTH_SECRET: "deck-pack-ci-better-auth-placeholder-32-characters-long"
       BETTER_AUTH_URL: https://localhost
       CORS_ORIGINS: https://localhost
+      OPS_ORIGINS: https://localhost
+      OPS_SIGNUP_EMAIL_DOMAIN: code.berlin
+      PEXELS_API_KEY: test-ci-pexels-key-placeholder
       EMAIL_API_KEY: test-ci-email-key-placeholder
       EMAIL_FROM: onboarding@localhost
     steps:

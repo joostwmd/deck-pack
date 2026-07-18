@@ -1,6 +1,6 @@
 import type { AgendaConfigV1, AgendaEventType } from "@deck-pack/agenda";
 import type { BrandProfileConfiguration } from "@deck-pack/presentation-check";
-import type { createAppAuthClient } from "@deck-pack/auth/client";
+import type { AuthClient } from "@deck-pack/auth/client";
 import type {
   executeFormattingCommand,
   readSelectedShapes,
@@ -20,7 +20,7 @@ import type {
 } from "@/types/asset-types";
 import type { InsertionStrategy } from "@/lib/insertion-strategy";
 
-export type AuthClient = ReturnType<typeof createAppAuthClient>;
+export type { AuthClient };
 
 export interface ShortcutOverrideRecord {
   shortcutId: ShortcutId;

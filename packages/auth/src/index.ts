@@ -1,14 +1,13 @@
 import type { createDb } from "@deck-pack/db";
 import * as schema from "@deck-pack/db/schema/auth";
-import { APIError, betterAuth, type BetterAuthOptions } from "better-auth";
+import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin, bearer, emailOTP, type Member } from "better-auth/plugins";
 import { organization } from "better-auth/plugins";
 import { createAuthMiddleware } from "better-auth/api";
 import { organizationOwner, organizationAdmin, organizationMember, ac } from "./utils/rbac";
 import { createMicrosoftIdTokenVerifier } from "./microsoft-id-token";
-
-const ADMIN_EMAIL_DOMAIN = "code.berlin";
+import { assertOpsOtpAllowed, emailMatchesAdminDomain } from "./ops-soft-gate";
 
 export type AuthDb = ReturnType<typeof createDb>;
 
@@ -22,6 +21,8 @@ export interface AuthDeps {
   baseURL: string;
   trustedOrigins: string[];
   sendOtp: SendOtp;
+  adminEmailDomain: string;
+  opsOrigins: string[];
   microsoftOAuth?: {
     clientId: string;
     clientSecret: string;
@@ -32,7 +33,7 @@ function baseAuthOptions(
   deps: AuthDeps,
   overrides: Pick<
     BetterAuthOptions,
-    "basePath" | "advanced" | "plugins" | "hooks" | "databaseHooks"
+    "plugins" | "hooks" | "databaseHooks" | "socialProviders"
   >,
 ): BetterAuthOptions {
   const { db, secret, baseURL, trustedOrigins } = deps;
@@ -45,6 +46,15 @@ function baseAuthOptions(
     trustedOrigins,
     secret,
     baseURL,
+    basePath: "/api/auth",
+    advanced: {
+      defaultCookieAttributes: {
+        sameSite: "none",
+        secure: true,
+        httpOnly: true,
+      },
+      cookiePrefix: "deckpack",
+    },
     emailAndPassword: {
       enabled: false,
     },
@@ -63,7 +73,7 @@ const organizationPlugin = organization({
   },
 });
 
-/** Populates active org on session when user is a member (shared by ops + app). */
+/** Populates active org on session when user is a member. */
 async function sessionCreateAfter(
   session: { id: string; userId: string },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Better Auth internal context
@@ -87,99 +97,14 @@ async function sessionCreateAfter(
 }
 
 /**
- * Internal ops / admin sign-in. Restricted to @code.berlin; users promoted to
- * platform `admin` on first sign-up.
+ * Unified Better Auth for ops, portal, and add-in.
+ * Admin promotion is domain-only; ops OTP is soft-gated by Origin.
  */
-export function createOpsAuth(deps: AuthDeps) {
-  const { sendOtp } = deps;
+export function createAuth(deps: AuthDeps) {
+  const { sendOtp, adminEmailDomain, opsOrigins, microsoftOAuth } = deps;
 
   return betterAuth(
     baseAuthOptions(deps, {
-      basePath: "/api/auth/ops",
-      advanced: {
-        defaultCookieAttributes: {
-          sameSite: "none",
-          secure: true,
-          httpOnly: true,
-        },
-        cookiePrefix: "ops",
-      },
-      plugins: [
-        emailOTP({
-          async sendVerificationOTP({ email, otp, type }) {
-            await sendOtp({ email, otp, type });
-          },
-        }),
-        admin({
-          impersonationSessionDuration: 1000 * 60 * 60 * 24 * 30,
-        }),
-        organizationPlugin,
-      ],
-      hooks: {
-        before: createAuthMiddleware(async (ctx) => {
-          if (ctx.path === "/email-otp/send-verification-otp") {
-            const email = ctx.body?.email as string;
-            if (!email?.endsWith(`@${ADMIN_EMAIL_DOMAIN}`)) {
-              throw new APIError("BAD_REQUEST", {
-                message: `Email must use the @${ADMIN_EMAIL_DOMAIN} domain.`,
-              });
-            }
-          }
-          if (ctx.path === "/sign-in/email-otp") {
-            const email = ctx.body?.email as string;
-            if (!email?.endsWith(`@${ADMIN_EMAIL_DOMAIN}`)) {
-              throw new APIError("BAD_REQUEST", {
-                message: `Email must use the @${ADMIN_EMAIL_DOMAIN} domain.`,
-              });
-            }
-          }
-        }),
-      },
-      databaseHooks: {
-        user: {
-          create: {
-            after: async (user, ctx) => {
-              if (user.email.endsWith(`@${ADMIN_EMAIL_DOMAIN}`)) {
-                console.log("promoting to admin", user.id);
-                await ctx?.context.adapter.update({
-                  model: "user",
-                  where: [{ field: "id", value: user.id }],
-                  update: {
-                    role: "admin",
-                  },
-                });
-              }
-            },
-          },
-        },
-        session: {
-          create: {
-            //after: sessionCreateAfter,
-          },
-        },
-      },
-    }),
-  );
-}
-
-/**
- * Customer-facing app auth (portal, addins, etc.). No domain restriction, no
- * admin plugin.
- */
-export function createAppAuth(deps: AuthDeps) {
-  const { sendOtp, microsoftOAuth } = deps;
-
-  return betterAuth(
-    baseAuthOptions(deps, {
-      basePath: "/api/auth/app",
-      advanced: {
-        defaultCookieAttributes: {
-          sameSite: "none",
-          secure: true,
-          httpOnly: true,
-        },
-        cookiePrefix: "app",
-      },
       ...(microsoftOAuth
         ? {
             socialProviders: {
@@ -204,10 +129,43 @@ export function createAppAuth(deps: AuthDeps) {
             await sendOtp({ email, otp, type });
           },
         }),
+        admin({
+          impersonationSessionDuration: 1000 * 60 * 60 * 24 * 30,
+        }),
         organizationPlugin,
         bearer({ requireSignature: true }),
       ],
+      hooks: {
+        before: createAuthMiddleware(async (ctx) => {
+          const email =
+            (ctx.body?.email as string | undefined) ??
+            (ctx.body?.identifier as string | undefined);
+
+          assertOpsOtpAllowed({
+            path: ctx.path,
+            email,
+            headers: ctx.request?.headers ?? new Headers(),
+            opsOrigins,
+            adminEmailDomain,
+          });
+        }),
+      },
       databaseHooks: {
+        user: {
+          create: {
+            after: async (user, ctx) => {
+              if (emailMatchesAdminDomain(user.email, adminEmailDomain)) {
+                await ctx?.context.adapter.update({
+                  model: "user",
+                  where: [{ field: "id", value: user.id }],
+                  update: {
+                    role: "admin",
+                  },
+                });
+              }
+            },
+          },
+        },
         session: {
           create: {
             after: sessionCreateAfter,

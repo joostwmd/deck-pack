@@ -1,20 +1,16 @@
-import { appAuth, opsAuth } from "@deck-pack/auth/server";
+import { auth } from "@deck-pack/auth/server";
 import { env } from "@deck-pack/env/server";
+import { getSessionCookieName } from "@deck-pack/auth/session-cookie";
 import { createMiddleware } from "hono/factory";
 
 import type { AppEnv } from "../types";
 
-function getAppSessionCookieName(): string {
-  const secure = env.BETTER_AUTH_URL.startsWith("https://");
-  return secure ? "__Secure-app.session_token" : "app.session_token";
-}
-
 /**
- * Better Auth's bearer plugin only runs on `/api/auth/app/*` requests. tRPC and
+ * Better Auth's bearer plugin only runs on `/api/auth/*` requests. tRPC and
  * other API routes call `getSession` directly, so mirror the bearer cookie
  * injection here and let Better Auth verify the signed session token.
  */
-function headersWithAppBearerCookie(headers: Headers): Headers {
+function headersWithBearerCookie(headers: Headers): Headers {
   const authHeader = headers.get("authorization") ?? headers.get("Authorization");
   if (!authHeader?.toLowerCase().startsWith("bearer ")) {
     return headers;
@@ -27,7 +23,7 @@ function headersWithAppBearerCookie(headers: Headers): Headers {
 
   const augmented = new Headers(headers);
   const existingCookie = augmented.get("cookie");
-  const sessionCookie = `${getAppSessionCookieName()}=${token}`;
+  const sessionCookie = `${getSessionCookieName(env.BETTER_AUTH_URL)}=${token}`;
   augmented.set(
     "cookie",
     existingCookie ? `${existingCookie}; ${sessionCookie}` : sessionCookie,
@@ -36,17 +32,13 @@ function headersWithAppBearerCookie(headers: Headers): Headers {
 }
 
 /**
- * Resolves the session for either ops or app auth (cookie names differ by instance).
- * Populates Hono context for tRPC. Does not reject unauthenticated users.
+ * Resolves the session for unified auth. Populates Hono context for tRPC.
+ * Does not reject unauthenticated users.
  */
 export const sessionMiddleware = createMiddleware<AppEnv>(async (c, next) => {
-  const session =
-    (await opsAuth.api.getSession({
-      headers: c.req.raw.headers,
-    })) ??
-    (await appAuth.api.getSession({
-      headers: headersWithAppBearerCookie(c.req.raw.headers),
-    }));
+  const session = await auth.api.getSession({
+    headers: headersWithBearerCookie(c.req.raw.headers),
+  });
 
   if (!session) {
     c.set("user", null);

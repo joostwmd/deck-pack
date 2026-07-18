@@ -20,9 +20,7 @@ function createMockAuthClient() {
     signIn: {
       social: vi.fn(),
     },
-  } as unknown as ReturnType<
-    typeof import("@deck-pack/auth/client").createAppAuthClient
-  >;
+  } as unknown as import("@deck-pack/auth/client").AuthClient;
 }
 
 describe("createMicrosoftSignInStrategy", () => {

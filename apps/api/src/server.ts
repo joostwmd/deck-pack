@@ -4,7 +4,7 @@ import { TRPCError } from "@trpc/server";
 import { getLogger } from "@logtape/logtape";
 import { Hono } from "hono";
 
-import { appAuth, opsAuth } from "@deck-pack/auth/server";
+import { auth } from "@deck-pack/auth/server";
 import { env } from "@deck-pack/env/server";
 
 import { createContext } from "./api/context";
@@ -42,8 +42,7 @@ export function createApp(options?: CreateAppOptions) {
 
   app.use("*", securityHeadersMiddleware);
 
-  app.on(["POST", "GET"], "/api/auth/ops/*", (c) => opsAuth.handler(c.req.raw));
-  app.on(["POST", "GET"], "/api/auth/app/*", (c) => appAuth.handler(c.req.raw));
+  app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));
 
   app.use("*", requestContextMiddleware);
   app.use("*", requestLoggingMiddleware);

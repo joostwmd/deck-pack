@@ -1,6 +1,4 @@
-import type { createAppAuthClient } from "@deck-pack/auth/client";
-
-export type AuthClient = ReturnType<typeof createAppAuthClient>;
+import type { AuthClient } from "@deck-pack/auth/client";
 
 export interface AuthService {
   getSession: AuthClient["getSession"];
