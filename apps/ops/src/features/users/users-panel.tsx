@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -15,7 +15,9 @@ function isAdminUser(user: PlatformUser): boolean {
 }
 
 export function UsersPanel() {
+  const queryClient = useQueryClient();
   const { users, auth } = useServices();
+  const { data: session } = auth.useSession();
   const [impersonatingUserId, setImpersonatingUserId] = useState<string | null>(null);
 
   const listQuery = useQuery({
@@ -44,6 +46,17 @@ export function UsersPanel() {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (userId: string) => users.deleteUser(userId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["users", "list"] });
+      toast.success("User deleted");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Could not delete user");
+    },
+  });
+
   const handleImpersonate = useCallback(
     (user: PlatformUser) => {
       impersonateMutation.mutate(user.id);
@@ -51,19 +64,47 @@ export function UsersPanel() {
     [impersonateMutation],
   );
 
+  const handleDelete = useCallback(
+    async (user: PlatformUser) => {
+      await deleteMutation.mutateAsync(user.id);
+    },
+    [deleteMutation],
+  );
+
   const allUsers = listQuery.data ?? [];
   const adminUsers = useMemo(() => allUsers.filter(isAdminUser), [allUsers]);
   const customerUsers = useMemo(() => allUsers.filter((user) => !isAdminUser(user)), [allUsers]);
 
-  const adminColumns = useMemo(() => createUserColumns(), []);
+  const adminColumns = useMemo(
+    () =>
+      createUserColumns({
+        showDelete: true,
+        onDelete: handleDelete,
+        deletingUserId: deleteMutation.isPending ? deleteMutation.variables ?? null : null,
+        currentUserId: session?.user.id ?? null,
+      }),
+    [deleteMutation.isPending, deleteMutation.variables, handleDelete, session?.user.id],
+  );
+
   const customerColumns = useMemo(
     () =>
       createUserColumns({
         showImpersonate: true,
         impersonatingUserId,
         onImpersonate: handleImpersonate,
+        showDelete: true,
+        onDelete: handleDelete,
+        deletingUserId: deleteMutation.isPending ? deleteMutation.variables ?? null : null,
+        currentUserId: session?.user.id ?? null,
       }),
-    [handleImpersonate, impersonatingUserId],
+    [
+      deleteMutation.isPending,
+      deleteMutation.variables,
+      handleDelete,
+      handleImpersonate,
+      impersonatingUserId,
+      session?.user.id,
+    ],
   );
 
   return (

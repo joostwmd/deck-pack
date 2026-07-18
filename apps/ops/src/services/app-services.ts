@@ -43,6 +43,7 @@ function createOrganizationStore(): OrganizationStore {
 function createUsersStore(): UsersStore {
   return {
     listUsers: () => trpcClient.users.listUsers.query(),
+    deleteUser: (userId) => trpcClient.users.deleteUser.mutate({ userId }),
   };
 }
 

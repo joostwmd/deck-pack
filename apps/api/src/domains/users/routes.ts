@@ -23,5 +23,17 @@ export function createUsersRoutes(service: UsersService) {
     listUsers: platformAdminProcedure.output(z.array(userListItemSchema)).query(async ({ ctx }) => {
       return unwrapServiceResult(await service.listUsers(ctx.tx));
     }),
+
+    deleteUser: platformAdminProcedure
+      .input(z.object({ userId: z.string().trim().min(1) }))
+      .output(z.object({ userId: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        return unwrapServiceResult(
+          await service.deleteUser(ctx.tx, {
+            userId: input.userId,
+            actorUserId: ctx.user!.id,
+          }),
+        );
+      }),
   };
 }

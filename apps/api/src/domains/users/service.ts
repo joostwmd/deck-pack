@@ -1,11 +1,13 @@
 import type { Transaction } from "@deck-pack/db/transaction";
 
-import { serviceOk, type ServiceResult } from "../../api/resilience/service-result";
+import { serviceFail, serviceOk, type ServiceResult } from "../../api/resilience/service-result";
 
+import type { deleteUser } from "@deck-pack/db/queries/deleteUser";
 import type { listUsersWithMembership } from "@deck-pack/db/queries/listUsersWithMembership";
 
 export type UsersServiceDeps = {
   listUsersWithMembership: typeof listUsersWithMembership;
+  deleteUser: typeof deleteUser;
 };
 
 export function createUsersService(deps: UsersServiceDeps) {
@@ -44,6 +46,25 @@ export function createUsersService(deps: UsersServiceDeps) {
           memberRole: row.memberRole,
         })),
       );
+    },
+
+    deleteUser: async (
+      tx: Transaction,
+      input: { userId: string; actorUserId: string },
+    ): Promise<ServiceResult<{ userId: string }>> => {
+      if (input.userId === input.actorUserId) {
+        return serviceFail("invalid_state", {
+          message: "You cannot delete your own account",
+        });
+      }
+
+      const result = await deps.deleteUser({ tx, userId: input.userId });
+
+      if (!result.ok) {
+        return serviceFail("not_found", { message: "User not found" });
+      }
+
+      return serviceOk({ userId: result.userId });
     },
   };
 }

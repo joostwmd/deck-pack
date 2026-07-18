@@ -87,6 +87,7 @@ export interface OrganizationStore {
 
 export interface UsersStore {
   listUsers: () => Promise<PlatformUser[]>;
+  deleteUser: (userId: string) => Promise<{ userId: string }>;
 }
 
 export interface OpsAppServices {

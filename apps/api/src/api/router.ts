@@ -9,6 +9,7 @@ import { createOrganizationWithOwner } from "@deck-pack/db/queries/createOrganiz
 import { deleteAllShortcutOverrides } from "@deck-pack/db/queries/deleteAllShortcutOverrides";
 import { deleteOrganization } from "@deck-pack/db/queries/deleteOrganization";
 import { deleteShortcutOverride } from "@deck-pack/db/queries/deleteShortcutOverride";
+import { deleteUser } from "@deck-pack/db/queries/deleteUser";
 import { findUserByEmail } from "@deck-pack/db/queries/findUserByEmail";
 import { getAgendaInstance } from "@deck-pack/db/queries/getAgendaInstance";
 import { getBrandProfileWithVersion } from "@deck-pack/db/queries/getBrandProfileWithVersion";
@@ -114,6 +115,7 @@ export function createAppRouter(deps: AddinRouterDeps) {
 
   const usersService = createUsersService({
     listUsersWithMembership,
+    deleteUser,
   });
 
   return router({
