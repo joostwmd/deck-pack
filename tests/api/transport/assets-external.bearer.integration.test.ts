@@ -67,22 +67,22 @@ function createExternalAssetsApp() {
     searchBrands: vi.fn().mockResolvedValue({
       results: [
         {
-          id: "brand-1",
-          brandId: "brand-1",
+          brandId: "id_acme",
           name: "Acme",
           domain: "acme.com",
-          logo: "https://example.com/acme.png",
+          icon: "https://example.com/acme.png",
         },
       ],
     }),
     getBrandDetails: vi.fn().mockResolvedValue({
-      brandId: "brand-1",
+      brandId: "id_acme",
       name: "Acme",
+      domain: "acme.com",
       logos: [
         {
           type: "logo",
           theme: "dark",
-          formats: [{ src: "https://example.com/acme-dark.png" }],
+          formats: [{ format: "png", src: "https://example.com/acme-dark.png" }],
         },
       ],
     }),
@@ -90,6 +90,7 @@ function createExternalAssetsApp() {
 
   const router = createAppRouter({
     brandfetchApiKey: "test",
+    brandfetchClientId: "test-client",
     icons8ApiKey: "test",
     pexelsApiKey: "test",
     pexels: pexels as never,
@@ -186,22 +187,23 @@ describe("assets external integrations bearer transport", () => {
     const detailsResponse = await trpcQuery<{ id: string; variants: Array<{ id: string }> }>(
       app,
       "assets.logos.getDetails",
-      { externalId: "brand-1" },
+      { externalId: "acme.com" },
       fixture.bearerToken,
     );
 
     expect(searchResponse.status).toBe(200);
     expect(detailsResponse.status).toBe(200);
     expect(brandfetch.searchBrands).toHaveBeenCalledWith({ query: "acme" });
-    expect(brandfetch.getBrandDetails).toHaveBeenCalledWith({ brandId: "brand-1" });
+    expect(brandfetch.getBrandDetails).toHaveBeenCalledWith({ identifier: "acme.com" });
     expect(searchResponse.body.result?.data?.json?.results[0]?.name).toBe("Acme");
+    expect(searchResponse.body.result?.data?.json?.results[0]?.id).toBe("acme.com");
     expect(detailsResponse.body.result?.data?.json?.variants).toHaveLength(1);
   });
 
   it("rejects unauthenticated logo details queries", async () => {
     const { app } = createExternalAssetsApp();
     const { status, body } = await trpcQuery(app, "assets.logos.getDetails", {
-      externalId: "brand-1",
+      externalId: "acme.com",
     });
 
     expect(status).not.toBe(200);

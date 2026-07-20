@@ -91,6 +91,7 @@ import { router } from "./setup";
 
 export type AddinRouterDeps = {
   brandfetchApiKey: string;
+  brandfetchClientId: string;
   icons8ApiKey: string;
   pexelsApiKey: string;
   pexels?: PexelsClient;
@@ -121,7 +122,12 @@ export function createAppRouter(deps: AddinRouterDeps) {
     icons8: deps.icons8 ?? new Icons8Client(deps.icons8ApiKey),
   });
   const logoService = createLogoService({
-    brandfetch: deps.brandfetch ?? new BrandfetchClient(deps.brandfetchApiKey),
+    brandfetch:
+      deps.brandfetch ??
+      new BrandfetchClient({
+        apiKey: deps.brandfetchApiKey,
+        clientId: deps.brandfetchClientId,
+      }),
   });
   const flagService = createFlagService({ storage });
   const addinService = createAddinService({ insertAssetInsertion });
@@ -223,6 +229,7 @@ export function createAppRouter(deps: AddinRouterDeps) {
 
 export const appRouter = createAppRouter({
   brandfetchApiKey: "dummy-key-for-now",
+  brandfetchClientId: "dummy-client-id-for-now",
   icons8ApiKey: "dummy-key-for-now",
   pexelsApiKey: "dummy-key-for-now",
 });

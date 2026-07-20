@@ -15,5 +15,7 @@ export default function seedIntegrationTestEnv(): void {
   process.env.EMAIL_API_KEY ??= "test-integration-key";
   process.env.EMAIL_FROM ??= "integration@test.local";
   process.env.PEXELS_API_KEY ??= "test-integration-pexels-key";
+  process.env.BRANDFETCH_API_KEY ??= "test-integration-brandfetch-key";
+  process.env.BRANDFETCH_CLIENT_ID ??= "test-integration-brandfetch-client";
   process.env.NODE_ENV ??= "test";
 }
