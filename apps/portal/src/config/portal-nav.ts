@@ -2,7 +2,7 @@ import type { Permissions } from "@deck-pack/auth/rbac";
 
 export type IndividualNavRoute = "/account";
 
-export type OrgNavRoute = "/org/dashboard" | "/org/members";
+export type OrgNavRoute = "/org/dashboard" | "/org/members" | "/org/seats";
 
 export type PortalNavRoute = IndividualNavRoute | OrgNavRoute;
 
@@ -31,6 +31,11 @@ export const ORG_NAV_ITEMS: OrgNavItem[] = [
     title: "Members",
     to: "/org/members",
     permissions: { member: ["create"] },
+  },
+  {
+    title: "Seats",
+    to: "/org/seats",
+    permissions: { seat: ["view"] },
   },
 ];
 
@@ -64,6 +69,10 @@ export function portalBreadcrumbs(
 
   if (pathname === "/org/members") {
     return [{ label: "Members" }];
+  }
+
+  if (pathname === "/org/seats") {
+    return [{ label: "Seats" }];
   }
 
   const dynamicLabel = dynamicLabels[pathname];

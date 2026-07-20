@@ -8,7 +8,7 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 
-import { organization } from "./auth";
+import { organization, user } from "./auth";
 
 /** Asset classes that can have per-plan monthly insert limits. */
 export const PLAN_LIMIT_ASSET_TYPES = [
@@ -91,5 +91,43 @@ export const organizationSubscriptions = pgTable(
       .where(sql`${table.status} = 'active'`),
     index("organization_subscriptions_organizationId_idx").on(table.organizationId),
     index("organization_subscriptions_planId_idx").on(table.planId),
+  ],
+);
+
+export const ORGANIZATION_SEAT_STATUSES = ["pending", "active", "revoked"] as const;
+export type OrganizationSeatStatus = (typeof ORGANIZATION_SEAT_STATUSES)[number];
+
+/** Named add-in license assignment for an organization. */
+export const organizationSeats = pgTable(
+  "organization_seats",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    email: text("email").notNull(),
+    userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
+    status: text("status").notNull().default("pending"),
+    assignedBy: text("assigned_by")
+      .notNull()
+      .references(() => user.id, { onDelete: "restrict" }),
+    assignedAt: timestamp("assigned_at", { withTimezone: true }).defaultNow().notNull(),
+    activatedAt: timestamp("activated_at", { withTimezone: true }),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [
+    uniqueIndex("organization_seats_org_email_active_uidx")
+      .on(table.organizationId, table.email)
+      .where(sql`${table.status} IN ('pending', 'active')`),
+    index("organization_seats_organizationId_status_idx").on(table.organizationId, table.status),
+    index("organization_seats_email_idx").on(table.email),
+    index("organization_seats_userId_idx").on(table.userId),
   ],
 );

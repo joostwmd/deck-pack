@@ -12,7 +12,7 @@ import {
   SidebarSeparator,
 } from "@deck-pack/ui/components/system/sidebar";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Buildings, UserCircle, Users } from "@phosphor-icons/react";
+import { Buildings, Chair, UserCircle, Users } from "@phosphor-icons/react";
 
 import {
   ORG_NAV_ITEMS,
@@ -27,6 +27,7 @@ import type { Icon } from "@phosphor-icons/react";
 const NAV_ICONS: Record<PortalNavRoute, Icon> = {
   "/org/dashboard": Buildings,
   "/org/members": Users,
+  "/org/seats": Chair,
   "/account": UserCircle,
 };
 

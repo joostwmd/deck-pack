@@ -25,6 +25,7 @@ export const ORGANIZATION_ROLES = {
   owner: "organizationOwner",
   admin: "organizationAdmin",
   member: "organizationMember",
+  addinUser: "organizationAddinUser",
 } as const;
 
 export type OrganizationRoleName =
@@ -60,10 +61,15 @@ export const organizationMember = ac.newRole({
   asset: ["view", "insert"],
 });
 
+export const organizationAddinUser = ac.newRole({
+  asset: ["view", "insert"],
+});
+
 export const organizationRoles = {
   organizationOwner,
   organizationAdmin,
   organizationMember,
+  organizationAddinUser,
 } as const;
 
 const organizationRoleNames = Object.values(ORGANIZATION_ROLES);
@@ -84,5 +90,7 @@ export function checkOrganizationRolePermission(
       return organizationAdmin.authorize(permissions).success;
     case ORGANIZATION_ROLES.member:
       return organizationMember.authorize(permissions).success;
+    case ORGANIZATION_ROLES.addinUser:
+      return organizationAddinUser.authorize(permissions).success;
   }
 }

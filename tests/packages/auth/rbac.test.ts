@@ -44,4 +44,25 @@ describe("organization RBAC matrix", () => {
       checkOrganizationRolePermission(ORGANIZATION_ROLES.member, { seat: ["assign"] }),
     ).toBe(false);
   });
+
+  it("restricts add-in users to asset view and insert only", () => {
+    expect(
+      checkOrganizationRolePermission(ORGANIZATION_ROLES.addinUser, { asset: ["insert"] }),
+    ).toBe(true);
+    expect(
+      checkOrganizationRolePermission(ORGANIZATION_ROLES.addinUser, { asset: ["view"] }),
+    ).toBe(true);
+    expect(
+      checkOrganizationRolePermission(ORGANIZATION_ROLES.addinUser, { usage: ["view"] }),
+    ).toBe(false);
+    expect(
+      checkOrganizationRolePermission(ORGANIZATION_ROLES.addinUser, { member: ["create"] }),
+    ).toBe(false);
+    expect(
+      checkOrganizationRolePermission(ORGANIZATION_ROLES.addinUser, { seat: ["assign"] }),
+    ).toBe(false);
+    expect(
+      checkOrganizationRolePermission(ORGANIZATION_ROLES.addinUser, { billing: ["view"] }),
+    ).toBe(false);
+  });
 });

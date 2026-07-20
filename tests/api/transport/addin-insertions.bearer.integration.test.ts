@@ -1,7 +1,11 @@
 import { createDb } from "@deck-pack/db";
 import { ensureMigrationsApplied } from "@deck-pack/db/test-utils/ensure-migrations";
+import { assignOrganizationSeat } from "@deck-pack/db/queries/assignOrganizationSeat";
+import { createOrganizationSubscription } from "@deck-pack/db/queries/createOrganizationSubscription";
+import { tx } from "@deck-pack/db/transaction";
 import { assetInsertions } from "@deck-pack/db/schema/asset-insertions";
-import { session, user } from "@deck-pack/db/schema/auth";
+import { member, organization, session, user } from "@deck-pack/db/schema/auth";
+import { organizationSeats, plans } from "@deck-pack/db/schema/billing";
 import { eq, sql } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
@@ -12,10 +16,98 @@ import { createApp } from "@deck-pack/api/server";
 describe("addin insertions bearer transport", () => {
   const db = createDb();
   const createdUserIds: string[] = [];
-  const truncateSql = `TRUNCATE TABLE asset_insertions, invitation, verification, session, account, member, organization, "user" RESTART IDENTITY CASCADE`;
+  const truncateSql = `TRUNCATE TABLE organization_seats, organization_subscriptions, plan_limits, plans, asset_insertions, invitation, verification, session, account, member, organization, "user" RESTART IDENTITY CASCADE`;
+
+  async function ensureOrganizationSeatsTable() {
+    try {
+      await db.execute(sql.raw(`SELECT 1 FROM organization_seats LIMIT 1`));
+    } catch {
+      const { readFile } = await import("node:fs/promises");
+      const { fileURLToPath } = await import("node:url");
+      const path = await import("node:path");
+      const migrationsDir = path.resolve(
+        path.dirname(fileURLToPath(import.meta.url)),
+        "../../../packages/db/src/migrations",
+      );
+      const migrationSql = await readFile(
+        path.join(migrationsDir, "0007_organization_seats.sql"),
+        "utf8",
+      );
+      for (const statement of migrationSql
+        .split("--> statement-breakpoint")
+        .map((part) => part.trim())
+        .filter(Boolean)) {
+        await db.execute(sql.raw(statement));
+      }
+    }
+  }
+
+  async function createLicensedAddinFixture(emailPrefix: string) {
+    const fixture = await createSignedSessionFixture({ emailPrefix });
+    const orgId = crypto.randomUUID();
+    const adminId = crypto.randomUUID();
+    const planId = crypto.randomUUID();
+    const now = new Date();
+
+    await db.insert(user).values({
+      id: adminId,
+      name: "Admin",
+      email: `admin-${adminId}@test.local`,
+      emailVerified: true,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    await db.insert(organization).values({
+      id: orgId,
+      name: "Addin Org",
+      slug: `addin-org-${orgId.slice(0, 8)}`,
+      createdAt: now,
+    });
+
+    await db.insert(member).values({
+      id: crypto.randomUUID(),
+      organizationId: orgId,
+      userId: fixture.userId,
+      role: "organizationAddinUser",
+      createdAt: now,
+    });
+
+    await db.insert(plans).values({
+      id: planId,
+      name: "Pro",
+      slug: `pro-${planId.slice(0, 8)}`,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    await createOrganizationSubscription({
+      tx,
+      input: { organizationId: orgId, planId, quantity: 5 },
+    });
+
+    await assignOrganizationSeat({
+      tx,
+      input: {
+        organizationId: orgId,
+        email: fixture.email,
+        assignedBy: adminId,
+        userId: fixture.userId,
+        status: "active",
+      },
+    });
+
+    await db
+      .update(session)
+      .set({ activeOrganizationId: orgId })
+      .where(eq(session.userId, fixture.userId));
+
+    return fixture;
+  }
 
   beforeAll(async () => {
     await ensureMigrationsApplied();
+    await ensureOrganizationSeatsTable();
   });
 
   beforeEach(async () => {
@@ -62,8 +154,29 @@ describe("addin insertions bearer transport", () => {
     expect(body.error?.json?.data?.code).toBe("BAD_REQUEST");
   });
 
+  it("rejects insertion tracking without an active seat", async () => {
+    const fixture = await createSignedSessionFixture({ emailPrefix: "addin-no-seat" });
+    createdUserIds.push(fixture.userId);
+
+    const app = createApp();
+    const { status, body } = await trpcMutation(
+      app,
+      "addin.insertions.track",
+      {
+        assetType: "logo",
+        externalId: "brand-123",
+        client: "office",
+        metadata: {},
+      },
+      fixture.bearerToken,
+    );
+
+    expect(status).not.toBe(200);
+    expect(body.error?.json?.data?.code).toBe("BAD_REQUEST");
+  });
+
   it("persists tracked insertions for authenticated users", async () => {
-    const fixture = await createSignedSessionFixture({ emailPrefix: "addin-track" });
+    const fixture = await createLicensedAddinFixture("addin-track");
     createdUserIds.push(fixture.userId);
 
     const app = createApp();

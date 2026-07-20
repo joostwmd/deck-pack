@@ -1,11 +1,13 @@
 import type { createDb } from "@deck-pack/db";
+import { activateSeatForUser } from "@deck-pack/db/queries/activateSeatForUser";
+import { tx } from "@deck-pack/db/transaction";
 import * as schema from "@deck-pack/db/schema/auth";
 import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin, bearer, emailOTP, type Member } from "better-auth/plugins";
 import { organization } from "better-auth/plugins";
 import { createAuthMiddleware } from "better-auth/api";
-import { organizationOwner, organizationAdmin, organizationMember, ac } from "./utils/rbac";
+import { organizationOwner, organizationAdmin, organizationMember, organizationAddinUser, ac } from "./utils/rbac";
 import { createMicrosoftIdTokenVerifier } from "./microsoft-id-token";
 import { assertOpsOtpAllowed, emailMatchesAdminDomain } from "./ops-soft-gate";
 
@@ -65,7 +67,7 @@ function baseAuthOptions(
 
 const organizationPlugin = organization({
   ac: ac,
-  roles: { organizationOwner, organizationAdmin, organizationMember },
+  roles: { organizationOwner, organizationAdmin, organizationMember, organizationAddinUser },
   allowUserToCreateOrganization: false,
   organizationLimit: 1,
   sendInvitationEmail: async (data) => {
@@ -74,19 +76,36 @@ const organizationPlugin = organization({
   },
 });
 
-/** Populates active org on session when user is a member. */
+/** Populates active org on session when user is a member; activates pending seats on login. */
 async function sessionCreateAfter(
   session: { id: string; userId: string },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Better Auth internal context
   ctx: any,
 ) {
-  const member = (await ctx!.context.adapter.findOne({
+  const adapter = ctx!.context.adapter;
+
+  const userRecord = (await adapter.findOne({
+    model: "user",
+    where: [{ field: "id", value: session.userId }],
+  })) as { email?: string } | null;
+
+  if (userRecord?.email) {
+    await activateSeatForUser({
+      tx,
+      userId: session.userId,
+      email: userRecord.email,
+    }).catch(() => {
+      // Seat activation is best-effort; membership may still apply below.
+    });
+  }
+
+  const member = (await adapter.findOne({
     model: "member",
     where: [{ field: "userId", value: session.userId }],
   })) as Member;
 
   if (member) {
-    await ctx!.context.adapter.update({
+    await adapter.update({
       model: "session",
       where: [{ field: "id", value: session.id }],
       update: {
@@ -174,7 +193,7 @@ export function createAuth(deps: AuthDeps) {
         },
         session: {
           create: {
-            after: sessionCreateAfter,
+            after: (session, ctx) => sessionCreateAfter(session, ctx),
           },
         },
       },

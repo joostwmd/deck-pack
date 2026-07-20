@@ -8,12 +8,14 @@ const accountRoute = getRouteApi("/_protected/_individual/account");
 
 export function AccountPanel() {
   const { session } = accountRoute.useRouteContext();
+  const { addinOnly } = accountRoute.useSearch();
   const privateData = useQuery(trpc.privateData.queryOptions());
 
   return (
     <AccountView
       email={session.data?.user.email}
       apiMessage={privateData.data?.message}
+      addinOnly={addinOnly === true}
     />
   );
 }

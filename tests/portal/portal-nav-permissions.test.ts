@@ -3,7 +3,13 @@ import { describe, expect, it } from "vitest";
 import { ORG_NAV_ITEMS } from "../../apps/portal/src/config/portal-nav";
 import { checkOrganizationRolePermission, ORGANIZATION_ROLES } from "@deck-pack/auth/rbac";
 
-function canSeeNavItem(role: (typeof ORGANIZATION_ROLES)[keyof typeof ORGANIZATION_ROLES], permissions?: { member?: ("create" | "update" | "delete")[] }) {
+function canSeeNavItem(
+  role: (typeof ORGANIZATION_ROLES)[keyof typeof ORGANIZATION_ROLES],
+  permissions?: {
+    member?: ("create" | "update" | "delete")[];
+    seat?: ("view" | "assign")[];
+  },
+) {
   if (!permissions) {
     return true;
   }
@@ -22,5 +28,15 @@ describe("portal org nav permissions", () => {
   it("hides Members for organization members", () => {
     const membersItem = ORG_NAV_ITEMS.find((item) => item.to === "/org/members");
     expect(canSeeNavItem(ORGANIZATION_ROLES.member, membersItem?.permissions)).toBe(false);
+  });
+
+  it("shows Seats for owner and admin", () => {
+    const seatsItem = ORG_NAV_ITEMS.find((item) => item.to === "/org/seats");
+    expect(seatsItem?.permissions).toEqual({ seat: ["view"] });
+
+    expect(canSeeNavItem(ORGANIZATION_ROLES.owner, seatsItem?.permissions)).toBe(true);
+    expect(canSeeNavItem(ORGANIZATION_ROLES.admin, seatsItem?.permissions)).toBe(true);
+    expect(canSeeNavItem(ORGANIZATION_ROLES.member, seatsItem?.permissions)).toBe(false);
+    expect(canSeeNavItem(ORGANIZATION_ROLES.addinUser, seatsItem?.permissions)).toBe(false);
   });
 });
