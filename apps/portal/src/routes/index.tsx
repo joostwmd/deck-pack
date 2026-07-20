@@ -1,7 +1,8 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { OtpSignInView } from "@deck-pack/ui/components/composite/otp-sign-in-view";
+import { useOtpSignIn } from "@deck-pack/ui/hooks/use-otp-sign-in";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 
-import { OtpSignInView } from "@/features/auth/otp-sign-in-view";
-import { useOtpSignInController } from "@/features/auth/use-otp-sign-in-controller";
+import { useServices } from "@/services/services-context";
 
 export const Route = createFileRoute("/")({
   beforeLoad: async ({ context }) => {
@@ -17,12 +18,21 @@ export const Route = createFileRoute("/")({
 });
 
 function HomeComponent() {
-  const viewProps = useOtpSignInController({
-    successPath: "/account",
-    emailHelperText: "We’ll email a one-time code to this address.",
+  const navigate = useNavigate();
+  const { auth } = useServices();
+
+  const otpProps = useOtpSignIn({
+    auth: {
+      sendVerificationOtp: auth.sendVerificationOtp,
+      signInWithEmailOtp: auth.signInWithEmailOtp,
+    },
+    onSuccess: () => {
+      void navigate({ to: "/account" });
+    },
+    emailHelperText: "We'll email a one-time code to this address.",
     titleEmailStep: "Sign in to DeckPack",
-    descriptionEmailStep: "We’ll email you a one-time code. It expires in a few minutes.",
+    descriptionEmailStep: "We'll email you a one-time code. It expires in a few minutes.",
   });
 
-  return <OtpSignInView {...viewProps} />;
+  return <OtpSignInView {...otpProps} />;
 }

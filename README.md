@@ -162,7 +162,7 @@ The assets add-in uses **two Microsoft sign-in strategies**:
 1. Copy **Application (client) ID** into API `MICROSOFT_CLIENT_ID` and add-in `VITE_MICROSOFT_CLIENT_ID` (same value).
 2. Create a **client secret** for the API only (`MICROSOFT_CLIENT_SECRET`).
 3. Under **Authentication**, add redirect URIs:
-   - **Web:** `http://localhost:3000/api/auth/app/callback/microsoft` (dev) and `https://<api-host>/api/auth/app/callback/microsoft` (prod). Must match `BETTER_AUTH_URL`.
+   - **Web:** `http://localhost:3000/api/auth/callback/microsoft` (dev) and `https://<api-host>/api/auth/callback/microsoft` (prod). Must match `BETTER_AUTH_URL`.
    - **SPA (NAA broker):** `brk-multihub://localhost:3003` and `brk-multihub://<addin-host>` (origin only, no path).
    - **SPA (PowerPoint on the web):** `https://localhost:3003/index.html` and `https://<addin-host>/index.html`.
 4. Under **API permissions**, add Microsoft Graph delegated **`User.Read`**.

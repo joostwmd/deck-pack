@@ -21,6 +21,10 @@ export const env = createEnv({
     BETTER_AUTH_URL: z.url(),
     /** Comma-separated list of browser origins (e.g. Static Web Apps URLs). */
     CORS_ORIGINS: commaSeparatedUrls,
+    /** Ops dashboard origins; OTP soft-gate applies when sign-in Origin matches. */
+    OPS_ORIGINS: commaSeparatedUrls,
+    /** Emails ending with @<domain> are promoted to platform admin on sign-up. */
+    OPS_SIGNUP_EMAIL_DOMAIN: z.string().min(1).default("code.berlin"),
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
     /** Resend API key; required whenever the API sends mail (incl. local dev with OTP). */
     EMAIL_API_KEY: z.string().min(1),

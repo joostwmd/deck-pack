@@ -1,4 +1,7 @@
-import { createAppAuthClient } from "@deck-pack/auth/client";
+import {
+  createAuthClient as createDeckpackAuthClient,
+  type AuthClient,
+} from "@deck-pack/auth/client";
 import { env } from "@deck-pack/env/web";
 
 import {
@@ -8,12 +11,12 @@ import {
 } from "@/auth/bearer-session-store";
 import { useOfficeBearerMode } from "@/auth/office-auth-mode";
 
-let authClientInstance: ReturnType<typeof createAppAuthClient> | null = null;
+let authClientInstance: AuthClient | null = null;
 
-export function createAuthClient(): ReturnType<typeof createAppAuthClient> {
+export function createAuthClient(): AuthClient {
   const useBearerSession = useOfficeBearerMode();
 
-  authClientInstance = createAppAuthClient({
+  authClientInstance = createDeckpackAuthClient({
     baseURL: env.VITE_SERVER_URL,
     bearer: useBearerSession
       ? {
@@ -27,7 +30,7 @@ export function createAuthClient(): ReturnType<typeof createAppAuthClient> {
   return authClientInstance;
 }
 
-export function getAuthClient(): ReturnType<typeof createAppAuthClient> {
+export function getAuthClient(): AuthClient {
   if (!authClientInstance) {
     return createAuthClient();
   }
@@ -36,7 +39,7 @@ export function getAuthClient(): ReturnType<typeof createAppAuthClient> {
 }
 
 /** @deprecated Prefer getAuthClient(); kept for modules imported after bootstrap. */
-export const authClient = new Proxy({} as ReturnType<typeof createAppAuthClient>, {
+export const authClient = new Proxy({} as AuthClient, {
   get(_target, property, receiver) {
     return Reflect.get(getAuthClient(), property, receiver);
   },

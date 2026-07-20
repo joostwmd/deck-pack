@@ -10,8 +10,11 @@ import {
 } from "@deck-pack/ui/components/system/dropdown-menu";
 import { Skeleton } from "@deck-pack/ui/components/system/skeleton";
 import { Link, useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
 
 import { useServices } from "@/services/services-context";
+
+const OPS_URL = "http://localhost:3001";
 
 export default function UserMenu() {
   const navigate = useNavigate();
@@ -30,16 +33,35 @@ export default function UserMenu() {
     );
   }
 
+  const impersonatedBy = (session.session as { impersonatedBy?: string | null }).impersonatedBy;
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger render={<Button variant="outline" />}>
         {session.user.name}
+        {impersonatedBy ? " (impersonating)" : ""}
       </DropdownMenuTrigger>
       <DropdownMenuContent className="bg-card">
         <DropdownMenuGroup>
           <DropdownMenuLabel>My Account</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem>{session.user.email}</DropdownMenuItem>
+          {impersonatedBy ? (
+            <DropdownMenuItem
+              onClick={() => {
+                void auth.stopImpersonating().then(({ error }) => {
+                  if (error) {
+                    toast.error(error.message ?? "Could not stop impersonating");
+                    return;
+                  }
+                  toast.success("Stopped impersonating");
+                  window.location.assign(`${OPS_URL}/users`);
+                });
+              }}
+            >
+              Stop impersonating
+            </DropdownMenuItem>
+          ) : null}
           <DropdownMenuItem
             variant="destructive"
             onClick={() => {

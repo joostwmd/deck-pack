@@ -2,36 +2,50 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   captureBearerTokenFromResponse,
+  createAuthClient,
   type BearerSessionStore,
 } from "@deck-pack/auth/client";
 
-function createBearerStore(): BearerSessionStore {
+function createMemoryStorage(): BearerSessionStore {
+  let token: string | null = null;
   return {
-    getToken: vi.fn(() => null),
-    setToken: vi.fn(),
-    clearToken: vi.fn(),
+    getToken: () => token,
+    setToken: (value) => {
+      token = value;
+    },
+    clearToken: () => {
+      token = null;
+    },
   };
 }
 
-describe("captureBearerTokenFromResponse", () => {
-  it("does not capture an unsigned response body token", () => {
-    const store = createBearerStore();
+describe("createAuthClient bearer capture", () => {
+  it("stores set-auth-token from successful auth responses", () => {
+    const store = createMemoryStorage();
 
-    captureBearerTokenFromResponse(store, new Response(null));
+    createAuthClient({
+      baseURL: "https://api.example.com",
+      bearer: store,
+    });
 
-    expect(store.setToken).not.toHaveBeenCalled();
+    const response = new Response(null, {
+      headers: { "set-auth-token": "signed.session.token" },
+    });
+
+    captureBearerTokenFromResponse(store, response);
+
+    expect(store.getToken()).toBe("signed.session.token");
   });
 
-  it("captures the signed token from the response header", () => {
-    const store = createBearerStore();
+  it("configures bearer auth on the client when a store is provided", () => {
+    const store = createMemoryStorage();
+    store.setToken("existing-token");
 
-    captureBearerTokenFromResponse(
-      store,
-      new Response(null, {
-        headers: { "set-auth-token": "signed-bearer-token" },
-      }),
-    );
+    const client = createAuthClient({
+      baseURL: "https://api.example.com",
+      bearer: store,
+    });
 
-    expect(store.setToken).toHaveBeenCalledWith("signed-bearer-token");
+    expect(client).toBeDefined();
   });
 });

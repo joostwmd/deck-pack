@@ -9,12 +9,12 @@ import { ThemeProvider } from "@deck-pack/ui/components/system/theme-provider";
 import type { trpc } from "@/utils/trpc";
 
 import "../index.css";
-import { createAppAuthClient } from "@deck-pack/auth/client";
+import type { AuthClient } from "@deck-pack/auth/client";
 
 export interface RouterAppContext {
   trpc: typeof trpc;
   queryClient: QueryClient;
-  authClient: ReturnType<typeof createAppAuthClient>;
+  authClient: AuthClient;
 }
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({

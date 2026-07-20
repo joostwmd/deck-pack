@@ -1,4 +1,4 @@
-import type { createAppAuthClient } from "@deck-pack/auth/client";
+import type { AuthClient } from "@deck-pack/auth/client";
 import { AppErrorBoundary } from "@deck-pack/observability";
 import { Toaster } from "@deck-pack/ui/components/system/sonner";
 import { HeadContent, Outlet, createRootRouteWithContext } from "@tanstack/react-router";
@@ -11,7 +11,7 @@ import { ServicesProvider } from "@/services/services-context";
 import "../index.css";
 
 export interface RouterAddinContext {
-  authClient: ReturnType<typeof createAppAuthClient>;
+  authClient: AuthClient;
 }
 
 export const Route = createRootRouteWithContext<RouterAddinContext>()({

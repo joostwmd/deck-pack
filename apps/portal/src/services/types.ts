@@ -1,6 +1,4 @@
-import type { createAppAuthClient } from "@deck-pack/auth/client";
-
-export type AuthClient = ReturnType<typeof createAppAuthClient>;
+import type { AuthClient } from "@deck-pack/auth/client";
 
 export interface AuthService {
   getSession: AuthClient["getSession"];
@@ -22,6 +20,7 @@ export interface AuthService {
     input: { email: string; password: string; name: string },
     callbacks?: Parameters<AuthClient["signUp"]["email"]>[1],
   ) => ReturnType<AuthClient["signUp"]["email"]>;
+  stopImpersonating: () => ReturnType<AuthClient["admin"]["stopImpersonating"]>;
 }
 
 export interface PortalAppServices {

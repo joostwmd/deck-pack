@@ -29,6 +29,27 @@
       "when": 1783783611778,
       "tag": "0003_shortcut_overrides",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1784415434123,
+      "tag": "0004_bright_morgan_stark",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1784415600000,
+      "tag": "0005_plan_limits",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1784415700000,
+      "tag": "0006_plan_limits_nullable",
+      "breakpoints": true
     }
   ]
 }

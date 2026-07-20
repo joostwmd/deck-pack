@@ -18,7 +18,7 @@ export async function createSignedSessionFixture(args: {
   const sessionId = crypto.randomUUID();
   const sessionToken = crypto.randomUUID();
   const email = `${args.emailPrefix}-${userId}@test.local`;
-  const cookieName = args.cookieName ?? "app.session_token";
+  const cookieName = args.cookieName ?? "deckpack.session_token";
 
   await db.insert(user).values({
     id: userId,

@@ -4,7 +4,7 @@ import type { Context } from "../context";
 
 import { isOrganizationMember as isOrganizationMemberQuery } from "@deck-pack/db/queries/isOrganizationMember";
 import { isPlatformAdmin as isPlatformAdminQuery } from "@deck-pack/db/queries/isPlatformAdmin";
-import { appAuth, opsAuth } from "@deck-pack/auth/server";
+import { auth } from "@deck-pack/auth/server";
 
 export const isOrganizationMember = middleware<Context>(async ({ ctx, next }) => {
   if (!ctx.session?.user) {
@@ -65,23 +65,17 @@ type AuthApiWithPermission = {
   }) => Promise<{ success: boolean }>;
 };
 
-// Helper: call both instances (session cookie may be ops or app).
+// Helper: check organization RBAC permissions via Better Auth.
 export async function hasPermission(headers: Headers, permissions: Record<string, string[]>) {
-  for (const instance of [appAuth, opsAuth] as const) {
-    try {
-      const result = await (instance.api as unknown as AuthApiWithPermission).hasPermission({
-        headers,
-        body: { permissions },
-      });
-      if (result.success) {
-        return;
-      }
-    } catch {
-      /* try other instance */
-    }
-  }
-  throw new TRPCError({
-    code: "FORBIDDEN",
-    message: "You don't have permission to perform this operation",
+  const result = await (auth.api as unknown as AuthApiWithPermission).hasPermission({
+    headers,
+    body: { permissions },
   });
+
+  if (!result.success) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "You don't have permission to perform this operation",
+    });
+  }
 }
