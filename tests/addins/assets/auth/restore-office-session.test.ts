@@ -9,7 +9,7 @@ vi.mock("@deck-pack/env/web", () => ({
   env: { VITE_MICROSOFT_CLIENT_ID: "client-id" },
 }));
 
-vi.mock("@/auth/microsoft-naa", () => ({
+vi.mock("@deck-pack/auth/microsoft-naa", () => ({
   acquireMicrosoftTokensSilently: (...args: unknown[]) =>
     acquireMicrosoftTokensSilently(...args),
 }));

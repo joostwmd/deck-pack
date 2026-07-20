@@ -33,7 +33,7 @@ function baseAuthOptions(
   deps: AuthDeps,
   overrides: Pick<
     BetterAuthOptions,
-    "plugins" | "hooks" | "databaseHooks" | "socialProviders"
+    "plugins" | "hooks" | "databaseHooks" | "socialProviders" | "account"
   >,
 ): BetterAuthOptions {
   const { db, secret, baseURL, trustedOrigins } = deps;
@@ -120,6 +120,12 @@ export function createAuth(deps: AuthDeps) {
                 mapProfileToUser: (profile: { email?: string; preferred_username?: string }) => ({
                   email: profile.email ?? profile.preferred_username,
                 }),
+              },
+            },
+            account: {
+              accountLinking: {
+                enabled: true,
+                trustedProviders: ["microsoft"],
               },
             },
           }

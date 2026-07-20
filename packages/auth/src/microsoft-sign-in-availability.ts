@@ -1,11 +1,11 @@
-import type { EnvironmentType } from "@/contexts/EnvironmentContext";
+export type MicrosoftSignInHost = "web" | "office";
 
 export function getMicrosoftSignInAvailability(options: {
-  environment: EnvironmentType;
+  host: MicrosoftSignInHost;
   isNaaSupported: boolean;
   clientId: string | undefined;
 }): { available: boolean; reason: string | null } {
-  if (options.environment !== "office") {
+  if (options.host !== "office") {
     return { available: true, reason: null };
   }
 
@@ -13,7 +13,7 @@ export function getMicrosoftSignInAvailability(options: {
     return {
       available: false,
       reason:
-        "Microsoft SSO is not configured. Set VITE_MICROSOFT_CLIENT_ID in apps/addins/assets/.env.",
+        "Microsoft SSO is not configured. Set VITE_MICROSOFT_CLIENT_ID in the app environment.",
     };
   }
 

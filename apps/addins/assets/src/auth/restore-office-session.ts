@@ -2,7 +2,7 @@ import type { AuthClient } from "@deck-pack/auth/client";
 import { env } from "@deck-pack/env/web";
 
 import { getBearerToken } from "@/auth/bearer-session-store";
-import { acquireMicrosoftTokensSilently } from "@/auth/microsoft-naa";
+import { acquireMicrosoftTokensSilently } from "@deck-pack/auth/microsoft-naa";
 import { isNaaSupported } from "@/auth/naa-support";
 import { useOfficeBearerMode } from "@/auth/office-auth-mode";
 

@@ -22,7 +22,7 @@ import {
   acquireMicrosoftTokens,
   checkNaaBrokerAvailable,
   isNestedAppAuthBridgePresent,
-} from "@/auth/microsoft-naa";
+} from "@deck-pack/auth/microsoft-naa";
 
 describe("isNestedAppAuthBridgePresent", () => {
   afterEach(() => {

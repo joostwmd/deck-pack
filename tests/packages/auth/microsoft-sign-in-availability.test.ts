@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { getMicrosoftSignInAvailability } from "@/auth/microsoft-sign-in-availability";
+import { getMicrosoftSignInAvailability } from "@deck-pack/auth/microsoft-sign-in";
 
 describe("getMicrosoftSignInAvailability", () => {
   it("allows web preview without office constraints", () => {
     expect(
       getMicrosoftSignInAvailability({
-        environment: "web",
+        host: "web",
         isNaaSupported: false,
         clientId: undefined,
       }),
@@ -16,7 +16,7 @@ describe("getMicrosoftSignInAvailability", () => {
   it("requires client id in office", () => {
     expect(
       getMicrosoftSignInAvailability({
-        environment: "office",
+        host: "office",
         isNaaSupported: true,
         clientId: undefined,
       }).available,
@@ -25,7 +25,7 @@ describe("getMicrosoftSignInAvailability", () => {
 
   it("requires NAA in office", () => {
     const result = getMicrosoftSignInAvailability({
-      environment: "office",
+      host: "office",
       isNaaSupported: false,
       clientId: "client-id",
     });
