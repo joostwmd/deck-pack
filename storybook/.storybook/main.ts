@@ -7,8 +7,11 @@ import react from "@vitejs/plugin-react";
 import type { Plugin } from "vite";
 import { mergeConfig } from "vite";
 
-const storybookDir = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot = path.resolve(storybookDir, "..");
+const storybookConfigDir = path.dirname(fileURLToPath(import.meta.url));
+/** `storybook/` package root (parent of `.storybook/`). */
+const storybookPackageRoot = path.resolve(storybookConfigDir, "..");
+/** Monorepo root (parent of `storybook/`). */
+const repoRoot = path.resolve(storybookPackageRoot, "..");
 const assetsRoot = path.resolve(repoRoot, "apps/addins/assets");
 const assetsSrc = path.resolve(assetsRoot, "src");
 const fixturesRoot = path.resolve(repoRoot, "fixtures");
@@ -56,7 +59,10 @@ const config: StorybookConfig = {
         alias: [
           {
             find: "@deck-pack/env/web",
-            replacement: path.resolve(storybookDir, "../stories/assets/mocks/env.ts"),
+            replacement: path.resolve(
+              storybookPackageRoot,
+              "stories/assets/mocks/env.ts",
+            ),
           },
           {
             find: /^@\/(.*)/,
@@ -70,10 +76,11 @@ const config: StorybookConfig = {
       },
       server: {
         fs: {
+          // Allow monorepo root so `@/` (add-in), fixtures, and UI fonts resolve.
           allow: [repoRoot],
         },
       },
-      envDir: path.resolve(assetsRoot),
+      envDir: assetsRoot,
       css: {
         postcss: {
           plugins: [],
