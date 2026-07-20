@@ -52,6 +52,10 @@ export async function ensureMigrationsApplied(): Promise<void> {
       await applyMigration(pool, "0003_shortcut_overrides.sql");
     }
 
+    if (!(await tableExists(pool, "library_items"))) {
+      await applyMigration(pool, "0008_library_assets.sql");
+    }
+
     ensured = true;
   } finally {
     await pool.end();

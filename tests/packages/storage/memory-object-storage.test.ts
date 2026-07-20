@@ -35,8 +35,20 @@ describe("createMemoryObjectStorage", () => {
       byteSize: 128,
     });
 
+    // Seeded without body → opaque memory URL (not browser-renderable).
     const download = await storage.createDownloadUrl({ key, expiresInSeconds: 30 });
     expect(download.url).toContain("memory://download/");
+  });
+
+  it("returns a data URL when the object body is available", async () => {
+    const storage = createMemoryObjectStorage();
+    const key = "global/shape/item-1/svg.svg";
+    const body = new TextEncoder().encode("<svg/>");
+
+    await storage.put({ key, contentType: "image/svg+xml", body });
+
+    const download = await storage.createDownloadUrl({ key, expiresInSeconds: 30 });
+    expect(download.url.startsWith("data:image/svg+xml;base64,")).toBe(true);
   });
 
   it("throws when downloading a missing object", async () => {

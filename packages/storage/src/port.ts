@@ -40,9 +40,17 @@ export type ObjectInfo = {
  * Provider-agnostic object storage port.
  * App code depends on this type; Azure (today) / Supabase (later) adapt to it.
  */
+export type PutObjectInput = {
+  key: ObjectKey;
+  contentType: string;
+  body: Uint8Array;
+};
+
 export type ObjectStorage = {
   createUploadTarget(input: CreateUploadTargetInput): Promise<UploadTarget>;
   createDownloadUrl(input: CreateDownloadUrlInput): Promise<DownloadUrl>;
   head(key: ObjectKey): Promise<ObjectInfo | null>;
   delete(key: ObjectKey): Promise<void>;
+  /** Server-side write (local/memory adapters, or Azure SDK fallback). */
+  put(input: PutObjectInput): Promise<ObjectInfo>;
 };

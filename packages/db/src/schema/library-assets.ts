@@ -10,21 +10,35 @@ import {
 
 import { organization, user } from "./auth";
 
-/** Uploadable library classes (owned blobs). External types stay out of this schema. */
-export const LIBRARY_ASSET_CLASSES = ["flag", "shape", "slide"] as const;
-export type LibraryAssetClass = (typeof LIBRARY_ASSET_CLASSES)[number];
+export {
+  FLAG_VARIANT_ROLES,
+  LIBRARY_ASSET_CLASSES,
+  LIBRARY_ITEM_NAME_KINDS,
+  LIBRARY_ITEM_SCOPES,
+  LIBRARY_ITEM_STATUSES,
+  SHAPE_CATEGORIES,
+  SLIDE_ASPECT_RATIOS,
+  SLIDE_CATEGORIES,
+  type FlagVariantRole,
+  type LibraryAssetClass,
+  type LibraryItemNameKind,
+  type LibraryItemScope,
+  type LibraryItemStatus,
+  type ShapeCategory,
+  type SlideAspectRatio,
+  type SlideCategory,
+} from "../library-catalog";
 
-export const LIBRARY_ITEM_SCOPES = ["global", "org"] as const;
-export type LibraryItemScope = (typeof LIBRARY_ITEM_SCOPES)[number];
-
-export const LIBRARY_ITEM_STATUSES = ["pending", "ready", "archived"] as const;
-export type LibraryItemStatus = (typeof LIBRARY_ITEM_STATUSES)[number];
-
-export const LIBRARY_ITEM_NAME_KINDS = ["display", "alias", "code"] as const;
-export type LibraryItemNameKind = (typeof LIBRARY_ITEM_NAME_KINDS)[number];
-
-export const FLAG_VARIANT_ROLES = ["rectangle", "square", "circle"] as const;
-export type FlagVariantRole = (typeof FLAG_VARIANT_ROLES)[number];
+import type {
+  FlagVariantRole,
+  LibraryAssetClass,
+  LibraryItemNameKind,
+  LibraryItemScope,
+  LibraryItemStatus,
+  ShapeCategory,
+  SlideAspectRatio,
+  SlideCategory,
+} from "../library-catalog";
 
 /** Pure blob metadata — relative path in the Azure container, type, size. */
 export const files = pgTable(
@@ -114,10 +128,9 @@ export const shapeItems = pgTable(
     libraryItemId: text("library_item_id")
       .primaryKey()
       .references(() => libraryItems.id, { onDelete: "cascade" }),
-    category: text("category").notNull(),
-    svgFileId: text("svg_file_id")
-      .notNull()
-      .references(() => files.id, { onDelete: "restrict" }),
+    category: text("category").notNull().$type<ShapeCategory>(),
+    /** Null while draft — required before publish. */
+    svgFileId: text("svg_file_id").references(() => files.id, { onDelete: "restrict" }),
   },
   (table) => [
     index("shape_items_category_idx").on(table.category),
@@ -131,14 +144,16 @@ export const slideItems = pgTable(
     libraryItemId: text("library_item_id")
       .primaryKey()
       .references(() => libraryItems.id, { onDelete: "cascade" }),
-    category: text("category").notNull(),
-    aspectRatio: text("aspect_ratio").notNull(),
-    presentationFileId: text("presentation_file_id")
-      .notNull()
-      .references(() => files.id, { onDelete: "restrict" }),
-    thumbnailFileId: text("thumbnail_file_id")
-      .notNull()
-      .references(() => files.id, { onDelete: "restrict" }),
+    category: text("category").notNull().$type<SlideCategory>(),
+    aspectRatio: text("aspect_ratio").notNull().$type<SlideAspectRatio>(),
+    /** Null while draft — required before publish. */
+    presentationFileId: text("presentation_file_id").references(() => files.id, {
+      onDelete: "restrict",
+    }),
+    /** Null while draft — required before publish. */
+    thumbnailFileId: text("thumbnail_file_id").references(() => files.id, {
+      onDelete: "restrict",
+    }),
   },
   (table) => [
     index("slide_items_category_idx").on(table.category),

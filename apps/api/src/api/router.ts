@@ -77,7 +77,15 @@ import { createSlideRoutes } from "../domains/slides/routes";
 import { createSlideService } from "../domains/slides/service";
 import { createUsersRoutes } from "../domains/users/routes";
 import { createUsersService } from "../domains/users/service";
+import { createLibraryRoutes } from "../domains/library/routes";
+import { createLibraryService } from "../domains/library/service";
 import { systemRoutes } from "../domains/system/routes";
+import {
+  createAzureObjectStorage,
+  createMemoryObjectStorage,
+  type ObjectStorage,
+} from "@deck-pack/storage";
+import { env } from "@deck-pack/env/server";
 
 import { router } from "./setup";
 
@@ -88,7 +96,19 @@ export type AddinRouterDeps = {
   pexels?: PexelsClient;
   icons8?: Icons8Client;
   brandfetch?: BrandfetchClient;
+  storage?: ObjectStorage;
 };
+
+function resolveObjectStorage(explicit?: ObjectStorage): ObjectStorage {
+  if (explicit) return explicit;
+  if (env.AZURE_STORAGE_ACCOUNT_NAME && env.AZURE_STORAGE_CONTAINER) {
+    return createAzureObjectStorage({
+      accountName: env.AZURE_STORAGE_ACCOUNT_NAME,
+      containerName: env.AZURE_STORAGE_CONTAINER,
+    });
+  }
+  return createMemoryObjectStorage();
+}
 
 export function createAppRouter(deps: AddinRouterDeps) {
   const photoService = createPhotoService({
@@ -175,6 +195,10 @@ export function createAppRouter(deps: AddinRouterDeps) {
     assignOrganizationSeat,
   });
 
+  const libraryService = createLibraryService({
+    storage: resolveObjectStorage(deps.storage),
+  });
+
   return router({
     ...systemRoutes,
     organization: router(createOrganizationRoutes(organizationService)),
@@ -182,6 +206,7 @@ export function createAppRouter(deps: AddinRouterDeps) {
     seats: router(createSeatsRoutes(seatsService)),
     users: router(createUsersRoutes(usersService)),
     billing: router(createBillingRoutes(billingService)),
+    library: router(createLibraryRoutes(libraryService)),
     assets: router({
       photos: router(createPhotoRoutes(photoService)),
       slides: router(createSlideRoutes(slideService)),

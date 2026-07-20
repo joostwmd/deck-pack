@@ -1,4 +1,4 @@
-import { UploadSimple, X } from "@phosphor-icons/react";
+import { File as FileIcon, UploadSimple, X } from "@phosphor-icons/react";
 
 import { buttonVariants } from "@deck-pack/ui/components/system/button";
 import {
@@ -33,7 +33,17 @@ export type FileUploaderViewProps = {
   onFileValidate?: FileUploadProps["onFileValidate"];
   onFileReject?: FileUploadProps["onFileReject"];
   className?: string;
+  /** Hide the dropzone (e.g. while uploading after a file was selected). */
+  showDropzone?: boolean;
+  /** Tighter dropzone for slot UIs. */
+  compact?: boolean;
+  /** Always show a subtle file icon instead of image thumbnails. Default true. */
+  forceFileIcon?: boolean;
 };
+
+function SubtleFileIcon() {
+  return <FileIcon className="text-muted-foreground size-5" weight="regular" aria-hidden />;
+}
 
 export function FileUploaderView({
   value,
@@ -52,6 +62,9 @@ export function FileUploaderView({
   onFileValidate,
   onFileReject,
   className,
+  showDropzone = true,
+  compact = false,
+  forceFileIcon = true,
 }: FileUploaderViewProps) {
   return (
     <FileUpload
@@ -69,25 +82,46 @@ export function FileUploaderView({
       onFileReject={onFileReject}
       className={cn("w-full", className)}
     >
-      <FileUploadDropzone className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed px-6 py-10 text-center">
-        <div className="bg-muted flex size-10 items-center justify-center rounded-full">
-          <UploadSimple className="text-muted-foreground size-5" aria-hidden />
-        </div>
-        <div className="flex flex-col gap-1">
-          <p className="text-sm font-medium">{label}</p>
-          <p className="text-muted-foreground text-xs">{description}</p>
-        </div>
-        <FileUploadTrigger
-          className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+      {showDropzone ? (
+        <FileUploadDropzone
+          className={cn(
+            "flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed text-center",
+            compact ? "px-4 py-6" : "gap-3 px-6 py-10",
+          )}
         >
-          {selectLabel}
-        </FileUploadTrigger>
-      </FileUploadDropzone>
+          <div
+            className={cn(
+              "bg-muted flex items-center justify-center rounded-full",
+              compact ? "size-8" : "size-10",
+            )}
+          >
+            <UploadSimple
+              className={cn("text-muted-foreground", compact ? "size-4" : "size-5")}
+              aria-hidden
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <p className="text-sm font-medium">{label}</p>
+            <p className="text-muted-foreground text-xs">{description}</p>
+          </div>
+          <FileUploadTrigger
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+          >
+            {selectLabel}
+          </FileUploadTrigger>
+        </FileUploadDropzone>
+      ) : null}
 
       <FileUploadList className="gap-2">
         {value.map((file) => (
-          <FileUploadItem key={`${file.name}-${String(file.size)}-${String(file.lastModified)}`} value={file}>
-            <FileUploadItemPreview />
+          <FileUploadItem
+            key={`${file.name}-${String(file.size)}-${String(file.lastModified)}`}
+            value={file}
+          >
+            <FileUploadItemPreview
+              className="bg-muted/50 [&>svg]:size-5"
+              render={forceFileIcon ? () => <SubtleFileIcon /> : undefined}
+            />
             <FileUploadItemMetadata />
             <FileUploadItemProgress />
             <FileUploadItemDelete
@@ -103,13 +137,15 @@ export function FileUploaderView({
         ))}
       </FileUploadList>
 
-      <div className="flex justify-end">
-        <FileUploadClear
-          className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
-        >
-          {clearLabel}
-        </FileUploadClear>
-      </div>
+      {value.length > 0 ? (
+        <div className="flex justify-end">
+          <FileUploadClear
+            className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
+          >
+            {clearLabel}
+          </FileUploadClear>
+        </div>
+      ) : null}
     </FileUpload>
   );
 }

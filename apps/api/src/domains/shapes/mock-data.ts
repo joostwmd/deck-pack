@@ -1,11 +1,13 @@
 import type { z } from "zod";
 
+import type { ShapeCategory } from "@deck-pack/db/schema/library-assets";
+
 import type { shapeSearchInputSchema, shapeSearchResponseSchema } from "./schemas";
 
 export interface ShapeCatalogEntry {
   id: string;
   name: string;
-  category: string;
+  category: ShapeCategory;
   thumbnailUrl: string;
   svgUrl: string;
   createdAt: string;
@@ -131,7 +133,9 @@ function matchesCategory(shape: ShapeCatalogEntry, category: string | undefined)
 }
 
 function buildFacets(shapes: ShapeCatalogEntry[]) {
-  const categories = [...new Set(shapes.map((shape) => shape.category))].sort();
+  const categories = [...new Set(shapes.map((shape) => shape.category))].sort() as Array<
+    z.infer<typeof shapeSearchResponseSchema>["facets"]["categories"][number]
+  >;
 
   return {
     categories,

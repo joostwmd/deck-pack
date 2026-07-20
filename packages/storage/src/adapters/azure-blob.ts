@@ -15,6 +15,7 @@ import type {
   ObjectInfo,
   ObjectKey,
   ObjectStorage,
+  PutObjectInput,
   UploadTarget,
 } from "../port";
 
@@ -154,6 +155,24 @@ export function createAzureObjectStorage(config: AzureObjectStorageConfig): Obje
         await container.getBlobClient(key).deleteIfExists();
       } catch (cause) {
         throw new StorageProviderError(`Failed to delete object: ${key}`, { cause });
+      }
+    },
+
+    async put(input: PutObjectInput): Promise<ObjectInfo> {
+      try {
+        const blockBlob = container.getBlockBlobClient(input.key);
+        await blockBlob.uploadData(input.body, {
+          blobHTTPHeaders: { blobContentType: input.contentType },
+        });
+        const properties = await blockBlob.getProperties();
+        return {
+          key: input.key,
+          contentType: properties.contentType ?? input.contentType,
+          byteSize: properties.contentLength ?? input.body.byteLength,
+          etag: properties.etag,
+        };
+      } catch (cause) {
+        throw new StorageProviderError(`Failed to put object: ${input.key}`, { cause });
       }
     },
   };

@@ -6,6 +6,7 @@ import type {
   ObjectInfo,
   ObjectKey,
   ObjectStorage,
+  PutObjectInput,
   UploadTarget,
 } from "../port";
 
@@ -63,6 +64,17 @@ export function createMemoryObjectStorage(): MemoryObjectStorage {
       }
 
       const expiresAt = new Date(Date.now() + input.expiresInSeconds * 1000);
+
+      // Browser-renderable URL for local/dev (memory:// cannot be used as <img src>).
+      if (existing.body) {
+        const base64 = Buffer.from(existing.body).toString("base64");
+        return {
+          key: input.key,
+          url: `data:${existing.contentType};base64,${base64}`,
+          expiresAt,
+        };
+      }
+
       return {
         key: input.key,
         url: `memory://download/${encodeURIComponent(input.key)}?exp=${expiresAt.toISOString()}`,
@@ -86,6 +98,22 @@ export function createMemoryObjectStorage(): MemoryObjectStorage {
 
     async delete(key: ObjectKey): Promise<void> {
       objects.delete(key);
+    },
+
+    async put(input: PutObjectInput): Promise<ObjectInfo> {
+      const etag = `"${crypto.randomUUID()}"`;
+      objects.set(input.key, {
+        contentType: input.contentType,
+        byteSize: input.body.byteLength,
+        body: input.body,
+        etag,
+      });
+      return {
+        key: input.key,
+        contentType: input.contentType,
+        byteSize: input.body.byteLength,
+        etag,
+      };
     },
   };
 }

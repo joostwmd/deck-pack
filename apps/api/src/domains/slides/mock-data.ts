@@ -1,6 +1,11 @@
 import type { z } from "zod";
 
 import type {
+  SlideAspectRatio,
+  SlideCategory,
+} from "@deck-pack/db/schema/library-assets";
+
+import type {
   slideAspectRatioSchema,
   slideSearchInputSchema,
   slideSearchResponseSchema,
@@ -11,9 +16,9 @@ export interface SlideCatalogEntry {
   name: string;
   thumbnailUrl: string;
   presentationUrl: string;
-  category: string;
+  category: SlideCategory;
   tags: string[];
-  aspectRatio: z.infer<typeof slideAspectRatioSchema>;
+  aspectRatio: SlideAspectRatio;
   createdAt: string;
 }
 
