@@ -6,12 +6,14 @@ export const shapeCategorySchema = z.enum(SHAPE_CATEGORIES);
 
 export const shapeSearchInputSchema = z.object({
   category: shapeCategorySchema.optional(),
+  internalOnly: z.boolean().optional(),
 });
 
 export const shapeSearchResultSchema = z.object({
   id: z.string(),
   name: z.string(),
   category: shapeCategorySchema,
+  scope: z.enum(["global", "org"]),
   thumbnailUrl: z.string(),
   svgUrl: z.string(),
   createdAt: z.string(),

@@ -5,7 +5,8 @@ import { getUserFacingApiErrorMessage } from "@/lib/user-facing-api-error";
 
 export function useAssetSearch(
   debouncedQuery: string,
-  searchFn: (query: string) => Promise<AssetListItem[]>,
+  searchFn: (query: string, options?: { internalOnly?: boolean }) => Promise<AssetListItem[]>,
+  internalOnly = false,
 ) {
   const query = debouncedQuery.trim();
   const [results, setResults] = useState<AssetListItem[]>([]);
@@ -25,7 +26,7 @@ export function useAssetSearch(
       setError(null);
 
       try {
-        const items = await searchFn(query);
+        const items = await searchFn(query, { internalOnly });
 
         if (cancelled) return;
 
@@ -46,7 +47,7 @@ export function useAssetSearch(
     return () => {
       cancelled = true;
     };
-  }, [query, retryAttempt, searchFn]);
+  }, [query, retryAttempt, searchFn, internalOnly]);
 
   const retry = useCallback(() => {
     setRetryAttempt((attempt) => attempt + 1);

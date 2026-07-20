@@ -11,7 +11,7 @@
 #
 # What it creates:
 #   - Resource group:     rg-deck-pack-tfstate
-#   - Storage account:    stdeckpacktfstatejw  (globally unique; edit SUFFIX if taken)
+#   - Storage account:    stdeckpacktfstatedpc  (globally unique; edit SUFFIX if taken)
 #   - Blob container:     tfstate
 #   - RBAC:               signed-in user granted "Storage Blob Data Contributor"
 #                         on the storage account (required for use_azuread_auth)
@@ -29,7 +29,7 @@ set -euo pipefail
 # --- Config (edit SUFFIX if storage account name is taken) ----------------
 LOCATION="westeurope"
 RG="rg-deck-pack-tfstate"
-SUFFIX="jw"
+SUFFIX="dpc"
 STORAGE_ACCOUNT="stdeckpacktfstate${SUFFIX}"
 CONTAINER="tfstate"
 # --------------------------------------------------------------------------

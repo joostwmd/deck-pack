@@ -1,6 +1,9 @@
 import { z } from "zod";
 
-import { organizationMemberProcedure } from "../../api/procedures";
+import {
+  organizationMemberProcedure,
+  teamWorkspaceProcedure,
+} from "../../api/procedures";
 import { requirePermission } from "../../api/guards/authorization";
 import { requireActiveOrganizationId } from "../../api/guards/org-context";
 import { unwrapServiceResult } from "../../api/resilience/service-result";
@@ -14,23 +17,23 @@ import {
 } from "./schemas";
 import type { MembersService } from "./service";
 
-export const listMembersProcedure = organizationMemberProcedure.use(
+export const listMembersProcedure = teamWorkspaceProcedure.use(
   requirePermission({ member: ["update"] }),
 );
 
-export const addMemberProcedure = organizationMemberProcedure.use(
+export const addMemberProcedure = teamWorkspaceProcedure.use(
   requirePermission({ member: ["create"] }),
 );
 
-export const updateMemberRoleProcedure = organizationMemberProcedure.use(
+export const updateMemberRoleProcedure = teamWorkspaceProcedure.use(
   requirePermission({ member: ["update"] }),
 );
 
-export const removeMemberProcedure = organizationMemberProcedure.use(
+export const removeMemberProcedure = teamWorkspaceProcedure.use(
   requirePermission({ member: ["delete"] }),
 );
 
-export const cancelInvitationProcedure = organizationMemberProcedure.use(
+export const cancelInvitationProcedure = teamWorkspaceProcedure.use(
   requirePermission({ invitation: ["cancel"] }),
 );
 
@@ -101,6 +104,28 @@ export function createMembersRoutes(service: MembersService) {
             organizationId,
             invitationId: input.invitationId,
           }),
+        );
+      }),
+
+    getOrganizationProfile: organizationMemberProcedure
+      .output(
+        z.object({
+          type: z.enum(["individual", "team"]).nullable(),
+          workspace: z.enum(["solo", "team"]).nullable(),
+          plan: z
+            .object({
+              id: z.string(),
+              name: z.string(),
+              slug: z.string(),
+              quantity: z.number().int(),
+            })
+            .nullable(),
+        }),
+      )
+      .query(async ({ ctx }) => {
+        const organizationId = requireActiveOrganizationId(ctx);
+        return unwrapServiceResult(
+          await service.getOrganizationProfile(ctx.tx, organizationId),
         );
       }),
   };

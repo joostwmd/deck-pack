@@ -1,3 +1,5 @@
+import { InternalScopeBadge } from "@/components/asset-browser/internal-scope-badge";
+
 import type { AssetListItem } from "@/types/asset-types";
 
 interface SearchResultItemProps {
@@ -23,12 +25,15 @@ export function SearchResultItem({ result }: SearchResultItemProps) {
         ) : null}
       </div>
 
-      <p
-        className="min-w-0 flex-1 truncate text-sm font-medium text-foreground"
-        title={result.name}
-      >
-        {result.name}
-      </p>
+      <div className="flex min-w-0 flex-1 items-center gap-2">
+        <p
+          className="min-w-0 flex-1 truncate text-sm font-medium text-foreground"
+          title={result.name}
+        >
+          {result.name}
+        </p>
+        <InternalScopeBadge scope={result.scope} className="shrink-0 text-[10px]" />
+      </div>
     </div>
   );
 }

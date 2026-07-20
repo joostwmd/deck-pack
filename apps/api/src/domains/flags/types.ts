@@ -3,6 +3,7 @@ export interface FlagSearchResult {
   name: string;
   code: string;
   previewUrl: string;
+  scope: "global" | "org";
 }
 
 export interface FlagVariant {

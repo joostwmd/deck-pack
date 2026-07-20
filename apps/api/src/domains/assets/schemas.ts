@@ -20,6 +20,7 @@ export const assetListItemSchema = z.object({
   id: z.string(),
   imageUrl: z.string(),
   name: z.string(),
+  scope: z.enum(["global", "org"]).optional(),
 });
 
 export const assetInsertPayloadSchema = z.object({

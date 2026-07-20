@@ -9,6 +9,7 @@ export function mapFlagSearchResponse(flags: FlagSearchResult[]): AssetSearchRes
       id: flag.id,
       imageUrl: flag.previewUrl,
       name: flag.name,
+      scope: flag.scope,
     })),
   };
 }

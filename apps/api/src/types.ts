@@ -8,6 +8,7 @@ export type SessionPayload = Omit<ApiSession, "session"> & {
   session: ApiSession["session"] & {
     activeOrganizationId?: string | null;
     role?: string | null;
+    workspace?: "solo" | "team" | null;
   };
 };
 

@@ -22,26 +22,36 @@ import {
   acquireMicrosoftTokens,
   checkNaaBrokerAvailable,
   isNestedAppAuthBridgePresent,
+  resetNestableMsalInstance,
 } from "@deck-pack/auth/microsoft-naa";
+
+type NestedAppAuthGlobal = typeof globalThis & { nestedAppAuthBridge?: unknown };
+
+function stubNestedAppAuthBridge(): void {
+  (globalThis as NestedAppAuthGlobal).nestedAppAuthBridge = {
+    postMessage: vi.fn(),
+    addEventListener: vi.fn(),
+  };
+}
+
+function clearNestedAppAuthBridge(): void {
+  delete (globalThis as NestedAppAuthGlobal).nestedAppAuthBridge;
+}
 
 describe("isNestedAppAuthBridgePresent", () => {
   afterEach(() => {
-    vi.unstubAllGlobals();
+    clearNestedAppAuthBridge();
+    resetNestableMsalInstance();
   });
 
   it("returns false when Office has not injected the bridge", () => {
-    vi.stubGlobal("window", {} as Window & typeof globalThis);
+    clearNestedAppAuthBridge();
 
     expect(isNestedAppAuthBridgePresent()).toBe(false);
   });
 
   it("returns true when nestedAppAuthBridge exists", async () => {
-    vi.stubGlobal("window", {
-      nestedAppAuthBridge: {
-        postMessage: vi.fn(),
-        addEventListener: vi.fn(),
-      },
-    } as unknown as Window & typeof globalThis);
+    stubNestedAppAuthBridge();
 
     expect(isNestedAppAuthBridgePresent()).toBe(true);
     await expect(checkNaaBrokerAvailable()).resolves.toBe(true);
@@ -51,16 +61,12 @@ describe("isNestedAppAuthBridgePresent", () => {
 describe("acquireMicrosoftTokens", () => {
   afterEach(() => {
     vi.clearAllMocks();
-    vi.unstubAllGlobals();
+    clearNestedAppAuthBridge();
+    resetNestableMsalInstance();
   });
 
   it("falls back to popup when silent fails with ServerError", async () => {
-    vi.stubGlobal("window", {
-      nestedAppAuthBridge: {
-        postMessage: vi.fn(),
-        addEventListener: vi.fn(),
-      },
-    } as unknown as Window & typeof globalThis);
+    stubNestedAppAuthBridge();
 
     acquireTokenSilent.mockRejectedValue({
       name: "ServerError",
@@ -80,12 +86,7 @@ describe("acquireMicrosoftTokens", () => {
   });
 
   it("falls back to popup when silent fails with InteractionRequiredAuthError", async () => {
-    vi.stubGlobal("window", {
-      nestedAppAuthBridge: {
-        postMessage: vi.fn(),
-        addEventListener: vi.fn(),
-      },
-    } as unknown as Window & typeof globalThis);
+    stubNestedAppAuthBridge();
 
     acquireTokenSilent.mockRejectedValue(
       new InteractionRequiredAuthError("interaction_required"),

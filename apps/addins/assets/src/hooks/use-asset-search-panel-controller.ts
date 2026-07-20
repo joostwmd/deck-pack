@@ -29,6 +29,7 @@ export interface AssetSearchPanelProps {
   search: (query: string) => Promise<AssetListItem[]>;
   getDetails: (id: string) => Promise<AssetDetailsResponse>;
   getInsertionMetadata?: (details: AssetDetailsResponse, variantId: string) => Record<string, string>;
+  supportsInternalFilter?: boolean;
 }
 
 export function useAssetSearchPanelController({
@@ -42,8 +43,9 @@ export function useAssetSearchPanelController({
   search,
   getDetails,
   getInsertionMetadata,
+  supportsInternalFilter = false,
 }: AssetSearchPanelProps): AssetSearchPanelViewProps {
-  const flow = useAssetSearchFlow({ search, getDetails });
+  const flow = useAssetSearchFlow({ search, getDetails, supportsInternalFilter });
   const insertionStrategy = useInsertionStrategy();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchResultsId = useId();

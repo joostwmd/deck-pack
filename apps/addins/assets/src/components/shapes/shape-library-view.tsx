@@ -1,5 +1,7 @@
 import { Shapes } from "@phosphor-icons/react";
 
+import { FiltersPopover } from "@/components/asset-browser/filters-popover";
+import { InternalOnlyFilterField } from "@/components/asset-browser/internal-only-filter-field";
 import { AssetBrowserShell } from "@/components/asset-browser/asset-browser-shell";
 import { EmptyState } from "@/components/asset-browser/empty-state";
 import { ErrorState } from "@/components/asset-browser/error-state";
@@ -42,11 +44,26 @@ export function ShapeLibraryView({ controller }: ShapeLibraryViewProps) {
         />
       }
       toolbar={
-        <ShapeCategoryTabs
-          categories={flow.facets.categories}
-          activeCategory={flow.category}
-          onChange={flow.updateCategory}
-        />
+        <div className="flex items-center gap-2">
+          <div className="min-w-0 flex-1">
+            <ShapeCategoryTabs
+              categories={flow.facets.categories}
+              activeCategory={flow.category}
+              onChange={flow.updateCategory}
+            />
+          </div>
+          <FiltersPopover
+            activeFilterCount={flow.internalOnly ? 1 : 0}
+            ariaLabel="Open shape filters"
+            onClearAll={() => flow.updateInternalOnly(false)}
+          >
+            <InternalOnlyFilterField
+              id="shape-internal-only-filter"
+              checked={flow.internalOnly}
+              onCheckedChange={flow.updateInternalOnly}
+            />
+          </FiltersPopover>
+        </div>
       }
       results={
         <>
@@ -63,6 +80,7 @@ export function ShapeLibraryView({ controller }: ShapeLibraryViewProps) {
               <p className="text-xs text-muted-foreground">
                 {flow.total.toLocaleString()} shapes
                 {flow.category ? ` · ${flow.category}` : ""}
+                {flow.internalOnly ? " · internal only" : ""}
               </p>
               <ShapeGrid
                 shapes={flow.results}

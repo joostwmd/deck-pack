@@ -10,9 +10,12 @@ import {
 import {
   attachFileToLibraryItem,
   createGlobalLibraryItem,
+  createOrgLibraryItem,
   insertLibraryFile,
   setGlobalLibraryItemStatus,
+  setOrgLibraryItemStatus,
 } from "@deck-pack/db/queries/libraryAdmin";
+import { organization } from "@deck-pack/db/schema/auth";
 import { ensureMigrationsApplied } from "@deck-pack/db/test-utils/ensure-migrations";
 import { tx } from "@deck-pack/db/transaction";
 
@@ -192,5 +195,89 @@ describe("library discovery (integration)", () => {
 
     const details = await getReadyFlagDetails({ tx, id: created.id });
     expect(details?.variants).toHaveLength(3);
+  });
+
+  it("merges global and org shapes for an organization and exposes scope", async () => {
+    const orgId = crypto.randomUUID();
+    const now = new Date();
+
+    await tx.insert(organization).values({
+      id: orgId,
+      name: "Team Org",
+      slug: `team-${orgId.slice(0, 8)}`,
+      createdAt: now,
+      metadata: JSON.stringify({ type: "team" }),
+    });
+
+    async function seedReadyShape(
+      displayName: string,
+      scope: "global" | "org",
+    ): Promise<{ id: string }> {
+      const created =
+        scope === "global"
+          ? await createGlobalLibraryItem({
+              tx,
+              input: {
+                assetClass: "shape",
+                displayName,
+                category: "Arrows",
+                createdByUserId: null,
+              },
+            })
+          : await createOrgLibraryItem({
+              tx,
+              input: {
+                organizationId: orgId,
+                assetClass: "shape",
+                displayName,
+                category: "Arrows",
+                createdByUserId: null,
+              },
+            });
+
+      const svgFile = await insertLibraryFile({
+        tx,
+        blobPath: `${scope}/shape/${created.id}/shape.svg`,
+        contentType: "image/svg+xml",
+        byteSize: 10,
+      });
+      await attachFileToLibraryItem({
+        tx,
+        libraryItemId: created.id,
+        role: "svg",
+        fileId: svgFile.id,
+      });
+
+      if (scope === "global") {
+        await setGlobalLibraryItemStatus({ tx, id: created.id, status: "ready" });
+      } else {
+        await setOrgLibraryItemStatus({
+          tx,
+          organizationId: orgId,
+          id: created.id,
+          status: "ready",
+        });
+      }
+
+      return created;
+    }
+
+    const globalShape = await seedReadyShape("Global Arrow", "global");
+    const orgShape = await seedReadyShape("Internal Arrow", "org");
+
+    const merged = await searchReadyShapes({ tx, organizationId: orgId });
+    expect(merged).toHaveLength(2);
+    expect(merged.map((row) => row.id).sort()).toEqual([globalShape.id, orgShape.id].sort());
+    expect(merged.find((row) => row.id === globalShape.id)?.scope).toBe("global");
+    expect(merged.find((row) => row.id === orgShape.id)?.scope).toBe("org");
+
+    const internalOnly = await searchReadyShapes({
+      tx,
+      organizationId: orgId,
+      internalOnly: true,
+    });
+    expect(internalOnly).toHaveLength(1);
+    expect(internalOnly[0]?.id).toBe(orgShape.id);
+    expect(internalOnly[0]?.scope).toBe("org");
   });
 });

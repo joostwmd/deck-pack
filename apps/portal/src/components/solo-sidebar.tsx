@@ -10,26 +10,32 @@ import {
   SidebarMenuItem,
 } from "@deck-pack/ui/components/system/sidebar";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { UserCircle } from "@phosphor-icons/react";
+import { CreditCard, UserCircle } from "@phosphor-icons/react";
+import type { Icon } from "@phosphor-icons/react";
 
-import { INDIVIDUAL_NAV_ITEMS, isPortalNavItemActive, type IndividualNavRoute } from "@/config/portal-nav";
+import {
+  SOLO_NAV_ITEMS,
+  isPortalNavItemActive,
+  type SoloNavRoute,
+} from "@/config/portal-nav";
 
-const NAV_ICONS: Record<IndividualNavRoute, typeof UserCircle> = {
-  "/account": UserCircle,
+const NAV_ICONS: Record<SoloNavRoute, Icon> = {
+  "/solo/subscription": CreditCard,
+  "/solo/account": UserCircle,
 };
 
-export function IndividualSidebar() {
+export function SoloSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   return (
     <Sidebar>
-      <SidebarHeader className="p-3 text-sm font-semibold">Personal</SidebarHeader>
+      <SidebarHeader className="p-3 text-sm font-semibold">Solo workspace</SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Your account</SidebarGroupLabel>
+          <SidebarGroupLabel>Billing</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {INDIVIDUAL_NAV_ITEMS.map((item) => {
+              {SOLO_NAV_ITEMS.map((item) => {
                 const Icon = NAV_ICONS[item.to];
                 return (
                   <SidebarMenuItem key={item.to}>

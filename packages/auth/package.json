@@ -11,6 +11,7 @@
     "./microsoft-sign-in": "./src/microsoft-sign-in.ts",
     "./microsoft-naa": "./src/microsoft-naa.ts",
     "./rbac": "./src/rbac.ts",
+    "./workspace": "./src/workspace.ts",
     "./permissions": "./src/permissions.ts"
   },
   "scripts": {

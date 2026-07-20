@@ -6,17 +6,17 @@
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="(Staging) DeckPack"/>
   <Description DefaultValue="Staging version of the DeckPack PowerPoint add-in."/>
-  <IconUrl DefaultValue="https://yellow-tree-08cc84803.7.azurestaticapps.net/assets/icon-32.png"/>
-  <HighResolutionIconUrl DefaultValue="https://yellow-tree-08cc84803.7.azurestaticapps.net/assets/icon-64.png"/>
-  <SupportUrl DefaultValue="https://yellow-tree-08cc84803.7.azurestaticapps.net"/>
+  <IconUrl DefaultValue="https://delightful-stone-022ae5503.7.azurestaticapps.net/assets/icon-32.png"/>
+  <HighResolutionIconUrl DefaultValue="https://delightful-stone-022ae5503.7.azurestaticapps.net/assets/icon-64.png"/>
+  <SupportUrl DefaultValue="https://delightful-stone-022ae5503.7.azurestaticapps.net"/>
   <AppDomains>
-    <AppDomain>https://yellow-tree-08cc84803.7.azurestaticapps.net</AppDomain>
+    <AppDomain>https://delightful-stone-022ae5503.7.azurestaticapps.net</AppDomain>
   </AppDomains>
   <Hosts>
     <Host Name="Presentation"/>
   </Hosts>
   <DefaultSettings>
-    <SourceLocation DefaultValue="https://yellow-tree-08cc84803.7.azurestaticapps.net/index.html"/>
+    <SourceLocation DefaultValue="https://delightful-stone-022ae5503.7.azurestaticapps.net/index.html"/>
   </DefaultSettings>
   <Permissions>ReadWriteDocument</Permissions>
   <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
@@ -62,14 +62,14 @@
     </Hosts>
     <Resources>
       <bt:Images>
-        <bt:Image id="Icon.16x16" DefaultValue="https://yellow-tree-08cc84803.7.azurestaticapps.net/assets/icon-16.png"/>
-        <bt:Image id="Icon.32x32" DefaultValue="https://yellow-tree-08cc84803.7.azurestaticapps.net/assets/icon-32.png"/>
-        <bt:Image id="Icon.80x80" DefaultValue="https://yellow-tree-08cc84803.7.azurestaticapps.net/assets/icon-80.png"/>
+        <bt:Image id="Icon.16x16" DefaultValue="https://delightful-stone-022ae5503.7.azurestaticapps.net/assets/icon-16.png"/>
+        <bt:Image id="Icon.32x32" DefaultValue="https://delightful-stone-022ae5503.7.azurestaticapps.net/assets/icon-32.png"/>
+        <bt:Image id="Icon.80x80" DefaultValue="https://delightful-stone-022ae5503.7.azurestaticapps.net/assets/icon-80.png"/>
       </bt:Images>
       <bt:Urls>
-        <bt:Url id="GetStarted.LearnMoreUrl" DefaultValue="https://yellow-tree-08cc84803.7.azurestaticapps.net"/>
-        <bt:Url id="Commands.Url" DefaultValue="https://yellow-tree-08cc84803.7.azurestaticapps.net/index.html"/>
-        <bt:Url id="Taskpane.Url" DefaultValue="https://yellow-tree-08cc84803.7.azurestaticapps.net/index.html"/>
+        <bt:Url id="GetStarted.LearnMoreUrl" DefaultValue="https://delightful-stone-022ae5503.7.azurestaticapps.net"/>
+        <bt:Url id="Commands.Url" DefaultValue="https://delightful-stone-022ae5503.7.azurestaticapps.net/index.html"/>
+        <bt:Url id="Taskpane.Url" DefaultValue="https://delightful-stone-022ae5503.7.azurestaticapps.net/index.html"/>
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="GetStarted.Title" DefaultValue="Get started with DeckPack"/>

@@ -1,5 +1,12 @@
 import { relations } from "drizzle-orm";
-import { pgTable, text, timestamp, boolean, index, uniqueIndex } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  timestamp,
+  boolean,
+  index,
+  uniqueIndex,
+} from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -35,6 +42,7 @@ export const session = pgTable(
       .references(() => user.id, { onDelete: "cascade" }),
     impersonatedBy: text("impersonated_by"),
     activeOrganizationId: text("active_organization_id"),
+    workspace: text("workspace", { enum: ["solo", "team"] }),
   },
   (table) => [index("session_userId_idx").on(table.userId)],
 );
@@ -102,7 +110,7 @@ export const member = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
-    role: text("role").default("organizationMember").notNull(),
+    role: text("role").default("member").notNull(),
     createdAt: timestamp("created_at").notNull(),
   },
   (table) => [

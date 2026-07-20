@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, or, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 import type { Transaction } from "../transaction";
@@ -24,6 +24,27 @@ const flagPreviewFiles = alias(files, "disc_flag_preview_files");
 
 function normalizeName(value: string): string {
   return value.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function discoveryScopeFilter({
+  organizationId,
+  internalOnly,
+}: {
+  organizationId?: string | null;
+  internalOnly?: boolean;
+}) {
+  if (internalOnly && organizationId) {
+    return and(eq(libraryItems.scope, "org"), eq(libraryItems.organizationId, organizationId));
+  }
+
+  if (organizationId) {
+    return or(
+      eq(libraryItems.scope, "global"),
+      and(eq(libraryItems.scope, "org"), eq(libraryItems.organizationId, organizationId)),
+    );
+  }
+
+  return eq(libraryItems.scope, "global");
 }
 
 async function loadAliasesByItemId(
@@ -81,6 +102,7 @@ export type ReadyShapeRow = {
   id: string;
   displayName: string;
   category: ShapeCategory;
+  scope: "global" | "org";
   createdAt: Date;
   updatedAt: Date;
   svgBlobPath: string;
@@ -90,13 +112,17 @@ export type ReadyShapeRow = {
 export async function searchReadyShapes({
   tx,
   category,
+  organizationId,
+  internalOnly,
 }: {
   tx: Transaction;
   category?: ShapeCategory;
+  organizationId?: string | null;
+  internalOnly?: boolean;
 }): Promise<ReadyShapeRow[]> {
   const filters = [
     eq(libraryItems.assetClass, "shape"),
-    eq(libraryItems.scope, "global"),
+    discoveryScopeFilter({ organizationId, internalOnly }),
     eq(libraryItems.status, "ready"),
     sql`${shapeItems.svgFileId} IS NOT NULL`,
   ];
@@ -108,6 +134,7 @@ export async function searchReadyShapes({
     .select({
       id: libraryItems.id,
       displayName: libraryItems.displayName,
+      scope: libraryItems.scope,
       category: shapeItems.category,
       createdAt: libraryItems.createdAt,
       updatedAt: libraryItems.updatedAt,
@@ -126,6 +153,7 @@ export type ReadySlideRow = {
   displayName: string;
   category: SlideCategory;
   aspectRatio: SlideAspectRatio;
+  scope: "global" | "org";
   createdAt: Date;
   updatedAt: Date;
   thumbnailBlobPath: string;
@@ -217,6 +245,8 @@ export async function searchReadySlides({
   tags,
   aspectRatio,
   sort = "relevance",
+  organizationId,
+  internalOnly,
 }: {
   tx: Transaction;
   query?: string;
@@ -224,10 +254,12 @@ export async function searchReadySlides({
   tags?: string[];
   aspectRatio?: SlideAspectRatio;
   sort?: SlideDiscoverySort;
+  organizationId?: string | null;
+  internalOnly?: boolean;
 }): Promise<ReadySlideRow[]> {
   const filters = [
     eq(libraryItems.assetClass, "slide"),
-    eq(libraryItems.scope, "global"),
+    discoveryScopeFilter({ organizationId, internalOnly }),
     eq(libraryItems.status, "ready"),
     sql`${slideItems.presentationFileId} IS NOT NULL`,
     sql`${slideItems.thumbnailFileId} IS NOT NULL`,
@@ -239,6 +271,7 @@ export async function searchReadySlides({
     .select({
       id: libraryItems.id,
       displayName: libraryItems.displayName,
+      scope: libraryItems.scope,
       category: slideItems.category,
       aspectRatio: slideItems.aspectRatio,
       createdAt: libraryItems.createdAt,
@@ -264,6 +297,7 @@ export async function searchReadySlides({
 
   const withAliases: ReadySlideRow[] = baseRows.map((row) => ({
     ...row,
+    scope: row.scope as "global" | "org",
     aliases: aliasesByItem.get(row.id) ?? [],
   }));
 
@@ -280,29 +314,41 @@ export async function searchReadySlides({
 }
 
 /** All ready slides (for facet building) — same file requirements as search. */
-export async function listAllReadySlides({ tx }: { tx: Transaction }): Promise<ReadySlideRow[]> {
-  return searchReadySlides({ tx });
+export async function listAllReadySlides({
+  tx,
+  organizationId,
+}: {
+  tx: Transaction;
+  organizationId?: string | null;
+}): Promise<ReadySlideRow[]> {
+  return searchReadySlides({ tx, organizationId });
 }
 
 export type ReadyFlagSearchRow = {
   id: string;
   displayName: string;
   code: string;
+  scope: "global" | "org";
   previewBlobPath: string;
 };
 
 export async function searchReadyFlags({
   tx,
   query,
+  organizationId,
+  internalOnly,
 }: {
   tx: Transaction;
   query?: string;
+  organizationId?: string | null;
+  internalOnly?: boolean;
 }): Promise<ReadyFlagSearchRow[]> {
   const rows = await tx
     .select({
       id: libraryItems.id,
       displayName: libraryItems.displayName,
       code: flagItems.code,
+      scope: libraryItems.scope,
       previewBlobPath: flagPreviewFiles.blobPath,
     })
     .from(libraryItems)
@@ -318,7 +364,7 @@ export async function searchReadyFlags({
     .where(
       and(
         eq(libraryItems.assetClass, "flag"),
-        eq(libraryItems.scope, "global"),
+        discoveryScopeFilter({ organizationId, internalOnly }),
         eq(libraryItems.status, "ready"),
       ),
     )
@@ -355,9 +401,11 @@ export type ReadyFlagDetailsRow = {
 export async function getReadyFlagDetails({
   tx,
   id,
+  organizationId,
 }: {
   tx: Transaction;
   id: string;
+  organizationId?: string | null;
 }): Promise<ReadyFlagDetailsRow | null> {
   const [item] = await tx
     .select({
@@ -366,12 +414,13 @@ export async function getReadyFlagDetails({
       status: libraryItems.status,
       assetClass: libraryItems.assetClass,
       scope: libraryItems.scope,
+      organizationId: libraryItems.organizationId,
     })
     .from(libraryItems)
     .where(
       and(
         eq(libraryItems.id, id),
-        eq(libraryItems.scope, "global"),
+        discoveryScopeFilter({ organizationId }),
         eq(libraryItems.status, "ready"),
         eq(libraryItems.assetClass, "flag"),
       ),

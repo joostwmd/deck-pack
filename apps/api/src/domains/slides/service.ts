@@ -28,8 +28,12 @@ export function createSlideService(deps: SlideServiceDeps) {
   return {
     search: async (
       tx: Transaction,
-      input: z.infer<typeof slideSearchInputSchema>,
+      input: z.infer<typeof slideSearchInputSchema> & { organizationId?: string | null },
     ): Promise<z.infer<typeof slideSearchResponseSchema>> => {
+      const discoveryInput = {
+        organizationId: input.organizationId,
+        internalOnly: input.internalOnly,
+      };
       const [filteredRows, allRows] = await Promise.all([
         searchReadySlides({
           tx,
@@ -38,8 +42,9 @@ export function createSlideService(deps: SlideServiceDeps) {
           tags: input.tags,
           aspectRatio: input.aspectRatio,
           sort: input.sort,
+          ...discoveryInput,
         }),
-        listAllReadySlides({ tx }),
+        listAllReadySlides({ tx, organizationId: input.organizationId }),
       ]);
 
       const results: z.infer<typeof slideSearchResponseSchema>["results"] = [];
@@ -58,6 +63,7 @@ export function createSlideService(deps: SlideServiceDeps) {
           category: row.category,
           tags: row.aliases,
           aspectRatio: row.aspectRatio,
+          scope: row.scope,
           createdAt: row.createdAt.toISOString(),
         });
       }

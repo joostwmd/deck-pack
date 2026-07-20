@@ -5,7 +5,7 @@ terraform {
   # apply. Everything else identical to prod/database/versions.tf.
   backend "azurerm" {
     resource_group_name  = "rg-deck-pack-tfstate"
-    storage_account_name = "stdeckpacktfstatejw"
+    storage_account_name = "stdeckpacktfstatedpc"
     container_name       = "tfstate"
     key                  = "staging-database.tfstate"
     use_azuread_auth     = true

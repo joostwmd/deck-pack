@@ -92,16 +92,16 @@ describe("bearer session transport", () => {
     expect(cookieSession?.user.email).toBe(fixture.email);
 
     const app = createApp();
+    const allowedOrigin = process.env.CORS_ORIGINS!.split(",")[0]!.trim();
     const response = await app.request("/api/auth/get-session", {
       headers: {
         Cookie: fixture.cookieHeader,
+        Origin: allowedOrigin,
       },
     });
 
     expect(response.status).toBe(200);
-    expect(response.headers.get("Access-Control-Allow-Origin")).toBe(
-      process.env.CORS_ORIGINS!.split(",")[0]!.trim(),
-    );
+    expect(response.headers.get("Access-Control-Allow-Origin")).toBe(allowedOrigin);
     const body = (await response.json()) as { user?: { email?: string } } | null;
     expect(body?.user?.email).toBe(fixture.email);
   });

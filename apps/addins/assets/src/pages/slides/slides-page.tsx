@@ -12,6 +12,7 @@ export function SlidesPage() {
           category: filters.category,
           tags: filters.tags,
           aspectRatio: filters.aspectRatio,
+          internalOnly: filters.internalOnly,
           sort,
         })
       }

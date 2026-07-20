@@ -13,7 +13,7 @@ export function AccountView({ email, apiMessage, addinOnly }: AccountViewProps) 
       description={
         addinOnly
           ? "Your organization access is through the DeckPack add-in in PowerPoint."
-          : `${email ?? "—"} · individual workspace`
+          : `${email ?? "—"} · solo workspace`
       }
     >
       {addinOnly ? (

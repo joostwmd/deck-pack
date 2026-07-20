@@ -6,6 +6,7 @@ export const portalMemberRoleSchema = z.enum([
   ORGANIZATION_ROLES.admin,
   ORGANIZATION_ROLES.member,
   ORGANIZATION_ROLES.addinUser,
+  ORGANIZATION_ROLES.libraryManager,
 ]);
 
 export const memberListEntrySchema = z.object({

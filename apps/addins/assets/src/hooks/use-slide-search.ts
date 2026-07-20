@@ -163,7 +163,8 @@ export function useSlideSearch(
   const activeFilterCount =
     (filters.category ? 1 : 0) +
     (filters.aspectRatio ? 1 : 0) +
-    (filters.tags?.length ?? 0);
+    (filters.tags?.length ?? 0) +
+    (filters.internalOnly ? 1 : 0);
 
   return {
     queryInput,

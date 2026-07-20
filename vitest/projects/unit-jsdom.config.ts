@@ -44,6 +44,10 @@ export default defineConfig({
     name: "unit-jsdom",
     root: repoRoot,
     environment: "jsdom",
+    // Required by `@deck-pack/env/web` when add-in modules import createEnv at load time.
+    env: {
+      VITE_SERVER_URL: "http://localhost:3000",
+    },
     include: [
       "tests/addins/**/*.test.ts",
       "tests/addins/**/*.test.tsx",

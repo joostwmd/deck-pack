@@ -1,3 +1,4 @@
+import { Badge } from "@deck-pack/ui/components/system/badge";
 import { Button } from "@deck-pack/ui/components/system/button";
 import {
   Table,
@@ -18,6 +19,7 @@ export type OrganizationsListViewProps = {
     slug: string;
     createdAt: Date;
     ownerEmail: string | null;
+    type: "individual" | "team" | null;
   }>;
 };
 
@@ -48,6 +50,7 @@ export function OrganizationsListView({
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
+                <TableHead>Type</TableHead>
                 <TableHead>Slug</TableHead>
                 <TableHead>Owner email</TableHead>
                 <TableHead>Created</TableHead>
@@ -56,7 +59,7 @@ export function OrganizationsListView({
             <TableBody>
               {organizations.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-muted-foreground h-24 text-center">
+                  <TableCell colSpan={5} className="text-muted-foreground h-24 text-center">
                     No organizations yet. Create one to get started.
                   </TableCell>
                 </TableRow>
@@ -71,6 +74,9 @@ export function OrganizationsListView({
                       >
                         {org.name}
                       </Link>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">{org.type ?? "unknown"}</Badge>
                     </TableCell>
                     <TableCell className="text-muted-foreground">{org.slug}</TableCell>
                     <TableCell>{org.ownerEmail ?? "—"}</TableCell>

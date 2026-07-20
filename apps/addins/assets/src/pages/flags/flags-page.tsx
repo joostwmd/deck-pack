@@ -15,8 +15,9 @@ export function FlagsPage() {
       icon={Flag}
       noResultsDescription="Try searching for a different country name or code."
       noVariantsDescription="This flag has no variants."
-      search={(query) => assets.flags.search(query)}
+      search={(query, options) => assets.flags.search(query, options)}
       getDetails={(id) => assets.flags.getDetails(id)}
+      supportsInternalFilter
     />
   );
 }

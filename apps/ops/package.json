@@ -14,6 +14,7 @@
     "@deck-pack/api": "workspace:*",
     "@deck-pack/auth": "workspace:*",
     "@deck-pack/db": "workspace:*",
+    "@deck-pack/library-admin": "workspace:*",
     "@deck-pack/env": "workspace:*",
     "@deck-pack/observability": "workspace:*",
     "@deck-pack/trpc-client": "workspace:*",

@@ -6,12 +6,19 @@ import { isPlatformAdmin } from "./guards/authorization";
 import { requirePermission } from "./guards/authorization";
 import { assertActiveSeat } from "./guards/active-seat";
 import { requireActiveOrganizationId } from "./guards/org-context";
+import { requireSoloWorkspace, requireTeamWorkspace } from "./guards/org-type";
 
 export const publicProcedure = t.procedure.use(errorMapperMiddleware);
 
 export const protectedProcedure = publicProcedure.use(isAuthenticated);
 
 export const organizationMemberProcedure = protectedProcedure.use(isOrganizationMember);
+
+/** Org member in a team workspace (members, seats assign, org library, etc.). */
+export const teamWorkspaceProcedure = organizationMemberProcedure.use(requireTeamWorkspace);
+
+/** Org member in a solo (individual) workspace. */
+export const soloWorkspaceProcedure = organizationMemberProcedure.use(requireSoloWorkspace);
 
 /** Add-in procedures that require an active named seat. */
 export const addinLicensedProcedure = organizationMemberProcedure

@@ -1,6 +1,11 @@
 import { createAuthClient as createReactAuthClient } from "better-auth/react";
-import { adminClient, emailOTPClient, organizationClient } from "better-auth/client/plugins";
-import { ac, organizationOwner, organizationAdmin, organizationMember, organizationAddinUser } from "./utils/rbac";
+import {
+  adminClient,
+  emailOTPClient,
+  inferAdditionalFields,
+  organizationClient,
+} from "better-auth/client/plugins";
+import { ac, organizationOwner, organizationAdmin, organizationMember, organizationAddinUser, organizationLibraryManager } from "./utils/rbac";
 
 export type BearerSessionStore = {
   getToken: () => string | null;
@@ -38,7 +43,14 @@ export function createAuthClient(config: AuthClientOptions) {
       adminClient(),
       organizationClient({
         ac,
-        roles: { organizationOwner, organizationAdmin, organizationMember, organizationAddinUser },
+        roles: { organizationOwner, organizationAdmin, organizationMember, organizationAddinUser, organizationLibraryManager },
+      }),
+      inferAdditionalFields({
+        session: {
+          workspace: {
+            type: ["solo", "team"],
+          },
+        },
       }),
     ],
     fetchOptions: bearerStore

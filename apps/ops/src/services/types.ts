@@ -35,6 +35,7 @@ export type OrganizationSummary = {
   slug: string;
   createdAt: Date;
   ownerEmail: string | null;
+  type: "individual" | "team" | null;
 };
 
 export type OrganizationDetail = OrganizationSummary & {
@@ -81,7 +82,14 @@ export interface OrganizationStore {
     organizationId: string;
     name: string;
     slug: string;
-  }) => Promise<{ id: string; name: string; slug: string; createdAt: Date }>;
+    type?: "individual" | "team";
+  }) => Promise<{
+    id: string;
+    name: string;
+    slug: string;
+    createdAt: Date;
+    type: "individual" | "team" | null;
+  }>;
   deleteOrganization: (organizationId: string) => Promise<{ organizationId: string }>;
 }
 

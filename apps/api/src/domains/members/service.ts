@@ -11,6 +11,10 @@ import type { listOrganizationMembers } from "@deck-pack/db/queries/listOrganiza
 import type { listPendingInvitations } from "@deck-pack/db/queries/listPendingInvitations";
 import type { removeOrganizationMember } from "@deck-pack/db/queries/removeOrganizationMember";
 import type { updateOrganizationMemberRole } from "@deck-pack/db/queries/updateOrganizationMemberRole";
+import type { getOrganizationMetadataById } from "@deck-pack/db/queries/getOrganizationMetadataById";
+import type { getActiveOrganizationSubscriptionByOrgId } from "@deck-pack/db/queries/getActiveOrganizationSubscriptionByOrgId";
+import type { getPlan } from "@deck-pack/db/queries/getPlan";
+import { workspaceFromOrganizationType } from "@deck-pack/auth/workspace";
 
 export type MemberListEntry = {
   kind: "member" | "invitation";
@@ -32,6 +36,9 @@ export type MembersServiceDeps = {
   removeOrganizationMember: typeof removeOrganizationMember;
   cancelInvitation: typeof cancelInvitation;
   assignOrganizationSeat: typeof assignOrganizationSeat;
+  getOrganizationMetadataById: typeof getOrganizationMetadataById;
+  getActiveOrganizationSubscriptionByOrgId: typeof getActiveOrganizationSubscriptionByOrgId;
+  getPlan: typeof getPlan;
 };
 
 export function createMembersService(deps: MembersServiceDeps) {
@@ -234,6 +241,37 @@ export function createMembersService(deps: MembersServiceDeps) {
       }
 
       return serviceOk({ invitationId: input.invitationId });
+    },
+
+    getOrganizationProfile: async (tx: Transaction, organizationId: string) => {
+      const org = await deps.getOrganizationMetadataById({ tx, organizationId });
+      if (!org) {
+        return serviceFail("not_found", { message: "Organization not found" });
+      }
+
+      const subscription = await deps.getActiveOrganizationSubscriptionByOrgId({
+        tx,
+        organizationId,
+      });
+
+      let plan: { id: string; name: string; slug: string; quantity: number } | null = null;
+      if (subscription) {
+        const planRow = await deps.getPlan({ tx, planId: subscription.planId });
+        if (planRow) {
+          plan = {
+            id: planRow.id,
+            name: planRow.name,
+            slug: planRow.slug,
+            quantity: subscription.quantity,
+          };
+        }
+      }
+
+      return serviceOk({
+        type: org.type,
+        workspace: workspaceFromOrganizationType(org.type),
+        plan,
+      });
     },
   };
 }

@@ -167,17 +167,28 @@ export async function listGlobalLibraryItems({
   });
 }
 
-export async function getGlobalLibraryItem({
+async function getLibraryItemDetail({
   tx,
   id,
+  scopeFilter,
 }: {
   tx: Transaction;
   id: string;
+  scopeFilter?: { scope: "global" } | { scope: "org"; organizationId: string };
 }): Promise<LibraryItemDetail | null> {
+  const conditions = [eq(libraryItems.id, id)];
+  if (scopeFilter?.scope === "global") {
+    conditions.push(eq(libraryItems.scope, "global"));
+  }
+  if (scopeFilter?.scope === "org") {
+    conditions.push(eq(libraryItems.scope, "org"));
+    conditions.push(eq(libraryItems.organizationId, scopeFilter.organizationId));
+  }
+
   const [item] = await tx
     .select()
     .from(libraryItems)
-    .where(and(eq(libraryItems.id, id), eq(libraryItems.scope, "global")))
+    .where(and(...conditions))
     .limit(1);
 
   if (!item) return null;
@@ -266,6 +277,127 @@ export async function getGlobalLibraryItem({
     shape,
     slide,
   };
+}
+
+export async function getGlobalLibraryItem({
+  tx,
+  id,
+}: {
+  tx: Transaction;
+  id: string;
+}): Promise<LibraryItemDetail | null> {
+  return getLibraryItemDetail({ tx, id, scopeFilter: { scope: "global" } });
+}
+
+export async function getOrgLibraryItem({
+  tx,
+  id,
+  organizationId,
+}: {
+  tx: Transaction;
+  id: string;
+  organizationId: string;
+}): Promise<LibraryItemDetail | null> {
+  return getLibraryItemDetail({ tx, id, scopeFilter: { scope: "org", organizationId } });
+}
+
+async function listLibraryItemsByScope({
+  tx,
+  assetClass,
+  includeArchived = false,
+  scopeFilter,
+}: {
+  tx: Transaction;
+  assetClass: LibraryAssetClass;
+  includeArchived?: boolean;
+  scopeFilter: { scope: "global" } | { scope: "org"; organizationId: string };
+}): Promise<LibraryListItem[]> {
+  const filters = [eq(libraryItems.assetClass, assetClass), eq(libraryItems.scope, scopeFilter.scope)];
+  if (scopeFilter.scope === "org") {
+    filters.push(eq(libraryItems.organizationId, scopeFilter.organizationId));
+  }
+  if (!includeArchived) {
+    filters.push(ne(libraryItems.status, "archived"));
+  }
+
+  const rows = await tx
+    .select({
+      id: libraryItems.id,
+      assetClass: libraryItems.assetClass,
+      status: libraryItems.status,
+      displayName: libraryItems.displayName,
+      updatedAt: libraryItems.updatedAt,
+      createdAt: libraryItems.createdAt,
+      shapeCategory: shapeItems.category,
+      slideCategory: slideItems.category,
+      aspectRatio: slideItems.aspectRatio,
+      code: flagItems.code,
+      shapeSvgBlobPath: shapeSvgFiles.blobPath,
+      shapeSvgContentType: shapeSvgFiles.contentType,
+      slideThumbBlobPath: slideThumbFiles.blobPath,
+      slideThumbContentType: slideThumbFiles.contentType,
+      flagPreviewBlobPath: flagPreviewFiles.blobPath,
+      flagPreviewContentType: flagPreviewFiles.contentType,
+    })
+    .from(libraryItems)
+    .leftJoin(shapeItems, eq(shapeItems.libraryItemId, libraryItems.id))
+    .leftJoin(shapeSvgFiles, eq(shapeSvgFiles.id, shapeItems.svgFileId))
+    .leftJoin(slideItems, eq(slideItems.libraryItemId, libraryItems.id))
+    .leftJoin(slideThumbFiles, eq(slideThumbFiles.id, slideItems.thumbnailFileId))
+    .leftJoin(flagItems, eq(flagItems.libraryItemId, libraryItems.id))
+    .leftJoin(
+      flagVariants,
+      and(
+        eq(flagVariants.flagItemId, flagItems.libraryItemId),
+        eq(flagVariants.role, "rectangle"),
+      ),
+    )
+    .leftJoin(flagPreviewFiles, eq(flagPreviewFiles.id, flagVariants.fileId))
+    .where(and(...filters))
+    .orderBy(desc(libraryItems.updatedAt), asc(libraryItems.displayName));
+
+  return rows.map((row) => {
+    const previewBlobPath =
+      row.shapeSvgBlobPath ?? row.slideThumbBlobPath ?? row.flagPreviewBlobPath ?? null;
+    const previewContentType =
+      row.shapeSvgContentType ??
+      row.slideThumbContentType ??
+      row.flagPreviewContentType ??
+      null;
+
+    return {
+      id: row.id,
+      assetClass: row.assetClass,
+      status: row.status,
+      displayName: row.displayName,
+      updatedAt: row.updatedAt,
+      createdAt: row.createdAt,
+      category: row.shapeCategory ?? row.slideCategory ?? null,
+      code: row.code ?? null,
+      aspectRatio: row.aspectRatio ?? null,
+      previewBlobPath,
+      previewContentType,
+    };
+  });
+}
+
+export async function listOrgLibraryItems({
+  tx,
+  organizationId,
+  assetClass,
+  includeArchived = false,
+}: {
+  tx: Transaction;
+  organizationId: string;
+  assetClass: LibraryAssetClass;
+  includeArchived?: boolean;
+}): Promise<LibraryListItem[]> {
+  return listLibraryItemsByScope({
+    tx,
+    assetClass,
+    includeArchived,
+    scopeFilter: { scope: "org", organizationId },
+  });
 }
 
 export type CreateGlobalLibraryItemInput = {
@@ -378,7 +510,7 @@ export async function updateGlobalLibraryItemMetadata({
   category?: ShapeCategory | SlideCategory;
   aspectRatio?: SlideAspectRatio;
 }): Promise<"ok" | "not_found" | "archived"> {
-  const detail = await getGlobalLibraryItem({ tx, id });
+  const detail = await getLibraryItemDetail({ tx, id });
   if (!detail) return "not_found";
   if (detail.status === "archived") return "archived";
 
@@ -499,7 +631,7 @@ export async function attachFileToLibraryItem({
   role: "svg" | "presentation" | "thumbnail" | FlagVariantRole;
   fileId: string;
 }): Promise<"ok" | "not_found" | "invalid_role"> {
-  const item = await getGlobalLibraryItem({ tx, id: libraryItemId });
+  const item = await getLibraryItemDetail({ tx, id: libraryItemId });
   if (!item) return "not_found";
 
   if (item.assetClass === "shape") {
@@ -583,4 +715,156 @@ export function isLibraryItemPublishable(detail: LibraryItemDetail): {
     if (!detail.slide?.thumbnailFile) missing.push("thumbnail");
   }
   return { ok: missing.length === 0, missing };
+}
+
+export type CreateOrgLibraryItemInput = CreateGlobalLibraryItemInput & {
+  organizationId: string;
+};
+
+export async function createOrgLibraryItem({
+  tx,
+  input,
+}: {
+  tx: Transaction;
+  input: CreateOrgLibraryItemInput;
+}): Promise<{ id: string }> {
+  const id = crypto.randomUUID();
+  const displayName = input.displayName.trim();
+
+  await tx.insert(libraryItems).values({
+    id,
+    assetClass: input.assetClass,
+    scope: "org",
+    organizationId: input.organizationId,
+    status: "pending",
+    displayName,
+    createdByUserId: input.createdByUserId,
+  });
+
+  await tx.insert(libraryItemNames).values({
+    libraryItemId: id,
+    name: displayName,
+    normalizedName: normalizeName(displayName),
+    kind: "display",
+  });
+
+  for (const alias of input.aliases ?? []) {
+    const trimmed = alias.trim();
+    if (!trimmed || normalizeName(trimmed) === normalizeName(displayName)) continue;
+    await tx.insert(libraryItemNames).values({
+      libraryItemId: id,
+      name: trimmed,
+      normalizedName: normalizeName(trimmed),
+      kind: "alias",
+    });
+  }
+
+  if (input.assetClass === "flag") {
+    const code = (input.flagCode ?? "").trim().toUpperCase();
+    await tx.insert(flagItems).values({ libraryItemId: id, code });
+    if (code) {
+      await tx.insert(libraryItemNames).values({
+        libraryItemId: id,
+        name: code,
+        normalizedName: normalizeName(code),
+        kind: "code",
+      });
+    }
+  }
+
+  if (input.assetClass === "shape") {
+    const category = (SHAPE_CATEGORIES as readonly string[]).includes(input.category ?? "")
+      ? (input.category as ShapeCategory)
+      : SHAPE_CATEGORIES[0];
+    await tx.insert(shapeItems).values({
+      libraryItemId: id,
+      category,
+      svgFileId: null,
+    });
+  }
+
+  if (input.assetClass === "slide") {
+    const category = (SLIDE_CATEGORIES as readonly string[]).includes(input.category ?? "")
+      ? (input.category as SlideCategory)
+      : SLIDE_CATEGORIES[0];
+    const aspectRatio = (SLIDE_ASPECT_RATIOS as readonly string[]).includes(
+      input.aspectRatio ?? "",
+    )
+      ? (input.aspectRatio as SlideAspectRatio)
+      : SLIDE_ASPECT_RATIOS[0];
+    await tx.insert(slideItems).values({
+      libraryItemId: id,
+      category,
+      aspectRatio,
+      presentationFileId: null,
+      thumbnailFileId: null,
+    });
+  }
+
+  return { id };
+}
+
+export async function updateOrgLibraryItemMetadata({
+  tx,
+  id,
+  organizationId,
+  displayName,
+  aliases,
+  flagCode,
+  category,
+  aspectRatio,
+}: {
+  tx: Transaction;
+  id: string;
+  organizationId: string;
+  displayName: string;
+  aliases: string[];
+  flagCode?: string;
+  category?: ShapeCategory | SlideCategory;
+  aspectRatio?: SlideAspectRatio;
+}): Promise<"ok" | "not_found" | "archived"> {
+  const detail = await getOrgLibraryItem({ tx, id, organizationId });
+  if (!detail) return "not_found";
+  if (detail.status === "archived") return "archived";
+
+  return updateGlobalLibraryItemMetadata({
+    tx,
+    id,
+    displayName,
+    aliases,
+    flagCode,
+    category,
+    aspectRatio,
+  });
+}
+
+export async function setOrgLibraryItemStatus({
+  tx,
+  id,
+  organizationId,
+  status,
+}: {
+  tx: Transaction;
+  id: string;
+  organizationId: string;
+  status: LibraryItemStatus;
+}): Promise<"ok" | "not_found"> {
+  const [item] = await tx
+    .select({ id: libraryItems.id })
+    .from(libraryItems)
+    .where(
+      and(
+        eq(libraryItems.id, id),
+        eq(libraryItems.scope, "org"),
+        eq(libraryItems.organizationId, organizationId),
+      ),
+    )
+    .limit(1);
+  if (!item) return "not_found";
+
+  await tx
+    .update(libraryItems)
+    .set({ status, updatedAt: new Date() })
+    .where(eq(libraryItems.id, id));
+  return "ok";
 }

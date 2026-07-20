@@ -16,6 +16,7 @@ export const slideSearchInputSchema = z.object({
   tags: z.array(z.string().trim().min(1)).optional(),
   aspectRatio: slideAspectRatioSchema.optional(),
   sort: slideSortSchema.default("relevance"),
+  internalOnly: z.boolean().optional(),
 });
 
 export const slideSearchResultSchema = z.object({
@@ -26,6 +27,7 @@ export const slideSearchResultSchema = z.object({
   category: slideCategorySchema,
   tags: z.array(z.string()),
   aspectRatio: slideAspectRatioSchema,
+  scope: z.enum(["global", "org"]),
   createdAt: z.string(),
 });
 

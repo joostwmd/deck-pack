@@ -27,6 +27,7 @@ import { updateOrganizationMemberRole } from "@deck-pack/db/queries/updateOrgani
 import { getAgendaInstance } from "@deck-pack/db/queries/getAgendaInstance";
 import { getBrandProfileWithVersion } from "@deck-pack/db/queries/getBrandProfileWithVersion";
 import { getOrganizationSubscription } from "@deck-pack/db/queries/getOrganizationSubscription";
+import { getOrganizationMetadataById } from "@deck-pack/db/queries/getOrganizationMetadataById";
 import { getOrganizationWithOwner } from "@deck-pack/db/queries/getOrganizationWithOwner";
 import { getPlan } from "@deck-pack/db/queries/getPlan";
 import { insertAssetInsertion } from "@deck-pack/db/queries/insertAssetInsertion";
@@ -78,7 +79,9 @@ import { createSlideService } from "../domains/slides/service";
 import { createUsersRoutes } from "../domains/users/routes";
 import { createUsersService } from "../domains/users/service";
 import { createLibraryRoutes } from "../domains/library/routes";
+import { createOrgLibraryRoutes } from "../domains/library/org-routes";
 import { createLibraryService } from "../domains/library/service";
+import { createOrgLibraryService } from "../domains/library/org-service";
 import { systemRoutes } from "../domains/system/routes";
 import {
   createAzureObjectStorage,
@@ -206,9 +209,13 @@ export function createAppRouter(deps: AddinRouterDeps) {
     removeOrganizationMember,
     cancelInvitation,
     assignOrganizationSeat,
+    getOrganizationMetadataById,
+    getActiveOrganizationSubscriptionByOrgId,
+    getPlan,
   });
 
   const libraryService = createLibraryService({ storage });
+  const orgLibraryService = createOrgLibraryService({ storage });
 
   return router({
     ...systemRoutes,
@@ -217,7 +224,10 @@ export function createAppRouter(deps: AddinRouterDeps) {
     seats: router(createSeatsRoutes(seatsService)),
     users: router(createUsersRoutes(usersService)),
     billing: router(createBillingRoutes(billingService)),
-    library: router(createLibraryRoutes(libraryService)),
+    library: router({
+      ...createLibraryRoutes(libraryService),
+      org: router(createOrgLibraryRoutes(orgLibraryService)),
+    }),
     assets: router({
       photos: router(createPhotoRoutes(photoService)),
       slides: router(createSlideRoutes(slideService)),

@@ -1,4 +1,8 @@
 import type { Transaction } from "@deck-pack/db/transaction";
+import {
+  serializeOrganizationMetadata,
+  type OrganizationType,
+} from "@deck-pack/db/org-metadata";
 
 import { serviceFail, serviceOk, type ServiceResult } from "../../api/resilience/service-result";
 
@@ -62,6 +66,7 @@ export function createOrganizationService(deps: OrganizationServiceDeps) {
         ownerEmail: string | null;
         ownerName: string | null;
         memberCount: number;
+        type: OrganizationType | null;
       }>
     > => {
       const row = await deps.getOrganizationWithOwner({
@@ -110,7 +115,7 @@ export function createOrganizationService(deps: OrganizationServiceDeps) {
 
     createOrganization: async (
       tx: Transaction,
-      input: { name: string; slug: string; ownerEmail: string },
+      input: { name: string; slug: string; ownerEmail: string; type?: OrganizationType },
     ): Promise<
       ServiceResult<{
         organizationId: string;
@@ -118,7 +123,15 @@ export function createOrganizationService(deps: OrganizationServiceDeps) {
         isNewUser: boolean;
       }>
     > => {
-      const result = await deps.createOrganizationWithOwner({ tx, input });
+      const result = await deps.createOrganizationWithOwner({
+        tx,
+        input: {
+          ...input,
+          metadata: serializeOrganizationMetadata({
+            type: input.type ?? "team",
+          }),
+        },
+      });
 
       if (!result.ok) {
         if (result.reason === "slug_conflict") {
@@ -141,13 +154,19 @@ export function createOrganizationService(deps: OrganizationServiceDeps) {
 
     updateOrganization: async (
       tx: Transaction,
-      input: { organizationId: string; name: string; slug: string },
+      input: {
+        organizationId: string;
+        name: string;
+        slug: string;
+        type?: OrganizationType;
+      },
     ): Promise<
       ServiceResult<{
         id: string;
         name: string;
         slug: string;
         createdAt: Date;
+        type: OrganizationType | null;
       }>
     > => {
       const result = await deps.updateOrganization({ tx, input });
@@ -159,6 +178,10 @@ export function createOrganizationService(deps: OrganizationServiceDeps) {
           });
         }
 
+        if (result.reason === "invalid_type") {
+          return serviceFail("invalid_input", { message: "Invalid organization type" });
+        }
+
         return serviceFail("not_found", { message: "Organization not found" });
       }
 
@@ -167,6 +190,7 @@ export function createOrganizationService(deps: OrganizationServiceDeps) {
         name: result.name,
         slug: result.slug,
         createdAt: result.createdAt,
+        type: result.type,
       });
     },
 

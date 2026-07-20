@@ -4,7 +4,7 @@ data "terraform_remote_state" "shared_foundation" {
   backend = "azurerm"
   config = {
     resource_group_name  = "rg-deck-pack-tfstate"
-    storage_account_name = "stdeckpacktfstatejw"
+    storage_account_name = "stdeckpacktfstatedpc"
     container_name       = "tfstate"
     key                  = "foundation.tfstate"
     use_azuread_auth     = true
@@ -17,7 +17,7 @@ data "terraform_remote_state" "key_vault" {
   backend = "azurerm"
   config = {
     resource_group_name  = "rg-deck-pack-tfstate"
-    storage_account_name = "stdeckpacktfstatejw"
+    storage_account_name = "stdeckpacktfstatedpc"
     container_name       = "tfstate"
     key                  = "prod-key-vault.tfstate"
     use_azuread_auth     = true
@@ -29,7 +29,7 @@ data "terraform_remote_state" "static_web_apps" {
   backend = "azurerm"
   config = {
     resource_group_name  = "rg-deck-pack-tfstate"
-    storage_account_name = "stdeckpacktfstatejw"
+    storage_account_name = "stdeckpacktfstatedpc"
     container_name       = "tfstate"
     key                  = "prod-static-web-apps.tfstate"
     use_azuread_auth     = true
@@ -42,7 +42,7 @@ data "terraform_remote_state" "storage" {
   backend = "azurerm"
   config = {
     resource_group_name  = "rg-deck-pack-tfstate"
-    storage_account_name = "stdeckpacktfstatejw"
+    storage_account_name = "stdeckpacktfstatedpc"
     container_name       = "tfstate"
     key                  = "prod-storage.tfstate"
     use_azuread_auth     = true

@@ -10,6 +10,8 @@ export type CreateOrganizationWithOwnerInput = {
   name: string;
   slug: string;
   ownerEmail: string;
+  /** Serialized organization metadata JSON, or omit for null. */
+  metadata?: string | null;
 };
 
 export type CreateOrganizationWithOwnerResult =
@@ -97,7 +99,7 @@ export async function createOrganizationWithOwner({
       name: input.name,
       slug,
       createdAt: now,
-      metadata: null,
+      metadata: input.metadata ?? null,
       logo: null,
     });
 

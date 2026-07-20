@@ -5,7 +5,8 @@ import { ShortcutKeys } from "@/components/shortcuts/shortcut-hint";
 import type { useAssetSearchFlow } from "@/hooks/use-asset-search-flow";
 import type { KeyToken, ShortcutDef } from "@/lib/shortcuts";
 
-import { EmptyState } from "./empty-state";
+import { FiltersPopover } from "@/components/asset-browser/filters-popover";
+import { InternalOnlyFilterField } from "@/components/asset-browser/internal-only-filter-field";
 import { ErrorState } from "./error-state";
 import { InsertSection } from "./insert-section";
 import { ScreenHeader } from "./screen-header";
@@ -74,43 +75,61 @@ export function AssetSearchPanelView({
       <ScreenHeader title={`${assetLabel}s`} text={headerText} />
 
       <div className="px-4 pt-4">
-        <SearchSection
-          searchRef={searchInputRef}
-          value={flow.searchValue}
-          onChange={flow.setSearchValue}
-          isSearching={flow.isSearching}
-          placeholder={searchPlaceholder}
-          resultsId={showsSearchResults ? searchResultsId : undefined}
-          activeDescendantId={activeSearchResultId}
-          isExpanded={showsSearchResults}
-          shortcutDefs={searchNavigationShortcutDefs}
-          searchRightSlot={
-            <ShortcutKeys tokens={focusSearchShortcutKeys} className="opacity-70" />
-          }
-        >
-          {!flow.selectedEntity ? (
-            flow.searchError ? (
-              <ErrorState
-                title={`Could not search for ${label}s`}
-                description={flow.searchError}
-                onRetry={flow.retrySearch}
+        <div className="flex items-start gap-2">
+          <div className="min-w-0 flex-1">
+            <SearchSection
+              searchRef={searchInputRef}
+              value={flow.searchValue}
+              onChange={flow.setSearchValue}
+              isSearching={flow.isSearching}
+              placeholder={searchPlaceholder}
+              resultsId={showsSearchResults ? searchResultsId : undefined}
+              activeDescendantId={activeSearchResultId}
+              isExpanded={showsSearchResults}
+              shortcutDefs={searchNavigationShortcutDefs}
+              searchRightSlot={
+                <ShortcutKeys tokens={focusSearchShortcutKeys} className="opacity-70" />
+              }
+            >
+              {!flow.selectedEntity ? (
+                flow.searchError ? (
+                  <ErrorState
+                    title={`Could not search for ${label}s`}
+                    description={flow.searchError}
+                    onRetry={flow.retrySearch}
+                  />
+                ) : flow.results.length > 0 ? (
+                  <SearchResults
+                    id={searchResultsId}
+                    results={flow.results}
+                    highlightedId={flow.highlightedResultId}
+                    onSelect={(id) => void flow.selectEntity(id)}
+                  />
+                ) : flow.hasSearched && !flow.isSearching ? (
+                  <EmptyState
+                    icon={Icon}
+                    title={`No ${label}s found`}
+                    description={noResultsDescription}
+                  />
+                ) : null
+              ) : null}
+            </SearchSection>
+          </div>
+
+          {flow.setInternalOnly ? (
+            <FiltersPopover
+              activeFilterCount={flow.internalOnly ? 1 : 0}
+              ariaLabel={`Open ${label} filters`}
+              onClearAll={() => flow.setInternalOnly?.(false)}
+            >
+              <InternalOnlyFilterField
+                id={`${label}-internal-only-filter`}
+                checked={flow.internalOnly ?? false}
+                onCheckedChange={(checked) => flow.setInternalOnly?.(checked)}
               />
-            ) : flow.results.length > 0 ? (
-              <SearchResults
-                id={searchResultsId}
-                results={flow.results}
-                highlightedId={flow.highlightedResultId}
-                onSelect={(id) => void flow.selectEntity(id)}
-              />
-            ) : flow.hasSearched && !flow.isSearching ? (
-              <EmptyState
-                icon={Icon}
-                title={`No ${label}s found`}
-                description={noResultsDescription}
-              />
-            ) : null
+            </FiltersPopover>
           ) : null}
-        </SearchSection>
+        </div>
       </div>
 
       <div className="flex flex-1 flex-col px-4 pb-4">

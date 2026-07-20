@@ -1,7 +1,10 @@
+export type AssetScope = "global" | "org";
+
 export interface AssetListItem {
   id: string;
   imageUrl: string;
   name: string;
+  scope?: AssetScope;
 }
 
 export interface AssetInsertPayload {

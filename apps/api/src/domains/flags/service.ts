@@ -15,14 +15,17 @@ export type FlagServiceDeps = {
 
 export function createFlagService(deps: FlagServiceDeps) {
   return {
-    search: async (tx: Transaction, query: string) => {
-      const rows = await searchReadyFlags({ tx, query });
-      const withUrls: Array<{
-        id: string;
-        name: string;
-        code: string;
-        previewUrl: string;
-      }> = [];
+    search: async (
+      tx: Transaction,
+      input: { query: string; organizationId?: string | null; internalOnly?: boolean },
+    ) => {
+      const rows = await searchReadyFlags({
+        tx,
+        query: input.query,
+        organizationId: input.organizationId,
+        internalOnly: input.internalOnly,
+      });
+      const withUrls: FlagSearchResult[] = [];
 
       for (const row of rows) {
         const previewUrl = await createDiscoveryDownloadUrl(deps.storage, row.previewBlobPath);
@@ -32,14 +35,19 @@ export function createFlagService(deps: FlagServiceDeps) {
           name: row.displayName,
           code: row.code,
           previewUrl,
+          scope: row.scope,
         });
       }
 
       return mapFlagSearchResponse(withUrls);
     },
 
-    getDetails: async (tx: Transaction, externalId: string) => {
-      const flag = await getReadyFlagDetails({ tx, id: externalId });
+    getDetails: async (
+      tx: Transaction,
+      externalId: string,
+      organizationId?: string | null,
+    ) => {
+      const flag = await getReadyFlagDetails({ tx, id: externalId, organizationId });
       if (!flag) return null;
 
       const variants: Array<{

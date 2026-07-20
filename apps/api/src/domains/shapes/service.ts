@@ -26,6 +26,7 @@ async function mapShapeRow(
     id: row.id,
     name: row.displayName,
     category: row.category,
+    scope: row.scope,
     thumbnailUrl: svgUrl,
     svgUrl,
     createdAt: row.createdAt.toISOString(),
@@ -36,11 +37,13 @@ export function createShapeService(deps: ShapeServiceDeps) {
   return {
     search: async (
       tx: Transaction,
-      input: z.infer<typeof shapeSearchInputSchema>,
+      input: z.infer<typeof shapeSearchInputSchema> & { organizationId?: string | null },
     ): Promise<z.infer<typeof shapeSearchResponseSchema>> => {
       const rows = await searchReadyShapes({
         tx,
         category: input.category,
+        organizationId: input.organizationId,
+        internalOnly: input.internalOnly,
       });
 
       const mapped = (

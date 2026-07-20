@@ -6,9 +6,10 @@ export function ShapesPage() {
 
   return (
     <ShapeLibraryPanel
-      search={({ category }) =>
+      search={({ category, internalOnly }) =>
         assets.shapes.search({
           category,
+          internalOnly,
         })
       }
     />
