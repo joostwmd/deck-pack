@@ -24,15 +24,15 @@ export function VariantItem({
       tabIndex={isHighlighted ? 0 : -1}
       data-highlighted={isHighlighted || undefined}
       className={cn(
-        "flex min-w-0 w-full flex-col items-center rounded-md p-1.5 text-start transition-colors duration-150 hover:bg-muted/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary motion-reduce:transition-none",
+        "flex min-w-0 w-full flex-col items-center rounded-md p-1 text-start transition-colors duration-150 hover:bg-muted/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary motion-reduce:transition-none",
         isSelected && "bg-primary/10 text-primary",
         isHighlighted && "outline-2 outline-offset-2 outline-primary",
       )}
       onClick={() => onSelect(variant.id)}
     >
-      <div className="flex w-full flex-col gap-2">
-        <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-md bg-muted/60 p-2">
-          <div className="absolute inset-2 rounded-sm bg-muted" aria-hidden />
+      <div className="flex w-full flex-col gap-1">
+        <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-md bg-muted/60 p-1.5">
+          <div className="absolute inset-1.5 rounded-sm bg-muted" aria-hidden />
           {variant.imageUrl ? (
             <img
               src={variant.imageUrl}
@@ -47,15 +47,15 @@ export function VariantItem({
           ) : null}
         </div>
 
-        <div className="flex min-w-0 items-center gap-1.5">
+        <div className="flex min-w-0 items-center gap-1">
           <p
-            className="min-w-0 flex-1 truncate text-sm font-medium leading-5 text-foreground"
+            className="min-w-0 flex-1 truncate text-xs font-medium leading-4 text-foreground"
             title={variant.name}
           >
             {variant.name}
           </p>
           {isSelected ? (
-            <CheckCircle weight="fill" className="size-4 shrink-0 text-primary" aria-hidden />
+            <CheckCircle weight="fill" className="size-3.5 shrink-0 text-primary" aria-hidden />
           ) : null}
         </div>
       </div>

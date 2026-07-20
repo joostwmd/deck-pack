@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 
+import { VARIANT_GRID_COLUMN_COUNT } from "@/components/asset-browser/variant-grid";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import type { AssetDetailsResponse, AssetListItem, SelectedAssetEntity } from "@/types/asset-types";
 
@@ -117,7 +118,7 @@ export function useAssetSearchFlow({ search, getDetails }: UseAssetSearchFlowCon
 
       setHighlightedVariantIndex((current) => {
         const start = Math.min(Math.max(current, 0), variants.length - 1);
-        const columnCount = 2;
+        const columnCount = VARIANT_GRID_COLUMN_COUNT;
         const column = start % columnCount;
 
         if (direction === "up") {
