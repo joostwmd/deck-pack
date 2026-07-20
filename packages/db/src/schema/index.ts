@@ -4,3 +4,4 @@ export * from "./brand-profiles";
 export * from "./agendas";
 export * from "./shortcut-overrides";
 export * from "./billing";
+export * from "./library-assets";
