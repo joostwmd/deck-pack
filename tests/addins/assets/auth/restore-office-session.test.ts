@@ -26,6 +26,15 @@ vi.mock("@/auth/bearer-session-store", () => ({
   getBearerToken: () => getBearerToken(),
 }));
 
+const getSessionContinuity = vi.fn();
+
+vi.mock("@/auth/session-continuity-store", () => ({
+  sessionContinuityStore: {
+    get: () => getSessionContinuity(),
+    set: vi.fn(),
+  },
+}));
+
 async function loadRestoreModule() {
   vi.resetModules();
   return import("@/auth/restore-office-session");
@@ -44,6 +53,7 @@ describe("restoreOfficeSession", () => {
     vi.clearAllMocks();
     useOfficeBearerMode.mockReturnValue(true);
     isNaaSupported.mockReturnValue(true);
+    getSessionContinuity.mockReturnValue({ mode: "allow-silent-restore" });
     acquireMicrosoftTokensSilently.mockResolvedValue({
       idToken: "id-token",
       accessToken: "access-token",
@@ -86,6 +96,14 @@ describe("restoreOfficeSession", () => {
     const authClient = createAuthClient({ error: { message: "denied" } });
 
     await expect(restoreOfficeSession(authClient)).resolves.toBe(false);
+  });
+
+  it("returns false when explicit sign-out requires manual sign-in", async () => {
+    getSessionContinuity.mockReturnValue({ mode: "require-explicit-sign-in" });
+    const { restoreOfficeSession } = await loadRestoreModule();
+
+    await expect(restoreOfficeSession(createAuthClient({ error: null }))).resolves.toBe(false);
+    expect(acquireMicrosoftTokensSilently).not.toHaveBeenCalled();
   });
 
   it("only attempts restore once per lifetime", async () => {

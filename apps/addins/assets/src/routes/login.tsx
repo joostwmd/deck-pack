@@ -2,12 +2,15 @@ import { OtpSignup, type OtpSignupStep } from "@deck-pack/ui/components/composit
 import {
   createMicrosoftSignInStrategy,
   getMicrosoftSignInAvailability,
+  markExplicitSignIn,
+  withContinuityAwareSignIn,
 } from "@deck-pack/auth/microsoft-sign-in";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { getBearerToken, setBearerToken } from "@/auth/bearer-session-store";
+import { sessionContinuityStore } from "@/auth/session-continuity-store";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { useOffice } from "@/contexts/OfficeContext";
 import {
@@ -63,7 +66,7 @@ function LoginComponent() {
     isNaaSupported,
     clientId: env.VITE_MICROSOFT_CLIENT_ID,
   });
-  const microsoftStrategy = createMicrosoftSignInStrategy({
+  const microsoftStrategyBase = createMicrosoftSignInStrategy({
     authClient,
     host: environment,
     isNaaSupported,
@@ -71,6 +74,9 @@ function LoginComponent() {
     clientId: env.VITE_MICROSOFT_CLIENT_ID,
     getCapturedBearerToken: getBearerToken,
   });
+  const microsoftStrategy = microsoftStrategyBase
+    ? withContinuityAwareSignIn(microsoftStrategyBase, sessionContinuityStore)
+    : null;
 
   const sendCodeToEmail = async (isResend = false) => {
     const trimmed = email.trim().toLowerCase();
@@ -133,6 +139,8 @@ function LoginComponent() {
         }
         setBearerToken(bearerToken);
       }
+
+      markExplicitSignIn(sessionContinuityStore);
 
       toast.success("You're signed in");
       void navigate({ to: postAuthPath, params: postAuthParams });

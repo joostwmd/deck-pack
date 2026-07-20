@@ -7,6 +7,7 @@ import {
 } from "@deck-pack/office-js";
 
 import { createCanvasStrategy, officeInsertionStrategyWithTracker } from "@/lib/insertion-strategy";
+import { createAddinSignOutStrategy } from "@/auth/create-addin-sign-out-strategy";
 import { getAuthClient } from "@/utils/auth";
 import { getTrpcClient } from "@/utils/trpc";
 
@@ -100,6 +101,7 @@ export function createAppServices(): AppServices {
 
   return {
     auth: getAuthClient(),
+    signOut: createAddinSignOutStrategy(),
     assets: createAssetStores(api),
     brandProfiles: createBrandProfileStore(api),
     agenda: createAgendaStore(api),

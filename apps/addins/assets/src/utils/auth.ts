@@ -44,9 +44,3 @@ export const authClient = new Proxy({} as AuthClient, {
     return Reflect.get(getAuthClient(), property, receiver);
   },
 });
-
-export function clearAddinAuthSession(): void {
-  if (useOfficeBearerMode()) {
-    clearBearerToken();
-  }
-}

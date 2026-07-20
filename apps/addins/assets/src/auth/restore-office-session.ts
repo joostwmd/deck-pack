@@ -2,11 +2,15 @@ import type { AuthClient } from "@deck-pack/auth/client";
 import { env } from "@deck-pack/env/web";
 
 import { getBearerToken } from "@/auth/bearer-session-store";
-import { acquireMicrosoftTokensSilently } from "@deck-pack/auth/microsoft-naa";
 import { isNaaSupported } from "@/auth/naa-support";
 import { useOfficeBearerMode } from "@/auth/office-auth-mode";
+import { sessionContinuityStore } from "@/auth/session-continuity-store";
+import { ContinuityAwareRestorePolicy } from "@deck-pack/auth/microsoft-sign-in";
+import { acquireMicrosoftTokensSilently } from "@deck-pack/auth/microsoft-naa";
 
 let restoreAttempt: Promise<boolean> | null = null;
+
+const restorePolicy = new ContinuityAwareRestorePolicy(sessionContinuityStore);
 
 /**
  * Silently restores the Better Auth bearer session in the Office task pane.
@@ -15,6 +19,8 @@ let restoreAttempt: Promise<boolean> | null = null;
  * we re-acquire Microsoft tokens through NAA without any UI (the user is already
  * signed into Office) and mint a fresh Better Auth session. The new bearer token
  * is captured automatically by the auth client's set-auth-token response hook.
+ *
+ * Skipped when the user explicitly signed out (require-explicit-sign-in continuity).
  *
  * Returns true when a signed-in session should now be available.
  */
@@ -26,6 +32,7 @@ export function restoreOfficeSession(authClient: AuthClient): Promise<boolean> {
 
 async function attemptRestore(authClient: AuthClient): Promise<boolean> {
   if (!useOfficeBearerMode()) return false;
+  if (!restorePolicy.shouldAttemptSilentRestore()) return false;
   if (!isNaaSupported()) return false;
 
   const clientId = env.VITE_MICROSOFT_CLIENT_ID;
