@@ -1,3 +1,5 @@
+import type { Permissions } from "@deck-pack/auth/rbac";
+
 export type IndividualNavRoute = "/account";
 
 export type OrgNavRoute = "/org/dashboard" | "/org/members";
@@ -7,6 +9,7 @@ export type PortalNavRoute = IndividualNavRoute | OrgNavRoute;
 export type PortalNavItem = {
   title: string;
   to: PortalNavRoute;
+  permissions?: Permissions;
 };
 
 export type IndividualNavItem = {
@@ -17,13 +20,18 @@ export type IndividualNavItem = {
 export type OrgNavItem = {
   title: string;
   to: OrgNavRoute;
+  permissions?: Permissions;
 };
 
 export const INDIVIDUAL_NAV_ITEMS: IndividualNavItem[] = [{ title: "Account", to: "/account" }];
 
 export const ORG_NAV_ITEMS: OrgNavItem[] = [
   { title: "Dashboard", to: "/org/dashboard" },
-  { title: "Members", to: "/org/members" },
+  {
+    title: "Members",
+    to: "/org/members",
+    permissions: { member: ["create"] },
+  },
 ];
 
 /** Cross-workspace link shown in the org sidebar. */

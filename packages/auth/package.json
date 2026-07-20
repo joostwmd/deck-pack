@@ -9,7 +9,9 @@
     "./ops-soft-gate": "./src/ops-soft-gate.ts",
     "./microsoft-id-token": "./src/microsoft-id-token.ts",
     "./microsoft-sign-in": "./src/microsoft-sign-in.ts",
-    "./microsoft-naa": "./src/microsoft-naa.ts"
+    "./microsoft-naa": "./src/microsoft-naa.ts",
+    "./rbac": "./src/rbac.ts",
+    "./permissions": "./src/permissions.ts"
   },
   "scripts": {
     "auth:generate": "npx auth@latest generate --config ./src/schema.ts --output ../db/src/schema/auth.ts --y"

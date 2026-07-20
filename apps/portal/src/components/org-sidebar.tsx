@@ -18,8 +18,10 @@ import {
   ORG_NAV_ITEMS,
   ORG_SECONDARY_NAV_ITEMS,
   isPortalNavItemActive,
+  type OrgNavItem,
   type PortalNavRoute,
 } from "@/config/portal-nav";
+import { useCan } from "@/auth/use-can";
 import type { Icon } from "@phosphor-icons/react";
 
 const NAV_ICONS: Record<PortalNavRoute, Icon> = {
@@ -30,6 +32,17 @@ const NAV_ICONS: Record<PortalNavRoute, Icon> = {
 
 export function OrgSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { can, isLoading } = useCan();
+
+  const visibleOrgNavItems = ORG_NAV_ITEMS.filter((item: OrgNavItem) => {
+    if (!item.permissions) {
+      return true;
+    }
+    if (isLoading) {
+      return false;
+    }
+    return can(item.permissions);
+  });
 
   return (
     <Sidebar>
@@ -39,7 +52,7 @@ export function OrgSidebar() {
           <SidebarGroupLabel>Team</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {ORG_NAV_ITEMS.map((item) => {
+              {visibleOrgNavItems.map((item) => {
                 const Icon = NAV_ICONS[item.to];
                 return (
                   <SidebarMenuItem key={item.to}>

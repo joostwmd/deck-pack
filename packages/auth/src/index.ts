@@ -91,7 +91,6 @@ async function sessionCreateAfter(
       where: [{ field: "id", value: session.id }],
       update: {
         activeOrganizationId: member.organizationId,
-        role: member.role,
       },
     });
   }

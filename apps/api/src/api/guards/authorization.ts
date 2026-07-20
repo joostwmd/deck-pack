@@ -1,4 +1,5 @@
 import { TRPCError } from "@trpc/server";
+import { assertHasPermission, type HasPermissionApi, type Permissions } from "@deck-pack/auth/permissions";
 import { middleware } from "../setup";
 import type { Context } from "../context";
 
@@ -57,25 +58,23 @@ export const isPlatformAdmin = middleware<Context>(async ({ ctx, next }) => {
   return next({ ctx });
 });
 
-// Organization plugin adds `hasPermission` at runtime; generated `InferAPI` may omit it in TS.
-type AuthApiWithPermission = {
-  hasPermission: (args: {
-    headers: Headers;
-    body: { permissions: Record<string, string[]> };
-  }) => Promise<{ success: boolean }>;
-};
+const authApiWithPermission = auth.api as unknown as HasPermissionApi;
 
-// Helper: check organization RBAC permissions via Better Auth.
-export async function hasPermission(headers: Headers, permissions: Record<string, string[]>) {
-  const result = await (auth.api as unknown as AuthApiWithPermission).hasPermission({
-    headers,
-    body: { permissions },
-  });
+export async function hasPermission(headers: Headers, permissions: Permissions) {
+  const result = await assertHasPermission(authApiWithPermission, headers, permissions);
 
-  if (!result.success) {
+  if (!result.ok) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "You don't have permission to perform this operation",
     });
   }
+}
+
+/** tRPC middleware — enforce org RBAC via Better Auth hasPermission. */
+export function requirePermission(permissions: Permissions) {
+  return middleware<Context>(async ({ ctx, next }) => {
+    await hasPermission(ctx.headers, permissions);
+    return next({ ctx });
+  });
 }

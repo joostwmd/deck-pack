@@ -9,16 +9,12 @@ const MICROSOFT_SCOPES = ["openid", "profile", "email", "User.Read"];
 
 let msalInstance: IPublicClientApplication | undefined;
 
+type NestedAppAuthGlobal = typeof globalThis & { nestedAppAuthBridge?: unknown };
+
 /** Office injects this bridge for Nested App Authentication (not the Windows WAM broker). */
 export function isNestedAppAuthBridgePresent(): boolean {
-  if (typeof window === "undefined") {
-    return false;
-  }
-
-  return (
-    typeof (window as Window & { nestedAppAuthBridge?: unknown }).nestedAppAuthBridge !==
-    "undefined"
-  );
+  const runtime = globalThis as NestedAppAuthGlobal;
+  return typeof runtime.nestedAppAuthBridge !== "undefined";
 }
 
 export async function checkNaaBrokerAvailable(): Promise<boolean> {
