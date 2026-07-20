@@ -26,6 +26,8 @@ export default defineConfig({
         /\/tests\/addins\/assets\/.*\.[jt]sx$/,
         /\/packages\/observability\/src\/.*\.[jt]sx$/,
         /\/tests\/packages\/observability\/.*\.[jt]sx$/,
+        /\/packages\/ui\/src\/.*\.[jt]sx$/,
+        /\/tests\/packages\/ui\/.*\.[jt]sx?$/,
       ],
     }),
     ...createWorkspaceResolvePlugins(),
@@ -47,6 +49,8 @@ export default defineConfig({
       "tests/addins/**/*.test.tsx",
       "tests/packages/observability/**/*.test.ts",
       "tests/packages/observability/**/*.test.tsx",
+      "tests/packages/ui/**/*.test.ts",
+      "tests/packages/ui/**/*.test.tsx",
     ],
     passWithNoTests: false,
     deps: {
