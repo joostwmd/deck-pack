@@ -1,38 +1,61 @@
-import type { IconDetailsResponse, IconSearchResponse } from "@deck-pack/integrations/icons8";
+import type {
+  NounProjectIconDetails,
+  NounProjectSearchResponse,
+} from "@deck-pack/integrations/noun-project";
 
 import type { AssetDetailsResponse, AssetSearchResponse } from "../assets/types";
 import { capitalize } from "../../lib/strings";
 
-export function mapIconSearchResponse(response: IconSearchResponse): AssetSearchResponse {
+export function mapIconSearchResponse(response: NounProjectSearchResponse): AssetSearchResponse {
   return {
     results: response.icons.map((icon) => ({
       id: icon.id,
-      imageUrl: icon.previewUrl,
-      name: icon.name,
+      imageUrl: icon.thumbnail_url ?? "",
+      name: icon.term?.trim() || icon.id,
     })),
   };
 }
 
-export function mapIconDetailsResponse(response: IconDetailsResponse): AssetDetailsResponse {
-  const variants = response.variants.map((variant) => ({
-    id: variant.platform,
-    imageUrl: variant.previewUrl,
-    name: capitalize(variant.platform),
-    insert: {
-      type: "svg" as const,
-      svg: variant.svg,
-    },
-  }));
+export function mapIconDetailsResponse(response: NounProjectIconDetails): AssetDetailsResponse {
+  const variants = response.variants
+    .filter((variant) => variant.previewUrl || variant.svg)
+    .map((variant) => {
+      const imageUrl = variant.previewUrl || "";
+      if (variant.svg) {
+        return {
+          id: variant.id,
+          imageUrl,
+          name: capitalize(variant.name),
+          insert: {
+            type: "svg" as const,
+            svg: variant.svg,
+          },
+        };
+      }
+
+      // Free-tier Noun Project responses often only include PNG thumbnails.
+      return {
+        id: variant.id,
+        imageUrl,
+        name: capitalize(variant.name),
+        insert: {
+          type: "image" as const,
+          imageUrl,
+        },
+      };
+    });
 
   return {
     id: response.id,
     name: response.name,
-    imageUrl: variants[0]?.imageUrl ?? "",
+    imageUrl: response.thumbnailUrl || variants[0]?.imageUrl || "",
     variants,
     metadata: {
       TYPE: "icon",
       ICON_ID: response.id,
       ICON_NAME: response.name,
+      ATTRIBUTION: response.attribution ?? "",
+      PROVIDER: "noun-project",
     },
   };
 }

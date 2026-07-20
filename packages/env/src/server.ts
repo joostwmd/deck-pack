@@ -45,6 +45,10 @@ export const env = createEnv({
     BRANDFETCH_API_KEY: z.string().min(1),
     /** Brandfetch client ID (`?c=`) for brand search in the assets add-in. */
     BRANDFETCH_CLIENT_ID: z.string().min(1),
+    /** Noun Project API key (OAuth1 consumer key) for icon search in the assets add-in. */
+    NOUN_PROJECT_API_KEY: z.string().min(1),
+    /** Noun Project API secret (OAuth1 consumer secret) for icon search in the assets add-in. */
+    NOUN_PROJECT_API_SECRET: z.string().min(1),
     /** Azure Blob account for library uploads; omit until storage is wired. */
     AZURE_STORAGE_ACCOUNT_NAME: z.string().min(1).optional(),
     /** Private blob container name (e.g. uploads). */

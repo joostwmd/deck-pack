@@ -33,7 +33,8 @@ export function createApp(options?: CreateAppOptions) {
     createAppRouter({
       brandfetchApiKey: env.BRANDFETCH_API_KEY,
       brandfetchClientId: env.BRANDFETCH_CLIENT_ID,
-      icons8ApiKey: "dummy-key-for-now",
+      nounProjectApiKey: env.NOUN_PROJECT_API_KEY,
+      nounProjectApiSecret: env.NOUN_PROJECT_API_SECRET,
       pexelsApiKey: env.PEXELS_API_KEY,
     });
 

@@ -655,6 +655,9 @@ importers:
 
   packages/integrations:
     dependencies:
+      oauth-1.0a:
+        specifier: ^2.2.6
+        version: 2.2.6
       zod:
         specifier: 'catalog:'
         version: 4.3.6
@@ -7208,6 +7211,9 @@ packages:
 
   oas-validator@5.0.8:
     resolution: {integrity: sha512-cu20/HE5N5HKqVygs3dt94eYJfBi0TsZvPVXDhbXQHiEityDN+RROTleefoKRKKJ9dFAF2JBkDHgvWj0sjKGmw==}
+
+  oauth-1.0a@2.2.6:
+    resolution: {integrity: sha512-6bkxv3N4Gu5lty4viIcIAnq5GbxECviMBeKR3WX/q87SPQ8E8aursPZUtsXDnxCs787af09WPRBLqYrf/lwoYQ==}
 
   object-assign@4.1.1:
     resolution: {integrity: sha512-rJgTQnkUnH1sFw8yT6VSU3zD3sWmu6sZhIseY8VX+GRu3P6F7Fu+JNDoXfklElbLJSnc3FUQHVe4cU5hj+BcUg==}
@@ -14872,6 +14878,8 @@ snapshots:
       reftools: 1.1.9
       should: 13.2.3
       yaml: 1.10.3
+
+  oauth-1.0a@2.2.6: {}
 
   object-assign@4.1.1: {}
 

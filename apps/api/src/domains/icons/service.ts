@@ -1,22 +1,22 @@
-import type { Icons8Client } from "@deck-pack/integrations/icons8";
+import type { NounProjectClient } from "@deck-pack/integrations/noun-project";
 
 import { mapIconDetailsResponse, mapIconSearchResponse } from "./mappers";
 
 export type IconServiceDeps = {
-  icons8: Icons8Client;
+  nounProject: NounProjectClient;
 };
 
 export function createIconService(deps: IconServiceDeps) {
-  const { icons8 } = deps;
+  const { nounProject } = deps;
 
   return {
     search: async (query: string) => {
-      const response = await icons8.searchIcons({ term: query });
+      const response = await nounProject.searchIcons({ query });
       return mapIconSearchResponse(response);
     },
 
     getDetails: async (externalId: string) => {
-      const response = await icons8.getIconById({ id: externalId });
+      const response = await nounProject.getIconDetails({ id: externalId });
       return mapIconDetailsResponse(response);
     },
   };

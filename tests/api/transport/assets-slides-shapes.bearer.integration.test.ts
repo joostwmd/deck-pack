@@ -59,7 +59,8 @@ describe("assets slides and shapes bearer transport", () => {
       router: createAppRouter({
         brandfetchApiKey: "dummy-key-for-now",
         brandfetchClientId: "dummy-client-id-for-now",
-        icons8ApiKey: "dummy-key-for-now",
+        nounProjectApiKey: "dummy-key-for-now",
+        nounProjectApiSecret: "dummy-secret-for-now",
         pexelsApiKey: "dummy-key-for-now",
         storage,
       }),

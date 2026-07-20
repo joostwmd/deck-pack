@@ -44,7 +44,7 @@ import { updateOrganization } from "@deck-pack/db/queries/updateOrganization";
 import { updateOrganizationSubscription } from "@deck-pack/db/queries/updateOrganizationSubscription";
 import { updatePlan } from "@deck-pack/db/queries/updatePlan";
 import { upsertShortcutOverride } from "@deck-pack/db/queries/upsertShortcutOverride";
-import { Icons8Client } from "@deck-pack/integrations/icons8";
+import { NounProjectClient } from "@deck-pack/integrations/noun-project";
 import { PexelsClient } from "@deck-pack/integrations/pexels";
 
 import { createAddinRoutes } from "../domains/addin/routes";
@@ -92,10 +92,11 @@ import { router } from "./setup";
 export type AddinRouterDeps = {
   brandfetchApiKey: string;
   brandfetchClientId: string;
-  icons8ApiKey: string;
+  nounProjectApiKey: string;
+  nounProjectApiSecret: string;
   pexelsApiKey: string;
   pexels?: PexelsClient;
-  icons8?: Icons8Client;
+  nounProject?: NounProjectClient;
   brandfetch?: BrandfetchClient;
   storage?: ObjectStorage;
 };
@@ -119,7 +120,12 @@ export function createAppRouter(deps: AddinRouterDeps) {
   const slideService = createSlideService({ storage });
   const shapeService = createShapeService({ storage });
   const iconService = createIconService({
-    icons8: deps.icons8 ?? new Icons8Client(deps.icons8ApiKey),
+    nounProject:
+      deps.nounProject ??
+      new NounProjectClient({
+        apiKey: deps.nounProjectApiKey,
+        apiSecret: deps.nounProjectApiSecret,
+      }),
   });
   const logoService = createLogoService({
     brandfetch:
@@ -230,7 +236,8 @@ export function createAppRouter(deps: AddinRouterDeps) {
 export const appRouter = createAppRouter({
   brandfetchApiKey: "dummy-key-for-now",
   brandfetchClientId: "dummy-client-id-for-now",
-  icons8ApiKey: "dummy-key-for-now",
+  nounProjectApiKey: "dummy-key-for-now",
+  nounProjectApiSecret: "dummy-secret-for-now",
   pexelsApiKey: "dummy-key-for-now",
 });
 
