@@ -1,4 +1,4 @@
-import { protectedProcedure } from "../../api/procedures";
+import { addinLicensedProcedure } from "../../api/procedures";
 import { unwrapServiceResult } from "../../api/resilience/service-result";
 
 import { trackAssetInsertionInputSchema, trackAssetInsertionOutputSchema } from "./schemas";
@@ -7,7 +7,7 @@ import type { AddinService } from "./service";
 export function createAddinRoutes(addinService: AddinService) {
   return {
     insertions: {
-      track: protectedProcedure
+      track: addinLicensedProcedure
         .input(trackAssetInsertionInputSchema)
         .output(trackAssetInsertionOutputSchema)
         .mutation(async ({ ctx, input }) => {

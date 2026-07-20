@@ -4,12 +4,11 @@ import { UserMenuView } from "@/components/shell/user-menu-view";
 import type { AppEnvironment } from "@/constants/navigation";
 import { getPageRouteParams, getPageRouteTo } from "@/constants/navigation";
 import { getUserInitials } from "@/lib/user-initials";
-import { clearAddinAuthSession } from "@/utils/auth";
 import { useServices } from "@/services/services-context";
 
 export function UserMenu({ environment }: { environment: AppEnvironment }) {
   const navigate = useNavigate();
-  const { auth } = useServices();
+  const { auth, signOut } = useServices();
   const { data: session, isPending } = auth.useSession();
 
   const initials = session
@@ -33,18 +32,15 @@ export function UserMenu({ environment }: { environment: AppEnvironment }) {
         })
       }
       onSignOut={() => {
-        void auth
-          .signOut({
-            fetchOptions: {
-              onSuccess: () => {
-                void navigate({
-                  to: "/login",
-                });
-              },
-            },
+        void signOut
+          .signOut()
+          .catch(() => {
+            // Local session is cleared in the Office strategy finally block.
           })
           .finally(() => {
-            clearAddinAuthSession();
+            void navigate({
+              to: "/login",
+            });
           });
       }}
     />

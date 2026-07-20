@@ -4,9 +4,9 @@ import {
   OfficeNaaMicrosoftSignInStrategy,
   WebMicrosoftSignInStrategy,
   createMicrosoftSignInStrategy,
-} from "@/auth/microsoft-sign-in-strategy";
+} from "@deck-pack/auth/microsoft-sign-in";
 
-vi.mock("@/auth/microsoft-naa", () => ({
+vi.mock("@deck-pack/auth/microsoft-naa", () => ({
   acquireMicrosoftTokens: vi.fn().mockResolvedValue({
     idToken: "id-token",
     accessToken: "access-token",
@@ -28,7 +28,7 @@ describe("createMicrosoftSignInStrategy", () => {
     const authClient = createMockAuthClient();
     const strategy = createMicrosoftSignInStrategy({
       authClient,
-      environment: "web",
+      host: "web",
       isNaaSupported: false,
       callbackURL: "https://localhost:3003/auth/callback",
       clientId: "client-id",
@@ -41,7 +41,7 @@ describe("createMicrosoftSignInStrategy", () => {
     const authClient = createMockAuthClient();
     const strategy = createMicrosoftSignInStrategy({
       authClient,
-      environment: "office",
+      host: "office",
       isNaaSupported: true,
       callbackURL: "https://localhost:3003/auth/callback",
       clientId: "client-id",
@@ -54,7 +54,7 @@ describe("createMicrosoftSignInStrategy", () => {
     const authClient = createMockAuthClient();
     const strategy = createMicrosoftSignInStrategy({
       authClient,
-      environment: "office",
+      host: "office",
       isNaaSupported: false,
       callbackURL: "https://localhost:3003/auth/callback",
       clientId: "client-id",
@@ -67,7 +67,7 @@ describe("createMicrosoftSignInStrategy", () => {
     const authClient = createMockAuthClient();
     const strategy = createMicrosoftSignInStrategy({
       authClient,
-      environment: "office",
+      host: "office",
       isNaaSupported: true,
       callbackURL: "https://localhost:3003/auth/callback",
       clientId: undefined,

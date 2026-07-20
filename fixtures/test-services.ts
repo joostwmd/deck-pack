@@ -85,6 +85,12 @@ function createDefaultInsertions(): AppServices["insertions"] {
   };
 }
 
+function createDefaultSignOut(): AppServices["signOut"] {
+  return {
+    signOut: async () => undefined,
+  };
+}
+
 function createDefaultTestAuth(): AppServices["auth"] {
   return {
     getSession: async () => ({ data: mockSession, error: null }),
@@ -140,6 +146,7 @@ export function createTestServices(overrides?: DeepPartial<AppServices>): AppSer
 
   return {
     auth: (overrides?.auth ?? createDefaultTestAuth()) as AppServices["auth"],
+    signOut: (overrides?.signOut ?? createDefaultSignOut()) as AppServices["signOut"],
     assets: {
       ...createDefaultAssets(),
       ...(overrides?.assets as Partial<AppServices["assets"]>),

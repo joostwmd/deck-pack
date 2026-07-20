@@ -63,7 +63,7 @@ describe("DB queries (integration)", () => {
       id: crypto.randomUUID(),
       organizationId: orgId,
       userId,
-      role: "member",
+      role: "organizationMember",
       createdAt: now,
     });
 

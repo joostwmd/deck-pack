@@ -50,6 +50,13 @@
       "when": 1784415700000,
       "tag": "0006_plan_limits_nullable",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1784415800000,
+      "tag": "0007_organization_seats",
+      "breakpoints": true
     }
   ]
 }

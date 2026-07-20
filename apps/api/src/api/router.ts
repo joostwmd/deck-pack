@@ -12,7 +12,18 @@ import { deleteAllShortcutOverrides } from "@deck-pack/db/queries/deleteAllShort
 import { deleteOrganization } from "@deck-pack/db/queries/deleteOrganization";
 import { deleteShortcutOverride } from "@deck-pack/db/queries/deleteShortcutOverride";
 import { deleteUser } from "@deck-pack/db/queries/deleteUser";
+import { assignOrganizationSeat } from "@deck-pack/db/queries/assignOrganizationSeat";
+import { countAssignedSeats } from "@deck-pack/db/queries/countAssignedSeats";
+import { addOrganizationMember } from "@deck-pack/db/queries/addOrganizationMember";
+import { cancelInvitation } from "@deck-pack/db/queries/listPendingInvitations";
+import { createOrganizationInvitation } from "@deck-pack/db/queries/createOrganizationInvitation";
 import { findUserByEmail } from "@deck-pack/db/queries/findUserByEmail";
+import { getActiveOrganizationSubscriptionByOrgId } from "@deck-pack/db/queries/getActiveOrganizationSubscriptionByOrgId";
+import { listOrganizationSeats } from "@deck-pack/db/queries/listOrganizationSeats";
+import { listPendingInvitations } from "@deck-pack/db/queries/listPendingInvitations";
+import { removeOrganizationMember } from "@deck-pack/db/queries/removeOrganizationMember";
+import { revokeOrganizationSeat } from "@deck-pack/db/queries/revokeOrganizationSeat";
+import { updateOrganizationMemberRole } from "@deck-pack/db/queries/updateOrganizationMemberRole";
 import { getAgendaInstance } from "@deck-pack/db/queries/getAgendaInstance";
 import { getBrandProfileWithVersion } from "@deck-pack/db/queries/getBrandProfileWithVersion";
 import { getOrganizationSubscription } from "@deck-pack/db/queries/getOrganizationSubscription";
@@ -50,8 +61,12 @@ import { createIconRoutes } from "../domains/icons/routes";
 import { createIconService } from "../domains/icons/service";
 import { createLogoRoutes } from "../domains/logos/routes";
 import { createLogoService } from "../domains/logos/service";
+import { createMembersRoutes } from "../domains/members/routes";
+import { createMembersService } from "../domains/members/service";
 import { createOrganizationRoutes } from "../domains/organization/routes";
 import { createOrganizationService } from "../domains/organization/service";
+import { createSeatsRoutes } from "../domains/seats/routes";
+import { createSeatsService } from "../domains/seats/service";
 import { createPhotoRoutes } from "../domains/photos/routes";
 import { createPhotoService } from "../domains/photos/service";
 import { createShapeRoutes } from "../domains/shapes/routes";
@@ -139,9 +154,32 @@ export function createAppRouter(deps: AddinRouterDeps) {
     updateOrganizationSubscription,
   });
 
+  const seatsService = createSeatsService({
+    getActiveOrganizationSubscriptionByOrgId,
+    countAssignedSeats,
+    listOrganizationSeats,
+    assignOrganizationSeat,
+    revokeOrganizationSeat,
+    findUserByEmail,
+  });
+
+  const membersService = createMembersService({
+    listOrganizationMembers,
+    listPendingInvitations,
+    findUserByEmail,
+    addOrganizationMember,
+    createOrganizationInvitation,
+    updateOrganizationMemberRole,
+    removeOrganizationMember,
+    cancelInvitation,
+    assignOrganizationSeat,
+  });
+
   return router({
     ...systemRoutes,
     organization: router(createOrganizationRoutes(organizationService)),
+    members: router(createMembersRoutes(membersService)),
+    seats: router(createSeatsRoutes(seatsService)),
     users: router(createUsersRoutes(usersService)),
     billing: router(createBillingRoutes(billingService)),
     assets: router({

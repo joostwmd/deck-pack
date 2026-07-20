@@ -15,7 +15,7 @@ export const Route = createFileRoute("/_protected/_individual")({
 
 function Layout() {
   return (
-    <PortalAppShell areaLabel="Personal" areaHomeTo="/account" sidebar={<IndividualSidebar />}>
+    <PortalAppShell sidebar={<IndividualSidebar />}>
       <Outlet />
     </PortalAppShell>
   );

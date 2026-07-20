@@ -1,11 +1,16 @@
 import { OtpSignup, type OtpSignupStep } from "@deck-pack/ui/components/composite/otp-signup";
+import {
+  createMicrosoftSignInStrategy,
+  getMicrosoftSignInAvailability,
+  markExplicitSignIn,
+  withContinuityAwareSignIn,
+} from "@deck-pack/auth/microsoft-sign-in";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { getMicrosoftSignInAvailability } from "@/auth/microsoft-sign-in-availability";
 import { getBearerToken, setBearerToken } from "@/auth/bearer-session-store";
-import { createMicrosoftSignInStrategy } from "@/auth/microsoft-sign-in-strategy";
+import { sessionContinuityStore } from "@/auth/session-continuity-store";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { useOffice } from "@/contexts/OfficeContext";
 import {
@@ -57,18 +62,21 @@ function LoginComponent() {
   const postAuthPath = getPageRouteTo(DEFAULT_NAVIGATION_PAGE_ID);
   const postAuthParams = getPageRouteParams(environment);
   const microsoftAvailability = getMicrosoftSignInAvailability({
-    environment,
+    host: environment,
     isNaaSupported,
     clientId: env.VITE_MICROSOFT_CLIENT_ID,
   });
-  const microsoftStrategy = createMicrosoftSignInStrategy({
+  const microsoftStrategyBase = createMicrosoftSignInStrategy({
     authClient,
-    environment,
+    host: environment,
     isNaaSupported,
     callbackURL: `${window.location.origin}${AUTH_CALLBACK_PATH}`,
     clientId: env.VITE_MICROSOFT_CLIENT_ID,
     getCapturedBearerToken: getBearerToken,
   });
+  const microsoftStrategy = microsoftStrategyBase
+    ? withContinuityAwareSignIn(microsoftStrategyBase, sessionContinuityStore)
+    : null;
 
   const sendCodeToEmail = async (isResend = false) => {
     const trimmed = email.trim().toLowerCase();
@@ -132,6 +140,8 @@ function LoginComponent() {
         setBearerToken(bearerToken);
       }
 
+      markExplicitSignIn(sessionContinuityStore);
+
       toast.success("You're signed in");
       void navigate({ to: postAuthPath, params: postAuthParams });
     } catch {
@@ -155,14 +165,19 @@ function LoginComponent() {
         return;
       }
 
-      if (!result.bearerToken) {
-        toast.error("Could not sign in with Microsoft. Try again or use email OTP.");
+      if (environment === "office") {
+        if (!result.bearerToken) {
+          toast.error("Could not sign in with Microsoft. Try again or use email OTP.");
+          return;
+        }
+
+        setBearerToken(result.bearerToken);
+        toast.success("You're signed in");
+        void navigate({ to: postAuthPath, params: postAuthParams });
         return;
       }
 
-      setBearerToken(result.bearerToken);
-      toast.success("You're signed in");
-      void navigate({ to: postAuthPath, params: postAuthParams });
+      // Web redirect: Better Auth navigates away once the OAuth flow starts.
     } catch {
       toast.error("Could not sign in with Microsoft. Try again or use email OTP.");
     } finally {

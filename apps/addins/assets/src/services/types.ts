@@ -1,6 +1,7 @@
 import type { AgendaConfigV1, AgendaEventType } from "@deck-pack/agenda";
 import type { BrandProfileConfiguration } from "@deck-pack/presentation-check";
 import type { AuthClient } from "@deck-pack/auth/client";
+import type { SignOutStrategy } from "@deck-pack/auth/microsoft-sign-in";
 import type {
   executeFormattingCommand,
   readSelectedShapes,
@@ -190,6 +191,7 @@ export interface InsertionService {
 
 export interface AppServices {
   auth: AuthClient;
+  signOut: SignOutStrategy;
   assets: AssetStores;
   brandProfiles: BrandProfileStore;
   agenda: AgendaStore;

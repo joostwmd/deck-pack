@@ -49,14 +49,15 @@ export default function UserMenu() {
           {impersonatedBy ? (
             <DropdownMenuItem
               onClick={() => {
-                void auth.stopImpersonating().then(({ error }) => {
-                  if (error) {
-                    toast.error(error.message ?? "Could not stop impersonating");
+                void (async () => {
+                  const result = await auth.stopImpersonating();
+                  if (result.error) {
+                    toast.error(result.error.message ?? "Could not stop impersonating");
                     return;
                   }
                   toast.success("Stopped impersonating");
                   window.location.assign(`${OPS_URL}/users`);
-                });
+                })();
               }}
             >
               Stop impersonating

@@ -3,7 +3,6 @@ import { z } from "zod";
 import {
   assetClientSchema,
   assetExternalIdSchema,
-  assetSearchQuerySchema,
   assetTypeSchema,
 } from "../assets/schemas";
 

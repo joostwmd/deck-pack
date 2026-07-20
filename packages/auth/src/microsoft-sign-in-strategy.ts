@@ -1,8 +1,7 @@
-import type { AuthClient } from "@deck-pack/auth/client";
-
-import type { EnvironmentType } from "@/contexts/EnvironmentContext";
+import type { AuthClient } from "./client";
 
 import { acquireMicrosoftTokens } from "./microsoft-naa";
+import type { MicrosoftSignInHost } from "./microsoft-sign-in-availability";
 
 export type MicrosoftSignInResult =
   | { ok: true; bearerToken?: string }
@@ -11,8 +10,6 @@ export type MicrosoftSignInResult =
 export interface MicrosoftSignInStrategy {
   signIn(): Promise<MicrosoftSignInResult>;
 }
-
-type AppAuthClient = AuthClient;
 
 function authErrorMessage(error: unknown, fallback: string): string {
   if (error && typeof error === "object" && "message" in error) {
@@ -27,7 +24,7 @@ function authErrorMessage(error: unknown, fallback: string): string {
 
 export class WebMicrosoftSignInStrategy implements MicrosoftSignInStrategy {
   constructor(
-    private readonly authClient: AppAuthClient,
+    private readonly authClient: AuthClient,
     private readonly callbackURL: string,
   ) {}
 
@@ -57,7 +54,7 @@ export class WebMicrosoftSignInStrategy implements MicrosoftSignInStrategy {
 
 export class OfficeNaaMicrosoftSignInStrategy implements MicrosoftSignInStrategy {
   constructor(
-    private readonly authClient: AppAuthClient,
+    private readonly authClient: AuthClient,
     private readonly clientId: string,
     private readonly getCapturedBearerToken: () => string | null,
   ) {}
@@ -119,14 +116,14 @@ export class OfficeNaaMicrosoftSignInStrategy implements MicrosoftSignInStrategy
 }
 
 export function createMicrosoftSignInStrategy(options: {
-  authClient: AppAuthClient;
-  environment: EnvironmentType;
+  authClient: AuthClient;
+  host: MicrosoftSignInHost;
   isNaaSupported: boolean;
   callbackURL: string;
   clientId: string | undefined;
   getCapturedBearerToken?: () => string | null;
 }): MicrosoftSignInStrategy | null {
-  if (options.environment === "web") {
+  if (options.host === "web") {
     return new WebMicrosoftSignInStrategy(options.authClient, options.callbackURL);
   }
 
