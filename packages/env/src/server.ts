@@ -41,7 +41,12 @@ export const env = createEnv({
     MICROSOFT_CLIENT_SECRET: z.string().min(1).optional(),
     /** Pexels API key for stock photo search in the assets add-in. */
     PEXELS_API_KEY: z.string().min(1),
+    /** Azure Blob account for library uploads; omit until storage is wired. */
+    AZURE_STORAGE_ACCOUNT_NAME: z.string().min(1).optional(),
+    /** Private blob container name (e.g. uploads). */
+    AZURE_STORAGE_CONTAINER: z.string().min(1).optional(),
   },
+
   runtimeEnv: process.env,
   emptyStringAsUndefined: true,
 });
