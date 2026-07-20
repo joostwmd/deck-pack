@@ -5,7 +5,7 @@ import { createOrganizationSubscription } from "@deck-pack/db/queries/createOrga
 import { tx } from "@deck-pack/db/transaction";
 import { assetInsertions } from "@deck-pack/db/schema/asset-insertions";
 import { member, organization, session, user } from "@deck-pack/db/schema/auth";
-import { organizationSeats, plans } from "@deck-pack/db/schema/billing";
+import { plans } from "@deck-pack/db/schema/billing";
 import { eq, sql } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 

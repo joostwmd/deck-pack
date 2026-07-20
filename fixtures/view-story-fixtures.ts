@@ -10,7 +10,11 @@ import type { ShapeLibraryController } from "@/components/shapes/use-shape-libra
 import type { SlideSearchController } from "@/components/slides/use-slide-search-controller";
 import type { useAssetSearchFlow } from "@/hooks/use-asset-search-flow";
 import type { SelectionState } from "@/hooks/use-powerpoint-selection";
-import { DEFAULT_HARVEY_BALL_CONFIG, normalizeHarveyBallConfig, validateHarveyBallConfig } from "@/lib/harvey-ball-svg";
+import {
+  DEFAULT_HARVEY_BALL_CONFIG,
+  normalizeHarveyBallConfig,
+  validateHarveyBallConfig,
+} from "@/lib/harvey-ball-svg";
 import {
   NAVIGATE_RESULTS_DISPLAY,
   NAVIGATE_VARIANTS_DISPLAY,
@@ -72,7 +76,6 @@ export function createAssetSearchPanelViewProps(
     noResultsDescription: "Try searching for a different country name or code.",
     noVariantsDescription: "This flag has no variants.",
     icon: Flag,
-    flow,
     showsSearchResults: !flow.selectedEntity && !flow.searchError && flow.results.length > 0,
     activeSearchResultId: flow.highlightedResultId
       ? `${searchResultsId}-option-${encodeURIComponent(flow.highlightedResultId)}`
@@ -87,6 +90,7 @@ export function createAssetSearchPanelViewProps(
     variantNavigationShortcutDefs: [NAVIGATE_VARIANTS_DISPLAY, SHORTCUTS.selectVariant],
     insertSectionShortcutDefs: [SHORTCUTS.insert],
     ...overrides,
+    // Keep constructed flow after overrides so derived fields stay consistent.
     flow,
   };
 }
@@ -148,11 +152,10 @@ export function createPhotoSearchController(
     selectPhoto: noop,
     navigatePhotos: noop,
     confirmHighlightedPhoto: noop,
-    ...(overrides.flow ?? {}),
+    ...overrides.flow,
   };
 
   return {
-    flow,
     searchInputRef: createRef<HTMLInputElement>() as RefObject<HTMLInputElement | null>,
     resultsId: "story-photo-results",
     showsResults: !flow.error && flow.results.length > 0,
@@ -208,11 +211,10 @@ export function createShapeLibraryController(
     selectShape: noop,
     navigateShapes: noop,
     confirmHighlightedShape: noop,
-    ...(overrides.flow ?? {}),
+    ...overrides.flow,
   };
 
   return {
-    flow,
     emptyDescription: "Try another category or check back later.",
     isInserting: false,
     handleInsert: noopAsync,
@@ -278,11 +280,10 @@ export function createSlideSearchController(
     selectSlide: noop,
     navigateSlides: noop,
     confirmHighlightedSlide: noop,
-    ...(overrides.flow ?? {}),
+    ...overrides.flow,
   };
 
   return {
-    flow,
     searchInputRef: createRef<HTMLInputElement>() as RefObject<HTMLInputElement | null>,
     resultsId: "story-slide-results",
     showsResults: !flow.error && flow.results.length > 0,

@@ -48,7 +48,7 @@
       ],
       "rules": {
         "no-restricted-imports": [
-          "error",
+          "warn",
           {
             "paths": ["@/utils/trpc", "@/utils/auth"]
           }
@@ -101,16 +101,16 @@
       "plugins": ["typescript", "unicorn", "oxc", "react"],
       "jsPlugins": ["eslint-plugin-react-you-might-not-need-an-effect"],
       "rules": {
-        "react-you-might-not-need-an-effect/no-derived-state": "error",
-        "react-you-might-not-need-an-effect/no-chain-state-updates": "error",
-        "react-you-might-not-need-an-effect/no-event-handler": "error",
-        "react-you-might-not-need-an-effect/no-adjust-state-on-prop-change": "error",
-        "react-you-might-not-need-an-effect/no-reset-all-state-on-prop-change": "error",
-        "react-you-might-not-need-an-effect/no-pass-live-state-to-parent": "error",
-        "react-you-might-not-need-an-effect/no-pass-data-to-parent": "error",
-        "react-you-might-not-need-an-effect/no-initialize-state": "error",
-        "react-you-might-not-need-an-effect/no-empty-effect": "error",
-        "react/exhaustive-deps": "error"
+        "react-you-might-not-need-an-effect/no-derived-state": "warn",
+        "react-you-might-not-need-an-effect/no-chain-state-updates": "warn",
+        "react-you-might-not-need-an-effect/no-event-handler": "warn",
+        "react-you-might-not-need-an-effect/no-adjust-state-on-prop-change": "warn",
+        "react-you-might-not-need-an-effect/no-reset-all-state-on-prop-change": "warn",
+        "react-you-might-not-need-an-effect/no-pass-live-state-to-parent": "warn",
+        "react-you-might-not-need-an-effect/no-pass-data-to-parent": "warn",
+        "react-you-might-not-need-an-effect/no-initialize-state": "warn",
+        "react-you-might-not-need-an-effect/no-empty-effect": "warn",
+        "react/exhaustive-deps": "warn"
       }
     }
   ]

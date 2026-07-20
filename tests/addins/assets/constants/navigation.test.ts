@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import {
   DEFAULT_NAVIGATION_PAGE_ID,
-  NAVIGATION_PAGES,
   NAVIGATION_SECTIONS,
   getNavigationPagesBySection,
   getNavigationPagesWithShortcuts,

@@ -116,7 +116,7 @@ export class PexelsClient {
 
     try {
       json = await response.json();
-    } catch (error) {
+    } catch {
       throw new PexelsUpstreamError(response.status);
     }
 

@@ -1,11 +1,20 @@
 import { describe, expect, it } from "vitest";
 
-import { mapIconDetailsResponse, mapIconSearchResponse } from "@deck-pack/api/domains/icons/mappers";
+import {
+  mapIconDetailsResponse,
+  mapIconSearchResponse,
+} from "@deck-pack/api/domains/icons/mappers";
 
 describe("icon mappers", () => {
   it("maps icon search responses", () => {
     const mapped = mapIconSearchResponse({
-      icons: [{ id: "icon-1", name: "Arrow", previewUrl: "https://example.com/arrow.png" }],
+      icons: [
+        {
+          id: "icon-1",
+          term: "Arrow",
+          thumbnail_url: "https://example.com/arrow.png",
+        },
+      ],
     });
 
     expect(mapped.results).toEqual([
@@ -21,9 +30,12 @@ describe("icon mappers", () => {
     const mapped = mapIconDetailsResponse({
       id: "icon-1",
       name: "Arrow",
+      attribution: "Icon by Noun Project",
+      thumbnailUrl: "https://example.com/arrow.png",
       variants: [
         {
-          platform: "ios7",
+          id: "ios7",
+          name: "ios7",
           previewUrl: "https://example.com/arrow-ios7.png",
           svg: "<svg />",
         },
@@ -44,6 +56,8 @@ describe("icon mappers", () => {
       TYPE: "icon",
       ICON_ID: "icon-1",
       ICON_NAME: "Arrow",
+      ATTRIBUTION: "Icon by Noun Project",
+      PROVIDER: "noun-project",
     });
   });
 });
