@@ -10,9 +10,9 @@ export function createShapeRoutes(shapeService: ShapeService) {
     search: protectedProcedure
       .input(shapeSearchInputSchema)
       .output(shapeSearchResponseSchema)
-      .query(async ({ input }) => {
+      .query(async ({ ctx, input }) => {
         try {
-          return await shapeService.search(input);
+          return await shapeService.search(ctx.tx, input);
         } catch (error) {
           console.error("Shape search error:", error);
           throw new TRPCError({

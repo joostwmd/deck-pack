@@ -16,9 +16,9 @@ export function createFlagRoutes(flagService: FlagService) {
     search: protectedProcedure
       .input(z.object({ query: assetSearchQuerySchema }))
       .output(assetSearchResponseSchema)
-      .query(async ({ input }) => {
+      .query(async ({ ctx, input }) => {
         try {
-          return await flagService.search(input.query);
+          return await flagService.search(ctx.tx, input.query);
         } catch (error) {
           console.error("Flag search error:", error);
           throw new TRPCError({
@@ -31,9 +31,9 @@ export function createFlagRoutes(flagService: FlagService) {
     getDetails: protectedProcedure
       .input(z.object({ externalId: assetExternalIdSchema }))
       .output(assetDetailsResponseSchema)
-      .query(async ({ input }) => {
+      .query(async ({ ctx, input }) => {
         try {
-          const flag = await flagService.getDetails(input.externalId);
+          const flag = await flagService.getDetails(ctx.tx, input.externalId);
 
           if (!flag) {
             throw new TRPCError({

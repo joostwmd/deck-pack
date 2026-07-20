@@ -1,7 +1,7 @@
 import type { AssetDetailsResponse, AssetSearchResponse } from "../assets/types";
 import { capitalize } from "../../lib/strings";
 
-import type { FlagDetailsResponse, FlagSearchResult } from "./mock-data";
+import type { FlagDetailsResponse, FlagSearchResult } from "./types";
 
 export function mapFlagSearchResponse(flags: FlagSearchResult[]): AssetSearchResponse {
   return {

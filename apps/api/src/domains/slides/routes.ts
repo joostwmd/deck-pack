@@ -10,9 +10,9 @@ export function createSlideRoutes(slideService: SlideService) {
     search: protectedProcedure
       .input(slideSearchInputSchema)
       .output(slideSearchResponseSchema)
-      .query(async ({ input }) => {
+      .query(async ({ ctx, input }) => {
         try {
-          return await slideService.search(input);
+          return await slideService.search(ctx.tx, input);
         } catch (error) {
           console.error("Slide search error:", error);
           throw new TRPCError({

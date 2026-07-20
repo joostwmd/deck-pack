@@ -111,18 +111,19 @@ function resolveObjectStorage(explicit?: ObjectStorage): ObjectStorage {
 }
 
 export function createAppRouter(deps: AddinRouterDeps) {
+  const storage = resolveObjectStorage(deps.storage);
   const photoService = createPhotoService({
     pexels: deps.pexels ?? new PexelsClient(deps.pexelsApiKey),
   });
-  const slideService = createSlideService();
-  const shapeService = createShapeService();
+  const slideService = createSlideService({ storage });
+  const shapeService = createShapeService({ storage });
   const iconService = createIconService({
     icons8: deps.icons8 ?? new Icons8Client(deps.icons8ApiKey),
   });
   const logoService = createLogoService({
     brandfetch: deps.brandfetch ?? new BrandfetchClient(deps.brandfetchApiKey),
   });
-  const flagService = createFlagService();
+  const flagService = createFlagService({ storage });
   const addinService = createAddinService({ insertAssetInsertion });
 
   const organizationService = createOrganizationService({
@@ -195,9 +196,7 @@ export function createAppRouter(deps: AddinRouterDeps) {
     assignOrganizationSeat,
   });
 
-  const libraryService = createLibraryService({
-    storage: resolveObjectStorage(deps.storage),
-  });
+  const libraryService = createLibraryService({ storage });
 
   return router({
     ...systemRoutes,
