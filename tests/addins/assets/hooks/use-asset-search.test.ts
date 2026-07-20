@@ -18,7 +18,7 @@ describe("useAssetSearch", () => {
       expect(result.current.isSearching).toBe(false);
     });
 
-    expect(searchFn).toHaveBeenCalledWith("nether");
+    expect(searchFn).toHaveBeenCalledWith("nether", { internalOnly: false });
     expect(result.current.results).toHaveLength(1);
     expect(result.current.hasSearched).toBe(true);
     expect(result.current.error).toBeNull();
@@ -71,8 +71,9 @@ describe("useAssetSearch", () => {
   });
 
   it("ignores stale responses when the query changes quickly", async () => {
-    let resolveFirst: ((value: Array<{ id: string; name: string; imageUrl: string }>) => void) | null =
-      null;
+    let resolveFirst:
+      | ((value: Array<{ id: string; name: string; imageUrl: string }>) => void)
+      | null = null;
     const firstSearch = new Promise<Array<{ id: string; name: string; imageUrl: string }>>(
       (resolve) => {
         resolveFirst = resolve;

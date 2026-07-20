@@ -1,7 +1,7 @@
 import type { AssetDetailsResponse, AssetSearchResponse } from "../assets/types";
 import { capitalize } from "../../lib/strings";
 
-import type { FlagDetailsResponse, FlagSearchResult } from "./mock-data";
+import type { FlagDetailsResponse, FlagSearchResult } from "./types";
 
 export function mapFlagSearchResponse(flags: FlagSearchResult[]): AssetSearchResponse {
   return {
@@ -9,6 +9,7 @@ export function mapFlagSearchResponse(flags: FlagSearchResult[]): AssetSearchRes
       id: flag.id,
       imageUrl: flag.previewUrl,
       name: flag.name,
+      scope: flag.scope,
     })),
   };
 }

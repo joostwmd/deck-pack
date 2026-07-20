@@ -1,4 +1,5 @@
 import type { AuthClient } from "@deck-pack/auth/client";
+import type { LibraryStore } from "@deck-pack/library-admin/types";
 
 export interface AuthService {
   getSession: AuthClient["getSession"];
@@ -25,4 +26,5 @@ export interface AuthService {
 
 export interface PortalAppServices {
   auth: AuthService;
+  library: LibraryStore;
 }

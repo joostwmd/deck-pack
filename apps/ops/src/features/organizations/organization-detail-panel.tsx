@@ -14,6 +14,7 @@ export function OrganizationDetailPanel({ orgId }: { orgId: string }) {
 
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
+  const [type, setType] = useState<"individual" | "team">("individual");
 
   const detailQuery = useQuery({
     queryKey: ["organization", "detail", orgId],
@@ -34,15 +35,17 @@ export function OrganizationDetailPanel({ orgId }: { orgId: string }) {
     if (detailQuery.data) {
       setName(detailQuery.data.name);
       setSlug(detailQuery.data.slug);
+      setType(detailQuery.data.type ?? "individual");
     }
   }, [detailQuery.data]);
 
   const updateMutation = useMutation({
-    mutationFn: (input: { name: string; slug: string }) =>
+    mutationFn: (input: { name: string; slug: string; type: "individual" | "team" }) =>
       organization.updateOrganization({
         organizationId: orgId,
         name: input.name,
         slug: input.slug,
+        type: input.type,
       }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["organization", "detail", orgId] });
@@ -70,7 +73,9 @@ export function OrganizationDetailPanel({ orgId }: { orgId: string }) {
 
   const dirty =
     Boolean(detailQuery.data) &&
-    (name.trim() !== detailQuery.data?.name || slug.trim() !== detailQuery.data?.slug);
+    (name.trim() !== detailQuery.data?.name ||
+      slug.trim() !== detailQuery.data?.slug ||
+      type !== (detailQuery.data?.type ?? "individual"));
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -78,7 +83,7 @@ export function OrganizationDetailPanel({ orgId }: { orgId: string }) {
       toast.error("Name and slug are required");
       return;
     }
-    updateMutation.mutate({ name: name.trim(), slug: slug.trim() });
+    updateMutation.mutate({ name: name.trim(), slug: slug.trim(), type });
   };
 
   return (
@@ -93,6 +98,8 @@ export function OrganizationDetailPanel({ orgId }: { orgId: string }) {
       onNameChange={setName}
       slug={slug}
       onSlugChange={setSlug}
+      type={type}
+      onTypeChange={setType}
       saving={updateMutation.isPending}
       onSubmit={handleSubmit}
       dirty={dirty}

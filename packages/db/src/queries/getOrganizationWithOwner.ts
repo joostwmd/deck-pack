@@ -1,5 +1,6 @@
 import { and, count, eq } from "drizzle-orm";
 
+import { getOrganizationType, type OrganizationType } from "../org-metadata";
 import { member, organization, user } from "../schema/auth";
 import type { Transaction } from "../transaction";
 
@@ -13,6 +14,7 @@ export type OrganizationWithOwner = {
   ownerEmail: string | null;
   ownerName: string | null;
   memberCount: number;
+  type: OrganizationType | null;
 };
 
 export async function getOrganizationWithOwner({
@@ -28,6 +30,7 @@ export async function getOrganizationWithOwner({
       name: organization.name,
       slug: organization.slug,
       createdAt: organization.createdAt,
+      metadata: organization.metadata,
       ownerEmail: user.email,
       ownerName: user.name,
     })
@@ -50,7 +53,13 @@ export async function getOrganizationWithOwner({
     .where(eq(member.organizationId, organizationId));
 
   return {
-    ...row,
+    id: row.id,
+    name: row.name,
+    slug: row.slug,
+    createdAt: row.createdAt,
+    ownerEmail: row.ownerEmail,
+    ownerName: row.ownerName,
     memberCount: Number(memberCountRow?.value ?? 0),
+    type: getOrganizationType(row.metadata),
   };
 }

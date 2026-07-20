@@ -6,6 +6,7 @@ export interface SlideFilters {
   category?: string;
   tags?: string[];
   aspectRatio?: SlideAspectRatio;
+  internalOnly?: boolean;
 }
 
 export interface SlideSearchResult {
@@ -17,6 +18,7 @@ export interface SlideSearchResult {
   tags: string[];
   aspectRatio: SlideAspectRatio;
   createdAt: string;
+  scope: "global" | "org";
 }
 
 export interface SlideSearchFacets {

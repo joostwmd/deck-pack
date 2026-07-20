@@ -45,6 +45,7 @@ const ASSIGNABLE_ROLES = [
   ORGANIZATION_ROLES.admin,
   ORGANIZATION_ROLES.member,
   ORGANIZATION_ROLES.addinUser,
+  ORGANIZATION_ROLES.libraryManager,
 ] as const;
 
 export function MembersPanel() {
@@ -134,7 +135,8 @@ export function MembersPanel() {
                       if (
                         value === ORGANIZATION_ROLES.admin ||
                         value === ORGANIZATION_ROLES.member ||
-                        value === ORGANIZATION_ROLES.addinUser
+                        value === ORGANIZATION_ROLES.addinUser ||
+                        value === ORGANIZATION_ROLES.libraryManager
                       ) {
                         setRole(value);
                       }

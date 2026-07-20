@@ -47,17 +47,26 @@ function createExternalAssetsApp() {
       photos: [samplePhoto],
     }),
   };
-  const icons8 = {
+  const nounProject = {
     searchIcons: vi.fn().mockResolvedValue({
-      icons: [{ id: "icon-1", name: "Arrow", previewUrl: "https://example.com/arrow.png" }],
+      icons: [
+        {
+          id: "1234",
+          term: "Arrow",
+          thumbnail_url: "https://example.com/arrow.png",
+        },
+      ],
     }),
-    getIconById: vi.fn().mockResolvedValue({
-      id: "icon-1",
+    getIconDetails: vi.fn().mockResolvedValue({
+      id: "1234",
       name: "Arrow",
+      attribution: "Arrow by Artist from Noun Project",
+      thumbnailUrl: "https://example.com/arrow.png",
       variants: [
         {
-          platform: "ios7",
-          previewUrl: "https://example.com/arrow-ios7.png",
+          id: "1234",
+          name: "Line",
+          previewUrl: "https://example.com/arrow.png",
           svg: "<svg />",
         },
       ],
@@ -67,22 +76,22 @@ function createExternalAssetsApp() {
     searchBrands: vi.fn().mockResolvedValue({
       results: [
         {
-          id: "brand-1",
-          brandId: "brand-1",
+          brandId: "id_acme",
           name: "Acme",
           domain: "acme.com",
-          logo: "https://example.com/acme.png",
+          icon: "https://example.com/acme.png",
         },
       ],
     }),
     getBrandDetails: vi.fn().mockResolvedValue({
-      brandId: "brand-1",
+      brandId: "id_acme",
       name: "Acme",
+      domain: "acme.com",
       logos: [
         {
           type: "logo",
           theme: "dark",
-          formats: [{ src: "https://example.com/acme-dark.png" }],
+          formats: [{ format: "png", src: "https://example.com/acme-dark.png" }],
         },
       ],
     }),
@@ -90,17 +99,19 @@ function createExternalAssetsApp() {
 
   const router = createAppRouter({
     brandfetchApiKey: "test",
-    icons8ApiKey: "test",
+    brandfetchClientId: "test-client",
+    nounProjectApiKey: "test",
+    nounProjectApiSecret: "test-secret",
     pexelsApiKey: "test",
     pexels: pexels as never,
-    icons8: icons8 as never,
+    nounProject: nounProject as never,
     brandfetch: brandfetch as never,
   });
 
   return {
     app: createApp({ router }),
     pexels,
-    icons8,
+    nounProject,
     brandfetch,
   };
 }
@@ -147,10 +158,10 @@ describe("assets external integrations bearer transport", () => {
     expect(body.error?.json?.data?.code).toBe("TOO_MANY_REQUESTS");
   });
 
-  it("searches icons and loads details through injected icons8 client", async () => {
+  it("searches icons and loads details through injected noun project client", async () => {
     const fixture = await createSignedSessionFixture({ emailPrefix: "icons-search" });
     createdUserIds.push(fixture.userId);
-    const { app, icons8 } = createExternalAssetsApp();
+    const { app, nounProject } = createExternalAssetsApp();
 
     const searchResponse = await trpcQuery<{ results: Array<{ id: string }> }>(
       app,
@@ -161,15 +172,15 @@ describe("assets external integrations bearer transport", () => {
     const detailsResponse = await trpcQuery<{ variants: Array<{ id: string }> }>(
       app,
       "assets.icons.getDetails",
-      { externalId: "icon-1" },
+      { externalId: "1234" },
       fixture.bearerToken,
     );
 
     expect(searchResponse.status).toBe(200);
     expect(detailsResponse.status).toBe(200);
-    expect(icons8.searchIcons).toHaveBeenCalledWith({ term: "arrow" });
-    expect(icons8.getIconById).toHaveBeenCalledWith({ id: "icon-1" });
-    expect(detailsResponse.body.result?.data?.json?.variants[0]?.id).toBe("ios7");
+    expect(nounProject.searchIcons).toHaveBeenCalledWith({ query: "arrow" });
+    expect(nounProject.getIconDetails).toHaveBeenCalledWith({ id: "1234" });
+    expect(detailsResponse.body.result?.data?.json?.variants[0]?.id).toBe("1234");
   });
 
   it("searches logos and loads details through injected brandfetch client", async () => {
@@ -186,22 +197,23 @@ describe("assets external integrations bearer transport", () => {
     const detailsResponse = await trpcQuery<{ id: string; variants: Array<{ id: string }> }>(
       app,
       "assets.logos.getDetails",
-      { externalId: "brand-1" },
+      { externalId: "acme.com" },
       fixture.bearerToken,
     );
 
     expect(searchResponse.status).toBe(200);
     expect(detailsResponse.status).toBe(200);
     expect(brandfetch.searchBrands).toHaveBeenCalledWith({ query: "acme" });
-    expect(brandfetch.getBrandDetails).toHaveBeenCalledWith({ brandId: "brand-1" });
+    expect(brandfetch.getBrandDetails).toHaveBeenCalledWith({ identifier: "acme.com" });
     expect(searchResponse.body.result?.data?.json?.results[0]?.name).toBe("Acme");
+    expect(searchResponse.body.result?.data?.json?.results[0]?.id).toBe("acme.com");
     expect(detailsResponse.body.result?.data?.json?.variants).toHaveLength(1);
   });
 
   it("rejects unauthenticated logo details queries", async () => {
     const { app } = createExternalAssetsApp();
     const { status, body } = await trpcQuery(app, "assets.logos.getDetails", {
-      externalId: "brand-1",
+      externalId: "acme.com",
     });
 
     expect(status).not.toBe(200);

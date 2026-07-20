@@ -4,7 +4,7 @@ import { getRouteApi } from "@tanstack/react-router";
 import { AccountView } from "@/features/account/account-view";
 import { trpc } from "@/utils/trpc";
 
-const accountRoute = getRouteApi("/_protected/_individual/account");
+const accountRoute = getRouteApi("/_protected/solo/account");
 
 export function AccountPanel() {
   const { session } = accountRoute.useRouteContext();

@@ -2,7 +2,7 @@ data "terraform_remote_state" "database" {
   backend = "azurerm"
   config = {
     resource_group_name  = "rg-deck-pack-tfstate"
-    storage_account_name = "stdeckpacktfstatejw"
+    storage_account_name = "stdeckpacktfstatedpc"
     container_name       = "tfstate"
     key                  = "database.tfstate"
     use_azuread_auth     = true

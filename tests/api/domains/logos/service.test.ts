@@ -3,15 +3,14 @@ import { describe, expect, it, vi } from "vitest";
 import { createLogoService } from "@deck-pack/api/domains/logos/service";
 
 describe("createLogoService", () => {
-  it("maps logo search responses", async () => {
+  it("maps logo search responses using domain as id", async () => {
     const searchBrands = vi.fn().mockResolvedValue({
       results: [
         {
-          id: "brand-1",
-          brandId: "brand-1",
+          brandId: "id_acme",
           name: "Acme",
           domain: "acme.com",
-          logo: "https://example.com/acme.png",
+          icon: "https://example.com/acme.png",
         },
       ],
     });
@@ -24,7 +23,7 @@ describe("createLogoService", () => {
     expect(searchBrands).toHaveBeenCalledWith({ query: "acme" });
     expect(result.results).toEqual([
       {
-        id: "brand-1",
+        id: "acme.com",
         name: "Acme",
         imageUrl: "https://example.com/acme.png",
       },
@@ -33,13 +32,17 @@ describe("createLogoService", () => {
 
   it("maps logo details responses", async () => {
     const getBrandDetails = vi.fn().mockResolvedValue({
-      brandId: "brand-1",
+      brandId: "id_acme",
       name: "Acme",
+      domain: "acme.com",
       logos: [
         {
           type: "logo",
           theme: "dark",
-          formats: [{ src: "https://example.com/acme-dark.png" }],
+          formats: [
+            { format: "png", src: "https://example.com/acme-dark.png" },
+            { format: "svg", src: "https://example.com/acme-dark.svg" },
+          ],
         },
       ],
     });
@@ -47,11 +50,12 @@ describe("createLogoService", () => {
       brandfetch: { getBrandDetails } as never,
     });
 
-    const result = await service.getDetails("brand-1");
+    const result = await service.getDetails("acme.com");
 
-    expect(getBrandDetails).toHaveBeenCalledWith({ brandId: "brand-1" });
-    expect(result.id).toBe("brand-1");
+    expect(getBrandDetails).toHaveBeenCalledWith({ identifier: "acme.com" });
+    expect(result.id).toBe("acme.com");
     expect(result.variants).toHaveLength(1);
+    expect(result.variants[0]?.imageUrl).toBe("https://example.com/acme-dark.svg");
     expect(result.variants[0]?.insert.type).toBe("image");
   });
 
@@ -62,6 +66,6 @@ describe("createLogoService", () => {
       } as never,
     });
 
-    await expect(service.getDetails("brand-1")).rejects.toThrow("Brandfetch unavailable");
+    await expect(service.getDetails("acme.com")).rejects.toThrow("Brandfetch unavailable");
   });
 });

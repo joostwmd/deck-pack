@@ -19,6 +19,13 @@ import {
 import { Input } from "@deck-pack/ui/components/system/input";
 import { Label } from "@deck-pack/ui/components/system/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@deck-pack/ui/components/system/select";
+import {
   Table,
   TableBody,
   TableCaption,
@@ -43,6 +50,8 @@ export type OrganizationDetailViewProps = {
   onNameChange: (value: string) => void;
   slug: string;
   onSlugChange: (value: string) => void;
+  type: "individual" | "team";
+  onTypeChange: (value: "individual" | "team") => void;
   saving: boolean;
   onSubmit: (event: React.FormEvent) => void;
   dirty: boolean;
@@ -61,6 +70,8 @@ export function OrganizationDetailView({
   onNameChange,
   slug,
   onSlugChange,
+  type,
+  onTypeChange,
   saving,
   onSubmit,
   dirty,
@@ -90,7 +101,8 @@ export function OrganizationDetailView({
         <h1 className="text-xl font-semibold">{organization.name}</h1>
         <p className="text-muted-foreground text-sm">
           {organization.memberCount} member{organization.memberCount === 1 ? "" : "s"} · Owner{" "}
-          {organization.ownerEmail ?? "—"}
+          {organization.ownerEmail ?? "—"} ·{" "}
+          <Badge variant="secondary">{organization.type ?? "unknown"}</Badge>
         </p>
       </div>
 
@@ -117,6 +129,18 @@ export function OrganizationDetailView({
                 value={slug}
                 onChange={(e) => onSlugChange(e.target.value)}
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="org-type">Organization type</Label>
+              <Select value={type} onValueChange={(value) => onTypeChange(value as "individual" | "team")}>
+                <SelectTrigger id="org-type">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="individual">Individual</SelectItem>
+                  <SelectItem value="team">Team</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="flex gap-2 pt-1">
               <Button type="submit" disabled={saving || !dirty}>

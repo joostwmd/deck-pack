@@ -18,7 +18,7 @@ describe("useAssetSearchFlow", () => {
 
     await waitFor(
       () => {
-        expect(search).toHaveBeenCalledWith("nether");
+        expect(search).toHaveBeenCalledWith("nether", { internalOnly: false });
       },
       { timeout: 2000 },
     );

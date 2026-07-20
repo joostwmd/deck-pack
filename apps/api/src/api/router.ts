@@ -27,6 +27,7 @@ import { updateOrganizationMemberRole } from "@deck-pack/db/queries/updateOrgani
 import { getAgendaInstance } from "@deck-pack/db/queries/getAgendaInstance";
 import { getBrandProfileWithVersion } from "@deck-pack/db/queries/getBrandProfileWithVersion";
 import { getOrganizationSubscription } from "@deck-pack/db/queries/getOrganizationSubscription";
+import { getOrganizationMetadataById } from "@deck-pack/db/queries/getOrganizationMetadataById";
 import { getOrganizationWithOwner } from "@deck-pack/db/queries/getOrganizationWithOwner";
 import { getPlan } from "@deck-pack/db/queries/getPlan";
 import { insertAssetInsertion } from "@deck-pack/db/queries/insertAssetInsertion";
@@ -44,7 +45,7 @@ import { updateOrganization } from "@deck-pack/db/queries/updateOrganization";
 import { updateOrganizationSubscription } from "@deck-pack/db/queries/updateOrganizationSubscription";
 import { updatePlan } from "@deck-pack/db/queries/updatePlan";
 import { upsertShortcutOverride } from "@deck-pack/db/queries/upsertShortcutOverride";
-import { Icons8Client } from "@deck-pack/integrations/icons8";
+import { NounProjectClient } from "@deck-pack/integrations/noun-project";
 import { PexelsClient } from "@deck-pack/integrations/pexels";
 
 import { createAddinRoutes } from "../domains/addin/routes";
@@ -77,32 +78,67 @@ import { createSlideRoutes } from "../domains/slides/routes";
 import { createSlideService } from "../domains/slides/service";
 import { createUsersRoutes } from "../domains/users/routes";
 import { createUsersService } from "../domains/users/service";
+import { createLibraryRoutes } from "../domains/library/routes";
+import { createOrgLibraryRoutes } from "../domains/library/org-routes";
+import { createLibraryService } from "../domains/library/service";
+import { createOrgLibraryService } from "../domains/library/org-service";
 import { systemRoutes } from "../domains/system/routes";
+import {
+  createAzureObjectStorage,
+  createMemoryObjectStorage,
+  type ObjectStorage,
+} from "@deck-pack/storage";
+import { env } from "@deck-pack/env/server";
 
 import { router } from "./setup";
 
 export type AddinRouterDeps = {
   brandfetchApiKey: string;
-  icons8ApiKey: string;
+  brandfetchClientId: string;
+  nounProjectApiKey: string;
+  nounProjectApiSecret: string;
   pexelsApiKey: string;
   pexels?: PexelsClient;
-  icons8?: Icons8Client;
+  nounProject?: NounProjectClient;
   brandfetch?: BrandfetchClient;
+  storage?: ObjectStorage;
 };
 
+function resolveObjectStorage(explicit?: ObjectStorage): ObjectStorage {
+  if (explicit) return explicit;
+  if (env.AZURE_STORAGE_ACCOUNT_NAME && env.AZURE_STORAGE_CONTAINER) {
+    return createAzureObjectStorage({
+      accountName: env.AZURE_STORAGE_ACCOUNT_NAME,
+      containerName: env.AZURE_STORAGE_CONTAINER,
+    });
+  }
+  return createMemoryObjectStorage();
+}
+
 export function createAppRouter(deps: AddinRouterDeps) {
+  const storage = resolveObjectStorage(deps.storage);
   const photoService = createPhotoService({
     pexels: deps.pexels ?? new PexelsClient(deps.pexelsApiKey),
   });
-  const slideService = createSlideService();
-  const shapeService = createShapeService();
+  const slideService = createSlideService({ storage });
+  const shapeService = createShapeService({ storage });
   const iconService = createIconService({
-    icons8: deps.icons8 ?? new Icons8Client(deps.icons8ApiKey),
+    nounProject:
+      deps.nounProject ??
+      new NounProjectClient({
+        apiKey: deps.nounProjectApiKey,
+        apiSecret: deps.nounProjectApiSecret,
+      }),
   });
   const logoService = createLogoService({
-    brandfetch: deps.brandfetch ?? new BrandfetchClient(deps.brandfetchApiKey),
+    brandfetch:
+      deps.brandfetch ??
+      new BrandfetchClient({
+        apiKey: deps.brandfetchApiKey,
+        clientId: deps.brandfetchClientId,
+      }),
   });
-  const flagService = createFlagService();
+  const flagService = createFlagService({ storage });
   const addinService = createAddinService({ insertAssetInsertion });
 
   const organizationService = createOrganizationService({
@@ -173,7 +209,13 @@ export function createAppRouter(deps: AddinRouterDeps) {
     removeOrganizationMember,
     cancelInvitation,
     assignOrganizationSeat,
+    getOrganizationMetadataById,
+    getActiveOrganizationSubscriptionByOrgId,
+    getPlan,
   });
+
+  const libraryService = createLibraryService({ storage });
+  const orgLibraryService = createOrgLibraryService({ storage });
 
   return router({
     ...systemRoutes,
@@ -182,6 +224,10 @@ export function createAppRouter(deps: AddinRouterDeps) {
     seats: router(createSeatsRoutes(seatsService)),
     users: router(createUsersRoutes(usersService)),
     billing: router(createBillingRoutes(billingService)),
+    library: router({
+      ...createLibraryRoutes(libraryService),
+      org: router(createOrgLibraryRoutes(orgLibraryService)),
+    }),
     assets: router({
       photos: router(createPhotoRoutes(photoService)),
       slides: router(createSlideRoutes(slideService)),
@@ -199,7 +245,9 @@ export function createAppRouter(deps: AddinRouterDeps) {
 
 export const appRouter = createAppRouter({
   brandfetchApiKey: "dummy-key-for-now",
-  icons8ApiKey: "dummy-key-for-now",
+  brandfetchClientId: "dummy-client-id-for-now",
+  nounProjectApiKey: "dummy-key-for-now",
+  nounProjectApiSecret: "dummy-secret-for-now",
   pexelsApiKey: "dummy-key-for-now",
 });
 

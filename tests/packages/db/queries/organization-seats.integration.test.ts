@@ -7,7 +7,7 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db } from "@deck-pack/db";
 import { member, organization, user } from "@deck-pack/db/schema/auth";
-import { organizationSeats, organizationSubscriptions, plans } from "@deck-pack/db/schema/billing";
+import { organizationSeats, plans } from "@deck-pack/db/schema/billing";
 import { tx } from "@deck-pack/db/transaction";
 import { activateOrganizationSeat } from "@deck-pack/db/queries/activateOrganizationSeat";
 import { assignOrganizationSeat } from "@deck-pack/db/queries/assignOrganizationSeat";

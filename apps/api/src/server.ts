@@ -31,8 +31,10 @@ export function createApp(options?: CreateAppOptions) {
   const appRouter =
     options?.router ??
     createAppRouter({
-      brandfetchApiKey: "dummy-key-for-now",
-      icons8ApiKey: "dummy-key-for-now",
+      brandfetchApiKey: env.BRANDFETCH_API_KEY,
+      brandfetchClientId: env.BRANDFETCH_CLIENT_ID,
+      nounProjectApiKey: env.NOUN_PROJECT_API_KEY,
+      nounProjectApiSecret: env.NOUN_PROJECT_API_SECRET,
       pexelsApiKey: env.PEXELS_API_KEY,
     });
 

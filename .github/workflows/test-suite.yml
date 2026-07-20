@@ -11,6 +11,9 @@ jobs:
   test-unit:
     name: Unit tests
     runs-on: ubuntu-latest
+    env:
+      # Also set in vitest unit-jsdom config; keep here so any Node-side env reads work in CI.
+      VITE_SERVER_URL: http://localhost:3000
     steps:
       - uses: actions/checkout@v4
 

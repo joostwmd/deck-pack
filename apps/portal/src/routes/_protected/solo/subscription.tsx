@@ -1,0 +1,7 @@
+import { createFileRoute } from "@tanstack/react-router";
+
+import { SubscriptionPanel } from "@/features/subscription/subscription-panel";
+
+export const Route = createFileRoute("/_protected/solo/subscription")({
+  component: SubscriptionPanel,
+});

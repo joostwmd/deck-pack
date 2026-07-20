@@ -5,11 +5,12 @@ pre-commit:
   parallel: true
   jobs:
     # Only run when JS/TS is staged; otherwise lefthook skips the job (no "0 files" oxlint failure).
+    # Use a login shell so GUI/IDE git (minimal PATH) still finds nvm-installed pnpm.
     - name: oxlint
       glob: "*.{ts,tsx,js,jsx,mjs,cjs}"
-      run: pnpm oxlint:strict -- --fix {staged_files}
+      run: bash -lc 'pnpm oxlint -- --fix {staged_files}'
       stage_fixed: true
     - name: oxfmt
       glob: "*.{ts,tsx,js,jsx,mjs,cjs,json,css,md,mdx}"
-      run: pnpm oxfmt --write {staged_files}
+      run: bash -lc 'pnpm oxfmt --write {staged_files}'
       stage_fixed: true

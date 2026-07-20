@@ -41,7 +41,7 @@ export interface ShortcutStore {
 }
 
 export interface AssetListSearchStore {
-  search: (query: string) => Promise<AssetListItem[]>;
+  search: (query: string, options?: { internalOnly?: boolean }) => Promise<AssetListItem[]>;
   getDetails: (externalId: string) => Promise<AssetDetailsResponse>;
 }
 
@@ -65,11 +65,12 @@ export interface SlideSearchStore {
     tags?: string[];
     aspectRatio?: SlideAspectRatio;
     sort?: SlideSort;
+    internalOnly?: boolean;
   }) => Promise<SlideSearchResponse>;
 }
 
 export interface ShapeSearchStore {
-  search: (input: { category?: string }) => Promise<ShapeSearchResponse>;
+  search: (input: { category?: string; internalOnly?: boolean }) => Promise<ShapeSearchResponse>;
 }
 
 export interface AssetStores {

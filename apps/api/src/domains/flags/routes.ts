@@ -8,17 +8,27 @@ import {
   assetSearchResponseSchema,
 } from "../assets/schemas";
 import { protectedProcedure } from "../../api/procedures";
+import { discoveryOrganizationId } from "../../api/discovery-context";
 
 import type { FlagService } from "./service";
 
 export function createFlagRoutes(flagService: FlagService) {
   return {
     search: protectedProcedure
-      .input(z.object({ query: assetSearchQuerySchema }))
+      .input(
+        z.object({
+          query: assetSearchQuerySchema,
+          internalOnly: z.boolean().optional(),
+        }),
+      )
       .output(assetSearchResponseSchema)
-      .query(async ({ input }) => {
+      .query(async ({ ctx, input }) => {
         try {
-          return await flagService.search(input.query);
+          return await flagService.search(ctx.tx, {
+            query: input.query,
+            organizationId: discoveryOrganizationId(ctx),
+            internalOnly: input.internalOnly,
+          });
         } catch (error) {
           console.error("Flag search error:", error);
           throw new TRPCError({
@@ -31,9 +41,13 @@ export function createFlagRoutes(flagService: FlagService) {
     getDetails: protectedProcedure
       .input(z.object({ externalId: assetExternalIdSchema }))
       .output(assetDetailsResponseSchema)
-      .query(async ({ input }) => {
+      .query(async ({ ctx, input }) => {
         try {
-          const flag = await flagService.getDetails(input.externalId);
+          const flag = await flagService.getDetails(
+            ctx.tx,
+            input.externalId,
+            discoveryOrganizationId(ctx),
+          );
 
           if (!flag) {
             throw new TRPCError({

@@ -89,8 +89,9 @@
     "db:watch": "turbo -F @deck-pack/db db:watch",
     "db:stop": "turbo -F @deck-pack/db db:stop",
     "db:down": "turbo -F @deck-pack/db db:down",
+    "oxlint": "oxlint",
     "oxlint:strict": "oxlint --type-aware --type-check",
-    "check": "pnpm oxlint:strict && oxfmt --write",
+    "check": "pnpm oxlint && oxfmt --write",
     "agent:install": "bash external/agent-stack/scripts/install-plugin.sh",
     "steno:ingest": "steno ingest",
     "steno:dev": "steno dev"

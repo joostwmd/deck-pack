@@ -1,6 +1,8 @@
 import { cn } from "@deck-pack/ui/lib/utils";
 import { CheckCircle } from "@phosphor-icons/react";
 
+import { InternalScopeBadge } from "@/components/asset-browser/internal-scope-badge";
+
 import type { SlideSearchResult } from "./types";
 
 interface SlideCardProps {
@@ -33,6 +35,7 @@ export function SlideCard({
     >
       <div className="flex w-full flex-col gap-2">
         <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-md bg-muted/60">
+          <InternalScopeBadge scope={slide.scope} className="absolute right-1.5 top-1.5 z-10 text-[10px]" />
           <img
             src={slide.thumbnailUrl}
             alt=""

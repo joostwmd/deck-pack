@@ -1,20 +1,21 @@
 import type { Permissions } from "@deck-pack/auth/rbac";
+import type { WorkspaceKind } from "@deck-pack/auth/workspace";
 
-export type IndividualNavRoute = "/account";
+export type SoloNavRoute = "/solo/subscription" | "/solo/account";
 
-export type OrgNavRoute = "/org/dashboard" | "/org/members" | "/org/seats";
+export type OrgNavRoute =
+  | "/org/dashboard"
+  | "/org/members"
+  | "/org/seats"
+  | "/org/library/shapes"
+  | "/org/library/flags"
+  | "/org/library/slides";
 
-export type PortalNavRoute = IndividualNavRoute | OrgNavRoute;
+export type PortalNavRoute = SoloNavRoute | OrgNavRoute;
 
-export type PortalNavItem = {
+export type SoloNavItem = {
   title: string;
-  to: PortalNavRoute;
-  permissions?: Permissions;
-};
-
-export type IndividualNavItem = {
-  title: string;
-  to: IndividualNavRoute;
+  to: SoloNavRoute;
 };
 
 export type OrgNavItem = {
@@ -23,10 +24,17 @@ export type OrgNavItem = {
   permissions?: Permissions;
 };
 
-export const INDIVIDUAL_NAV_ITEMS: IndividualNavItem[] = [{ title: "Account", to: "/account" }];
+export const SOLO_NAV_ITEMS: SoloNavItem[] = [
+  { title: "Subscription", to: "/solo/subscription" },
+];
 
 export const ORG_NAV_ITEMS: OrgNavItem[] = [
   { title: "Dashboard", to: "/org/dashboard" },
+  {
+    title: "Library",
+    to: "/org/library/shapes",
+    permissions: { library: ["create"] },
+  },
   {
     title: "Members",
     to: "/org/members",
@@ -40,8 +48,8 @@ export const ORG_NAV_ITEMS: OrgNavItem[] = [
 ];
 
 /** Cross-workspace link shown in the org sidebar. */
-export const ORG_SECONDARY_NAV_ITEMS: IndividualNavItem[] = [
-  { title: "Personal account", to: "/account" },
+export const ORG_SECONDARY_NAV_ITEMS: SoloNavItem[] = [
+  { title: "Personal account", to: "/solo/account" },
 ];
 
 export type PortalBreadcrumb = {
@@ -59,7 +67,11 @@ export function portalBreadcrumbs(
 ): PortalBreadcrumb[] {
   const { dynamicLabels = {} } = options;
 
-  if (pathname === "/account") {
+  if (pathname === "/solo/subscription") {
+    return [{ label: "Subscription" }];
+  }
+
+  if (pathname === "/solo/account" || pathname === "/account") {
     return [{ label: "Account" }];
   }
 
@@ -69,6 +81,10 @@ export function portalBreadcrumbs(
 
   if (pathname === "/org/members") {
     return [{ label: "Members" }];
+  }
+
+  if (pathname.startsWith("/org/library")) {
+    return [{ label: "Library" }];
   }
 
   if (pathname === "/org/seats") {
@@ -87,9 +103,21 @@ export function isPortalNavItemActive(pathname: string, to: PortalNavRoute): boo
   if (to === "/org/dashboard") {
     return pathname === to || pathname === "/org";
   }
+  if (to === "/solo/subscription") {
+    return pathname === to || pathname === "/solo";
+  }
   return pathname === to || pathname.startsWith(`${to}/`);
 }
 
-export function portalHomePath(activeOrganizationId: string | null | undefined): PortalNavRoute {
-  return activeOrganizationId ? "/org/dashboard" : "/account";
+export function portalHomePath(workspace: WorkspaceKind | null | undefined): PortalNavRoute {
+  return workspace === "team" ? "/org/dashboard" : "/solo/subscription";
+}
+
+export function workspaceFromSession(
+  session: { workspace?: string | null } | null | undefined,
+): WorkspaceKind | null {
+  if (session?.workspace === "solo" || session?.workspace === "team") {
+    return session.workspace;
+  }
+  return null;
 }

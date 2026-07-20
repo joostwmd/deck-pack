@@ -3,7 +3,10 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db } from "@deck-pack/db";
 import { archiveBrandProfile } from "@deck-pack/db/queries/archiveBrandProfile";
-import { createBrandProfile, duplicateBrandProfile } from "@deck-pack/db/queries/createBrandProfile";
+import {
+  createBrandProfile,
+  duplicateBrandProfile,
+} from "@deck-pack/db/queries/createBrandProfile";
 import { createBrandProfileVersion } from "@deck-pack/db/queries/createBrandProfileVersion";
 import { getBrandProfileWithVersion } from "@deck-pack/db/queries/getBrandProfileWithVersion";
 import { listBrandProfilesByUser } from "@deck-pack/db/queries/listBrandProfilesByUser";
@@ -75,7 +78,10 @@ describe("brand profiles (integration)", () => {
       input: { userId, name: "Acme", configuration: sampleConfig },
     });
 
-    const nextConfig = { ...sampleConfig, colors: { ...sampleConfig.colors, maximumColorDistance: 8 } };
+    const nextConfig = {
+      ...sampleConfig,
+      colors: { ...sampleConfig.colors, maximumColorDistance: 8 },
+    };
     const version2 = await createBrandProfileVersion({
       tx,
       profileId: profile.id,
@@ -102,7 +108,7 @@ describe("brand profiles (integration)", () => {
 
   it("enforces a single default profile per user", async () => {
     const userId = await seedUser();
-    const first = await createBrandProfile({
+    await createBrandProfile({
       tx,
       input: { userId, name: "First", configuration: sampleConfig, isDefault: true },
     });
@@ -151,7 +157,10 @@ describe("brand profiles (integration)", () => {
 
   it("cascades profile deletion when user is deleted", async () => {
     const userId = await seedUser();
-    await createBrandProfile({ tx, input: { userId, name: "Cascade", configuration: sampleConfig } });
+    await createBrandProfile({
+      tx,
+      input: { userId, name: "Cascade", configuration: sampleConfig },
+    });
 
     await db.delete(user).where(eq(user.id, userId));
     const rows = await listBrandProfilesByUser({ tx, userId });

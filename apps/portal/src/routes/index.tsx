@@ -9,19 +9,29 @@ import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
-import { portalHomePath } from "@/config/portal-nav";
+import { portalHomePath, workspaceFromSession } from "@/config/portal-nav";
 import { useServices } from "@/services/services-context";
 import { getAuthClient } from "@/utils/auth";
+import { trpcClient } from "@/utils/trpc";
 
 const AUTH_CALLBACK_PATH = "/auth/callback";
+
+async function resolvePortalHome() {
+  const session = await getAuthClient().getSession();
+  let workspace = workspaceFromSession(session.data?.session);
+  if (session.data?.session?.activeOrganizationId) {
+    const profile = await trpcClient.members.getOrganizationProfile.query();
+    workspace = profile.workspace ?? workspace;
+  }
+  return portalHomePath(workspace);
+}
 
 export const Route = createFileRoute("/")({
   beforeLoad: async ({ context }) => {
     const session = await context.authClient.getSession();
     if (session.data) {
-      const orgId = session.data.session?.activeOrganizationId;
       redirect({
-        to: portalHomePath(orgId),
+        to: await resolvePortalHome(),
         throw: true,
       });
     }
@@ -80,9 +90,7 @@ function HomeComponent() {
       signInWithEmailOtp: auth.signInWithEmailOtp,
     },
     onSuccess: async () => {
-      const session = await auth.getSession();
-      const orgId = session.data?.session?.activeOrganizationId;
-      void navigate({ to: portalHomePath(orgId) });
+      void navigate({ to: await resolvePortalHome() });
     },
     onMicrosoftSignIn: microsoftStrategy ? () => void handleMicrosoftSignIn() : undefined,
     microsoftDisabled: !microsoftAvailability.available,

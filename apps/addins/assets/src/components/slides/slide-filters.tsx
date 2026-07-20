@@ -9,6 +9,7 @@ import { cn } from "@deck-pack/ui/lib/utils";
 import { X } from "@phosphor-icons/react";
 
 import { FilterField, FiltersPopover } from "@/components/asset-browser/filters-popover";
+import { InternalOnlyFilterField } from "@/components/asset-browser/internal-only-filter-field";
 
 import type { SlideAspectRatio, SlideFilters, SlideSearchFacets, SlideSort } from "./types";
 
@@ -86,6 +87,14 @@ export function SlideFiltersBar({
     });
   }
 
+  if (filters.internalOnly) {
+    activeChips.push({
+      key: "internal-only",
+      label: "Internal only",
+      onRemove: () => updateFilter("internalOnly", undefined),
+    });
+  }
+
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
@@ -147,6 +156,12 @@ export function SlideFiltersBar({
               })}
             </div>
           </div>
+
+          <InternalOnlyFilterField
+            id="slide-internal-only-filter"
+            checked={filters.internalOnly ?? false}
+            onCheckedChange={(checked) => updateFilter("internalOnly", checked || undefined)}
+          />
         </FiltersPopover>
 
         <Select value={sort} onValueChange={(value) => onSortChange(value as SlideSort)}>

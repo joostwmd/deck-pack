@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 
 import { protectedProcedure } from "../../api/procedures";
+import { discoveryOrganizationId } from "../../api/discovery-context";
 
 import { slideSearchInputSchema, slideSearchResponseSchema } from "./schemas";
 import type { SlideService } from "./service";
@@ -10,9 +11,12 @@ export function createSlideRoutes(slideService: SlideService) {
     search: protectedProcedure
       .input(slideSearchInputSchema)
       .output(slideSearchResponseSchema)
-      .query(async ({ input }) => {
+      .query(async ({ ctx, input }) => {
         try {
-          return await slideService.search(input);
+          return await slideService.search(ctx.tx, {
+            ...input,
+            organizationId: discoveryOrganizationId(ctx),
+          });
         } catch (error) {
           console.error("Slide search error:", error);
           throw new TRPCError({

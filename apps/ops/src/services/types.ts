@@ -35,6 +35,7 @@ export type OrganizationSummary = {
   slug: string;
   createdAt: Date;
   ownerEmail: string | null;
+  type: "individual" | "team" | null;
 };
 
 export type OrganizationDetail = OrganizationSummary & {
@@ -81,7 +82,14 @@ export interface OrganizationStore {
     organizationId: string;
     name: string;
     slug: string;
-  }) => Promise<{ id: string; name: string; slug: string; createdAt: Date }>;
+    type?: "individual" | "team";
+  }) => Promise<{
+    id: string;
+    name: string;
+    slug: string;
+    createdAt: Date;
+    type: "individual" | "team" | null;
+  }>;
   deleteOrganization: (organizationId: string) => Promise<{ organizationId: string }>;
 }
 
@@ -171,9 +179,130 @@ export interface BillingStore {
   }>;
 }
 
+export type LibraryAssetClass = "flag" | "shape" | "slide";
+export type LibraryItemStatus = "pending" | "ready" | "archived";
+export type LibraryUploadRole =
+  | "svg"
+  | "presentation"
+  | "thumbnail"
+  | "rectangle"
+  | "square"
+  | "circle";
+export type LibraryShapeCategory =
+  | "Arrows"
+  | "Banners & Ribbons"
+  | "Callouts"
+  | "Brackets & Dividers"
+  | "Frames & Badges"
+  | "Lines & Connectors";
+export type LibrarySlideCategory =
+  | "Intro"
+  | "Agenda"
+  | "Content"
+  | "Data"
+  | "People"
+  | "Closing";
+export type LibrarySlideAspectRatio = "16:9" | "4:3";
+
+export type LibraryFileRef = {
+  id: string;
+  blobPath: string;
+  contentType: string;
+  byteSize: number;
+};
+
+export type LibraryListItem = {
+  id: string;
+  assetClass: LibraryAssetClass;
+  status: LibraryItemStatus;
+  displayName: string;
+  updatedAt: Date;
+  createdAt: Date;
+  category: string | null;
+  code: string | null;
+  aspectRatio: string | null;
+  previewUrl: string | null;
+  previewContentType: string | null;
+};
+
+export type LibraryItemDetail = {
+  id: string;
+  assetClass: LibraryAssetClass;
+  scope: "global" | "org";
+  status: LibraryItemStatus;
+  displayName: string;
+  aliases: string[];
+  createdAt: Date;
+  updatedAt: Date;
+  flag: {
+    code: string;
+    variants: Array<{ role: "rectangle" | "square" | "circle"; file: LibraryFileRef }>;
+  } | null;
+  shape: { category: LibraryShapeCategory; svgFile: LibraryFileRef | null } | null;
+  slide: {
+    category: LibrarySlideCategory;
+    aspectRatio: LibrarySlideAspectRatio;
+    presentationFile: LibraryFileRef | null;
+    thumbnailFile: LibraryFileRef | null;
+  } | null;
+};
+
+export interface LibraryStore {
+  list: (input: {
+    assetClass: LibraryAssetClass;
+    includeArchived?: boolean;
+  }) => Promise<LibraryListItem[]>;
+  get: (input: { id: string }) => Promise<LibraryItemDetail>;
+  create: (input: {
+    assetClass: LibraryAssetClass;
+    displayName: string;
+    aliases?: string[];
+    flagCode?: string;
+    category?: LibraryShapeCategory | LibrarySlideCategory;
+    aspectRatio?: LibrarySlideAspectRatio;
+  }) => Promise<{ id: string }>;
+  update: (input: {
+    id: string;
+    displayName: string;
+    aliases: string[];
+    flagCode?: string;
+    category?: LibraryShapeCategory | LibrarySlideCategory;
+    aspectRatio?: LibrarySlideAspectRatio;
+  }) => Promise<LibraryItemDetail>;
+  publish: (input: { id: string }) => Promise<LibraryItemDetail>;
+  unpublish: (input: { id: string }) => Promise<LibraryItemDetail>;
+  archive: (input: { id: string }) => Promise<LibraryItemDetail>;
+  createUploadTarget: (input: {
+    id: string;
+    role: LibraryUploadRole;
+    contentType: string;
+    byteSize: number;
+  }) => Promise<{
+    key: string;
+    uploadUrl: string;
+    method: "PUT" | "POST";
+    headers: Record<string, string>;
+    expiresAt: Date;
+  }>;
+  finalizeUpload: (input: {
+    id: string;
+    role: LibraryUploadRole;
+    key: string;
+    contentType: string;
+  }) => Promise<LibraryItemDetail>;
+  putAndFinalize: (input: {
+    id: string;
+    role: LibraryUploadRole;
+    key: string;
+    contentType: string;
+    dataBase64: string;
+  }) => Promise<LibraryItemDetail>;
+}
+
 export interface OpsAppServices {
   auth: AuthService;
   organization: OrganizationStore;
   users: UsersStore;
   billing: BillingStore;
+  library: LibraryStore;
 }

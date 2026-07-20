@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 
+import { VARIANT_GRID_COLUMN_COUNT } from "@/components/asset-browser/variant-grid";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import type { AssetDetailsResponse, AssetListItem, SelectedAssetEntity } from "@/types/asset-types";
 
@@ -7,27 +8,36 @@ import { useAssetSearch } from "./use-asset-search";
 import { useAssetVariants } from "./use-asset-variants";
 
 export interface UseAssetSearchFlowConfig {
-  search: (query: string) => Promise<AssetListItem[]>;
+  search: (query: string, options?: { internalOnly?: boolean }) => Promise<AssetListItem[]>;
   getDetails: (id: string) => Promise<AssetDetailsResponse>;
+  supportsInternalFilter?: boolean;
 }
 
 /**
  * Drives the shared search -> select -> variants -> select workflow.
  * API responses are already normalized by the backend.
  */
-export function useAssetSearchFlow({ search, getDetails }: UseAssetSearchFlowConfig) {
+export function useAssetSearchFlow({
+  search,
+  getDetails,
+  supportsInternalFilter = false,
+}: UseAssetSearchFlowConfig) {
   const searchRef = useRef(search);
   searchRef.current = search;
   const getDetailsRef = useRef(getDetails);
   getDetailsRef.current = getDetails;
 
-  const stableSearch = useCallback((query: string) => searchRef.current(query), []);
+  const stableSearch = useCallback(
+    (query: string, options?: { internalOnly?: boolean }) => searchRef.current(query, options),
+    [],
+  );
   const stableGetDetails = useCallback(async (id: string) => {
     const details = await getDetailsRef.current(id);
     return { variants: details.variants, details };
   }, []);
 
   const [searchValue, setSearchValue] = useState("");
+  const [internalOnly, setInternalOnly] = useState(false);
   const debouncedQuery = useDebouncedValue(searchValue, 500);
   const query = debouncedQuery.trim();
 
@@ -37,7 +47,7 @@ export function useAssetSearchFlow({ search, getDetails }: UseAssetSearchFlowCon
     hasSearched,
     error: searchError,
     retry: retrySearch,
-  } = useAssetSearch(debouncedQuery, stableSearch);
+  } = useAssetSearch(debouncedQuery, stableSearch, supportsInternalFilter ? internalOnly : false);
   const {
     variants,
     details,
@@ -117,7 +127,7 @@ export function useAssetSearchFlow({ search, getDetails }: UseAssetSearchFlowCon
 
       setHighlightedVariantIndex((current) => {
         const start = Math.min(Math.max(current, 0), variants.length - 1);
-        const columnCount = 2;
+        const columnCount = VARIANT_GRID_COLUMN_COUNT;
         const column = start % columnCount;
 
         if (direction === "up") {
@@ -218,5 +228,7 @@ export function useAssetSearchFlow({ search, getDetails }: UseAssetSearchFlowCon
     navigateVariants,
     confirmHighlightedVariant,
     goBack,
+    internalOnly: supportsInternalFilter ? internalOnly : undefined,
+    setInternalOnly: supportsInternalFilter ? setInternalOnly : undefined,
   };
 }

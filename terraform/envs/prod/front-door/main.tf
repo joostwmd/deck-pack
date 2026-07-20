@@ -10,7 +10,7 @@ data "terraform_remote_state" "app_service" {
   backend = "azurerm"
   config = {
     resource_group_name  = "rg-deck-pack-tfstate"
-    storage_account_name = "stdeckpacktfstatejw"
+    storage_account_name = "stdeckpacktfstatedpc"
     container_name       = "tfstate"
     # Prod app-service was created under the legacy (unprefixed) state key.
     # See terraform/envs/prod/app-service/versions.tf.
@@ -23,7 +23,7 @@ data "terraform_remote_state" "static_web_apps" {
   backend = "azurerm"
   config = {
     resource_group_name  = "rg-deck-pack-tfstate"
-    storage_account_name = "stdeckpacktfstatejw"
+    storage_account_name = "stdeckpacktfstatedpc"
     container_name       = "tfstate"
     key                  = "prod-static-web-apps.tfstate"
     use_azuread_auth     = true

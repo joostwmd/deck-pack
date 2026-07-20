@@ -16,7 +16,7 @@ export function createLogoService(deps: LogoServiceDeps) {
     },
 
     getDetails: async (externalId: string) => {
-      const response = await brandfetch.getBrandDetails({ brandId: externalId });
+      const response = await brandfetch.getBrandDetails({ identifier: externalId });
       return mapLogoDetailsResponse(response);
     },
   };

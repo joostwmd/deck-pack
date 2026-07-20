@@ -19,6 +19,7 @@ export function useShapeLibrary(
   searchRef.current = searchFn;
 
   const [category, setCategory] = useState<string | undefined>(undefined);
+  const [internalOnly, setInternalOnly] = useState(false);
   const [results, setResults] = useState<ShapeSearchResult[]>([]);
   const [facets, setFacets] = useState<ShapeSearchFacets>(EMPTY_FACETS);
   const [total, setTotal] = useState(0);
@@ -28,6 +29,12 @@ export function useShapeLibrary(
   const [retryAttempt, setRetryAttempt] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
+
+  const updateInternalOnly = useCallback((next: boolean) => {
+    setInternalOnly(next);
+    setSelectedId(null);
+    setHighlightedIndex(0);
+  }, []);
 
   const updateCategory = useCallback((next: string | undefined) => {
     setCategory(next);
@@ -50,6 +57,7 @@ export function useShapeLibrary(
       try {
         const response = await searchRef.current({
           category,
+          internalOnly: internalOnly || undefined,
         });
 
         if (cancelled) {
@@ -80,7 +88,7 @@ export function useShapeLibrary(
     return () => {
       cancelled = true;
     };
-  }, [category, retryAttempt]);
+  }, [category, internalOnly, retryAttempt]);
 
   const selectShape = useCallback(
     (id: string) => {
@@ -146,6 +154,8 @@ export function useShapeLibrary(
   return {
     category,
     updateCategory,
+    internalOnly,
+    updateInternalOnly,
     results,
     facets,
     total,

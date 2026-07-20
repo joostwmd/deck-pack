@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { ORGANIZATION_TYPES } from "@deck-pack/db/org-metadata";
 import { platformAdminProcedure } from "../../api/procedures";
 import { unwrapServiceResult } from "../../api/resilience/service-result";
 
@@ -11,12 +12,15 @@ import type { OrganizationService } from "./service";
 
 const organizationIdSchema = z.string().trim().min(1);
 
+const organizationTypeSchema = z.enum(ORGANIZATION_TYPES);
+
 const organizationSummarySchema = z.object({
   id: z.string(),
   name: z.string(),
   slug: z.string(),
   createdAt: z.date(),
   ownerEmail: z.string().nullable(),
+  type: organizationTypeSchema.nullable(),
 });
 
 const organizationDetailSchema = organizationSummarySchema.extend({
@@ -82,6 +86,7 @@ export function createOrganizationRoutes(service: OrganizationService) {
           name: z.string().trim().min(1).max(256),
           slug: slugSchema,
           ownerEmail: emailSchema,
+          type: organizationTypeSchema.optional(),
         }),
       )
       .output(
@@ -101,6 +106,7 @@ export function createOrganizationRoutes(service: OrganizationService) {
           organizationId: organizationIdSchema,
           name: z.string().trim().min(1).max(256),
           slug: slugSchema,
+          type: organizationTypeSchema.optional(),
         }),
       )
       .output(
@@ -109,6 +115,7 @@ export function createOrganizationRoutes(service: OrganizationService) {
           name: z.string(),
           slug: z.string(),
           createdAt: z.date(),
+          type: organizationTypeSchema.nullable(),
         }),
       )
       .mutation(async ({ ctx, input }) => {

@@ -50,8 +50,11 @@ export type OpsBreadcrumb = {
     | "/organizations"
     | "/users"
     | "/gallery/shapes"
+    | "/gallery/shapes/new"
     | "/gallery/slides"
+    | "/gallery/slides/new"
     | "/gallery/flags"
+    | "/gallery/flags/new"
     | "/plans"
     | "/plans/subscriptions"
     | "/plans/new"
@@ -102,12 +105,63 @@ export function opsBreadcrumbs(
     return [{ label: "Shapes" }];
   }
 
+  if (pathname === "/gallery/shapes/new") {
+    return [
+      { label: "Shapes", to: "/gallery/shapes" },
+      { label: "New" },
+    ];
+  }
+
+  const shapeDetailMatch = pathname.match(/^\/gallery\/shapes\/([^/]+)$/);
+  if (shapeDetailMatch && shapeDetailMatch[1] !== "new") {
+    const itemId = shapeDetailMatch[1]!;
+    const label = dynamicLabels[`/gallery/shapes/${itemId}`] ?? "Shape";
+    return [
+      { label: "Shapes", to: "/gallery/shapes" },
+      { label },
+    ];
+  }
+
   if (pathname === "/gallery/slides") {
     return [{ label: "Slides" }];
   }
 
+  if (pathname === "/gallery/slides/new") {
+    return [
+      { label: "Slides", to: "/gallery/slides" },
+      { label: "New" },
+    ];
+  }
+
+  const slideDetailMatch = pathname.match(/^\/gallery\/slides\/([^/]+)$/);
+  if (slideDetailMatch && slideDetailMatch[1] !== "new") {
+    const itemId = slideDetailMatch[1]!;
+    const label = dynamicLabels[`/gallery/slides/${itemId}`] ?? "Slide";
+    return [
+      { label: "Slides", to: "/gallery/slides" },
+      { label },
+    ];
+  }
+
   if (pathname === "/gallery/flags") {
     return [{ label: "Flags" }];
+  }
+
+  if (pathname === "/gallery/flags/new") {
+    return [
+      { label: "Flags", to: "/gallery/flags" },
+      { label: "New" },
+    ];
+  }
+
+  const flagDetailMatch = pathname.match(/^\/gallery\/flags\/([^/]+)$/);
+  if (flagDetailMatch && flagDetailMatch[1] !== "new") {
+    const itemId = flagDetailMatch[1]!;
+    const label = dynamicLabels[`/gallery/flags/${itemId}`] ?? "Flag";
+    return [
+      { label: "Flags", to: "/gallery/flags" },
+      { label },
+    ];
   }
 
   if (pathname === "/plans") {

@@ -12,6 +12,7 @@ export const DECKPACK_STATEMENTS = {
   seat: ["view", "assign"],
   usage: ["view", "export"],
   asset: ["view", "insert"],
+  library: ["create", "update", "delete"],
 } as const;
 
 const statement = {
@@ -26,6 +27,7 @@ export const ORGANIZATION_ROLES = {
   admin: "organizationAdmin",
   member: "organizationMember",
   addinUser: "organizationAddinUser",
+  libraryManager: "organizationLibraryManager",
 } as const;
 
 export type OrganizationRoleName =
@@ -44,6 +46,7 @@ export const organizationOwner = ac.newRole({
   seat: ["view", "assign"],
   usage: ["view", "export"],
   asset: ["view", "insert"],
+  library: ["create", "update", "delete"],
 });
 
 export const organizationAdmin = ac.newRole({
@@ -54,6 +57,7 @@ export const organizationAdmin = ac.newRole({
   seat: ["view", "assign"],
   usage: ["view"],
   asset: ["view", "insert"],
+  library: ["create", "update", "delete"],
 });
 
 export const organizationMember = ac.newRole({
@@ -65,11 +69,17 @@ export const organizationAddinUser = ac.newRole({
   asset: ["view", "insert"],
 });
 
+export const organizationLibraryManager = ac.newRole({
+  asset: ["view", "insert"],
+  library: ["create", "update", "delete"],
+});
+
 export const organizationRoles = {
   organizationOwner,
   organizationAdmin,
   organizationMember,
   organizationAddinUser,
+  organizationLibraryManager,
 } as const;
 
 const organizationRoleNames = Object.values(ORGANIZATION_ROLES);
@@ -92,5 +102,7 @@ export function checkOrganizationRolePermission(
       return organizationMember.authorize(permissions).success;
     case ORGANIZATION_ROLES.addinUser:
       return organizationAddinUser.authorize(permissions).success;
+    case ORGANIZATION_ROLES.libraryManager:
+      return organizationLibraryManager.authorize(permissions).success;
   }
 }

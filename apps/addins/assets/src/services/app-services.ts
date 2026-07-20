@@ -30,7 +30,7 @@ function createShortcutStore(api: ReturnType<typeof getTrpcClient>): ShortcutSto
 }
 
 function createAssetStores(api: ReturnType<typeof getTrpcClient>): AssetStores {
-  const listSearch = (asset: "flags" | "logos" | "icons") => ({
+  const externalListSearch = (asset: "logos" | "icons") => ({
     search: async (query: string) => {
       const response = await api.assets[asset].search.query({ query });
       return response.results;
@@ -39,9 +39,18 @@ function createAssetStores(api: ReturnType<typeof getTrpcClient>): AssetStores {
   });
 
   return {
-    flags: listSearch("flags"),
-    logos: listSearch("logos"),
-    icons: listSearch("icons"),
+    flags: {
+      search: async (query: string, options?: { internalOnly?: boolean }) => {
+        const response = await api.assets.flags.search.query({
+          query,
+          internalOnly: options?.internalOnly,
+        });
+        return response.results;
+      },
+      getDetails: (externalId: string) => api.assets.flags.getDetails.query({ externalId }),
+    },
+    logos: externalListSearch("logos"),
+    icons: externalListSearch("icons"),
     photos: {
       search: (input) => api.assets.photos.search.query(input),
     },

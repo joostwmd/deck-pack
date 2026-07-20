@@ -18,6 +18,7 @@ export default defineConfig({
       "**/dist/**",
       "tests/addins/**",
       "tests/packages/observability/**",
+      "tests/packages/ui/**",
     ],
     environment: "node",
     passWithNoTests: false,

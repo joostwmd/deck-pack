@@ -1,7 +1,12 @@
+import { cn } from "@deck-pack/ui/lib/utils";
+
 import type { AssetListItem } from "@/types/asset-types";
 
 import { SelectableGrid } from "./selectable-grid";
 import { VariantItem } from "./variant-item";
+
+/** Keep in sync with keyboard navigation in use-asset-search-flow. */
+export const VARIANT_GRID_COLUMN_COUNT = 4;
 
 interface VariantGridProps {
   variants: AssetListItem[];
@@ -19,7 +24,11 @@ export function VariantGrid({
   className,
 }: VariantGridProps) {
   return (
-    <SelectableGrid ariaLabel="Asset variants" highlightedId={highlightedId} className={className}>
+    <SelectableGrid
+      ariaLabel="Asset variants"
+      highlightedId={highlightedId}
+      className={cn("grid-cols-4 gap-2", className)}
+    >
       {variants.map((variant) => (
         <VariantItem
           key={variant.id}

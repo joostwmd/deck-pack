@@ -1,4 +1,4 @@
-import { organizationMemberProcedure } from "../../api/procedures";
+import { teamWorkspaceProcedure } from "../../api/procedures";
 import { requirePermission } from "../../api/guards/authorization";
 import { requireActiveOrganizationId } from "../../api/guards/org-context";
 import { unwrapServiceResult } from "../../api/resilience/service-result";
@@ -12,15 +12,15 @@ import {
 import type { SeatsService } from "./service";
 import { z } from "zod";
 
-export const listSeatsProcedure = organizationMemberProcedure.use(
+export const listSeatsProcedure = teamWorkspaceProcedure.use(
   requirePermission({ seat: ["view"] }),
 );
 
-export const assignSeatProcedure = organizationMemberProcedure.use(
+export const assignSeatProcedure = teamWorkspaceProcedure.use(
   requirePermission({ seat: ["assign"] }),
 );
 
-export const revokeSeatProcedure = organizationMemberProcedure.use(
+export const revokeSeatProcedure = teamWorkspaceProcedure.use(
   requirePermission({ seat: ["assign"] }),
 );
 

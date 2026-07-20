@@ -5,6 +5,7 @@ export interface ShapeSearchResult {
   thumbnailUrl: string;
   svgUrl: string;
   createdAt: string;
+  scope: "global" | "org";
 }
 
 export interface ShapeSearchFacets {
@@ -13,6 +14,7 @@ export interface ShapeSearchFacets {
 
 export interface ShapeSearchRequest {
   category?: string;
+  internalOnly?: boolean;
 }
 
 export interface ShapeSearchResponse {

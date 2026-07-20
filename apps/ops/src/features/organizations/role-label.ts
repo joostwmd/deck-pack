@@ -3,6 +3,7 @@ const ROLE_LABELS: Record<string, string> = {
   organizationAdmin: "Admin",
   organizationMember: "Member",
   organizationAddinUser: "Add-in user",
+  organizationLibraryManager: "Library manager",
   owner: "Owner",
   admin: "Admin",
   member: "Member",

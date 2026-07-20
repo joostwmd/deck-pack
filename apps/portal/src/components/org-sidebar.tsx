@@ -12,7 +12,7 @@ import {
   SidebarSeparator,
 } from "@deck-pack/ui/components/system/sidebar";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Buildings, Chair, UserCircle, Users } from "@phosphor-icons/react";
+import { Buildings, Books, Chair, UserCircle, Users } from "@phosphor-icons/react";
 
 import {
   ORG_NAV_ITEMS,
@@ -24,11 +24,14 @@ import {
 import { useCan } from "@/auth/use-can";
 import type { Icon } from "@phosphor-icons/react";
 
-const NAV_ICONS: Record<PortalNavRoute, Icon> = {
+const NAV_ICONS: Partial<Record<PortalNavRoute, Icon>> = {
   "/org/dashboard": Buildings,
+  "/org/library/shapes": Books,
+  "/org/library/flags": Books,
+  "/org/library/slides": Books,
   "/org/members": Users,
   "/org/seats": Chair,
-  "/account": UserCircle,
+  "/solo/account": UserCircle,
 };
 
 export function OrgSidebar() {
@@ -47,14 +50,14 @@ export function OrgSidebar() {
 
   return (
     <Sidebar>
-      <SidebarHeader className="p-3 text-sm font-semibold">Organization</SidebarHeader>
+      <SidebarHeader className="p-3 text-sm font-semibold">Team workspace</SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Team</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {visibleOrgNavItems.map((item) => {
-                const Icon = NAV_ICONS[item.to];
+                const Icon = NAV_ICONS[item.to] ?? Buildings;
                 return (
                   <SidebarMenuItem key={item.to}>
                     <SidebarMenuButton
@@ -76,7 +79,7 @@ export function OrgSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {ORG_SECONDARY_NAV_ITEMS.map((item) => {
-                const Icon = NAV_ICONS[item.to];
+                const Icon = NAV_ICONS[item.to] ?? UserCircle;
                 return (
                   <SidebarMenuItem key={item.to}>
                     <SidebarMenuButton
@@ -93,7 +96,7 @@ export function OrgSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="p-2 text-xs text-muted-foreground">Org workspace</SidebarFooter>
+      <SidebarFooter className="p-2 text-xs text-muted-foreground">Team workspace</SidebarFooter>
     </Sidebar>
   );
 }
