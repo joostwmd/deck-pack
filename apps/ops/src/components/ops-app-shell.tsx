@@ -18,7 +18,7 @@ import { Fragment } from "react";
 import {
   BreadcrumbLabelProvider,
   useBreadcrumbLabels,
-} from "@/components/breadcrumb-label-context";
+} from "@deck-pack/ui/components/composite/breadcrumb-label-context";
 import { opsBreadcrumbs } from "@/config/ops-nav";
 import { ThemeToggle } from "@deck-pack/ui/components/composite/theme-toggle";
 

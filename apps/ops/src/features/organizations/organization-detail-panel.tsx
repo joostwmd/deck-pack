@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import { useBreadcrumbLabel } from "@/components/breadcrumb-label-context";
+import { useBreadcrumbLabel } from "@deck-pack/ui/components/composite/breadcrumb-label-context";
 import { OrganizationDetailView } from "@/features/organizations/organization-detail-view";
 import { useServices } from "@/services/services-context";
 

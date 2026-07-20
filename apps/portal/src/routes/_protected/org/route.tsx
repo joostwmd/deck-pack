@@ -16,7 +16,7 @@ export const Route = createFileRoute("/_protected/org")({
 
 function Layout() {
   return (
-    <PortalAppShell areaLabel="Organization" areaHomeTo="/org/dashboard" sidebar={<OrgSidebar />}>
+    <PortalAppShell sidebar={<OrgSidebar />}>
       <Outlet />
     </PortalAppShell>
   );

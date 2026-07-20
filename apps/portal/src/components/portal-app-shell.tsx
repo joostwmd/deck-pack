@@ -1,6 +1,7 @@
 import {
   Breadcrumb,
   BreadcrumbItem,
+  BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
@@ -12,58 +13,70 @@ import {
   SidebarTrigger,
 } from "@deck-pack/ui/components/system/sidebar";
 import { Link, useRouterState } from "@tanstack/react-router";
+import { Fragment } from "react";
 
+import {
+  BreadcrumbLabelProvider,
+  useBreadcrumbLabels,
+} from "@deck-pack/ui/components/composite/breadcrumb-label-context";
 import { ThemeToggle } from "@deck-pack/ui/components/composite/theme-toggle";
+import { portalBreadcrumbs } from "@/config/portal-nav";
+
 import UserMenu from "./user-menu";
 
 type PortalAppShellProps = {
   children: React.ReactNode;
   sidebar: React.ReactNode;
-  areaLabel: string;
-  areaHomeTo: "/account" | "/org/dashboard";
 };
 
-export function PortalAppShell({ children, sidebar, areaLabel, areaHomeTo }: PortalAppShellProps) {
+function PortalBreadcrumbs() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const dynamicLabels = useBreadcrumbLabels();
+  const crumbs = portalBreadcrumbs(pathname, { dynamicLabels });
 
-  const pageLabel = (() => {
-    if (pathname === "/account") return "Account";
-    if (pathname === "/org/dashboard" || pathname === "/org") return "Dashboard";
-    if (pathname === "/org/members") return "Members";
-    return "Overview";
-  })();
+  return (
+    <Breadcrumb>
+      <BreadcrumbList>
+        {crumbs.map((crumb, index) => {
+          const isLast = index === crumbs.length - 1;
 
+          return (
+            <Fragment key={`${crumb.label}-${String(index)}`}>
+              {index > 0 ? <BreadcrumbSeparator className="hidden sm:block" /> : null}
+              <BreadcrumbItem className={index > 0 ? "hidden sm:block" : undefined}>
+                {isLast || !crumb.to ? (
+                  <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
+                ) : (
+                  <BreadcrumbLink render={<Link to={crumb.to} />}>{crumb.label}</BreadcrumbLink>
+                )}
+              </BreadcrumbItem>
+            </Fragment>
+          );
+        })}
+      </BreadcrumbList>
+    </Breadcrumb>
+  );
+}
+
+export function PortalAppShell({ children, sidebar }: PortalAppShellProps) {
   return (
     <SidebarProvider>
       {sidebar}
       <SidebarInset>
-        <header className="flex h-16 w-full min-w-0 shrink-0 items-center justify-between gap-2 border-b">
-          <div className="flex min-w-0 flex-1 items-center gap-2 px-3">
-            <SidebarTrigger />
-            <Separator orientation="vertical" className="mr-2 h-4" />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem>
-                  <Link
-                    to={areaHomeTo}
-                    className="text-muted-foreground text-sm font-medium transition-colors hover:text-foreground"
-                  >
-                    {areaLabel}
-                  </Link>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden sm:block" />
-                <BreadcrumbItem className="hidden sm:block">
-                  <BreadcrumbPage>{pageLabel}</BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
-          </div>
-          <div className="flex shrink-0 items-center gap-2 pr-2">
-            <ThemeToggle variant="default" />
-            <UserMenu />
-          </div>
-        </header>
-        <div className="w-full min-w-0 p-4">{children}</div>
+        <BreadcrumbLabelProvider>
+          <header className="flex h-16 w-full min-w-0 shrink-0 items-center justify-between gap-2 border-b">
+            <div className="flex min-w-0 flex-1 items-center gap-2 px-3">
+              <SidebarTrigger />
+              <Separator orientation="vertical" className="mr-2 h-4" />
+              <PortalBreadcrumbs />
+            </div>
+            <div className="flex shrink-0 items-center gap-2 pr-2">
+              <ThemeToggle variant="default" />
+              <UserMenu />
+            </div>
+          </header>
+          <div className="w-full min-w-0 p-4">{children}</div>
+        </BreadcrumbLabelProvider>
       </SidebarInset>
     </SidebarProvider>
   );

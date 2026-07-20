@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import { useBreadcrumbLabel } from "@/components/breadcrumb-label-context";
+import { useBreadcrumbLabel } from "@deck-pack/ui/components/composite/breadcrumb-label-context";
 import { SubscriptionDetailView } from "@/features/plans/subscription-detail-view";
 import { useServices } from "@/services/services-context";
 

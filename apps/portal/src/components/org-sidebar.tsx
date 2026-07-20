@@ -12,7 +12,21 @@ import {
   SidebarSeparator,
 } from "@deck-pack/ui/components/system/sidebar";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Buildings, Moon, Sun, UserCircle, Users } from "@phosphor-icons/react";
+import { Buildings, UserCircle, Users } from "@phosphor-icons/react";
+
+import {
+  ORG_NAV_ITEMS,
+  ORG_SECONDARY_NAV_ITEMS,
+  isPortalNavItemActive,
+  type PortalNavRoute,
+} from "@/config/portal-nav";
+import type { Icon } from "@phosphor-icons/react";
+
+const NAV_ICONS: Record<PortalNavRoute, Icon> = {
+  "/org/dashboard": Buildings,
+  "/org/members": Users,
+  "/account": UserCircle,
+};
 
 export function OrgSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -25,24 +39,20 @@ export function OrgSidebar() {
           <SidebarGroupLabel>Team</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  isActive={pathname === "/org/dashboard" || pathname === "/org"}
-                  render={<Link to="/org/dashboard" />}
-                >
-                  <Buildings className="size-4" />
-                  <span>Dashboard</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  isActive={pathname === "/org/members"}
-                  render={<Link to="/org/members" />}
-                >
-                  <Users className="size-4" />
-                  <span>Members</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {ORG_NAV_ITEMS.map((item) => {
+                const Icon = NAV_ICONS[item.to];
+                return (
+                  <SidebarMenuItem key={item.to}>
+                    <SidebarMenuButton
+                      isActive={isPortalNavItemActive(pathname, item.to)}
+                      render={<Link to={item.to} />}
+                    >
+                      <Icon className="size-4" />
+                      <span>{item.title}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -51,15 +61,20 @@ export function OrgSidebar() {
           <SidebarGroupLabel>Also</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  isActive={pathname === "/account"}
-                  render={<Link to="/account" />}
-                >
-                  <UserCircle className="size-4" />
-                  <span>Personal account</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {ORG_SECONDARY_NAV_ITEMS.map((item) => {
+                const Icon = NAV_ICONS[item.to];
+                return (
+                  <SidebarMenuItem key={item.to}>
+                    <SidebarMenuButton
+                      isActive={isPortalNavItemActive(pathname, item.to)}
+                      render={<Link to={item.to} />}
+                    >
+                      <Icon className="size-4" />
+                      <span>{item.title}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
