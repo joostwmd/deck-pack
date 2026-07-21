@@ -15,7 +15,7 @@ export type CreateAppOptions = {
 
 export function createApp(options?: CreateAppOptions): Hono<AppEnv> {
   const container = options?.container ?? AppContainer.production();
-  const appRouter = options?.router ?? createAppRouter(container.toRouterDeps());
+  const appRouter = options?.router ?? createAppRouter(container.toRouterDeps(), container);
 
   return new ApiAppBuilder()
     .withCors()

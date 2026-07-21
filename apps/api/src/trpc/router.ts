@@ -6,10 +6,8 @@ import {
 } from "@deck-pack/db/queries/createBrandProfile";
 import { createBrandProfileVersion } from "@deck-pack/db/queries/createBrandProfileVersion";
 import { createOrganizationSubscription } from "@deck-pack/db/queries/createOrganizationSubscription";
-import { createOrganizationWithOwner } from "@deck-pack/db/queries/createOrganizationWithOwner";
 import { createPlan } from "@deck-pack/db/queries/createPlan";
 import { deleteAllShortcutOverrides } from "@deck-pack/db/queries/deleteAllShortcutOverrides";
-import { deleteOrganization } from "@deck-pack/db/queries/deleteOrganization";
 import { deleteShortcutOverride } from "@deck-pack/db/queries/deleteShortcutOverride";
 import { deleteUser } from "@deck-pack/db/queries/deleteUser";
 import { assignOrganizationSeat } from "@deck-pack/db/queries/assignOrganizationSeat";
@@ -35,7 +33,6 @@ import { getAgendaInstance } from "@deck-pack/db/queries/getAgendaInstance";
 import { getBrandProfileWithVersion } from "@deck-pack/db/queries/getBrandProfileWithVersion";
 import { getOrganizationSubscription } from "@deck-pack/db/queries/getOrganizationSubscription";
 import { getOrganizationMetadataById } from "@deck-pack/db/queries/getOrganizationMetadataById";
-import { getOrganizationWithOwner } from "@deck-pack/db/queries/getOrganizationWithOwner";
 import { getPlan } from "@deck-pack/db/queries/getPlan";
 import { insertAssetInsertion } from "@deck-pack/db/queries/insertAssetInsertion";
 import { countInsertionsByAssetTypeForOrgPeriod } from "@deck-pack/db/queries/countInsertionsForOrgPeriod";
@@ -50,13 +47,11 @@ import { listAllShortcutOverridesByUser } from "@deck-pack/db/queries/listShortc
 import { listBrandProfilesByUser } from "@deck-pack/db/queries/listBrandProfilesByUser";
 import { listOrganizationMembers } from "@deck-pack/db/queries/listOrganizationMembers";
 import { listOrganizationSubscriptions } from "@deck-pack/db/queries/listOrganizationSubscriptions";
-import { listOrganizationsWithOwner } from "@deck-pack/db/queries/listOrganizationsWithOwner";
 import { listPlans } from "@deck-pack/db/queries/listPlans";
 import { listUsersWithMembership } from "@deck-pack/db/queries/listUsersWithMembership";
 import { setDefaultBrandProfile } from "@deck-pack/db/queries/setDefaultBrandProfile";
 import { syncAgenda } from "@deck-pack/db/queries/syncAgenda";
 import { updateBrandProfileMetadata } from "@deck-pack/db/queries/updateBrandProfileMetadata";
-import { updateOrganization } from "@deck-pack/db/queries/updateOrganization";
 import { updateOrganizationSubscription } from "@deck-pack/db/queries/updateOrganizationSubscription";
 import { updatePlan } from "@deck-pack/db/queries/updatePlan";
 import { upsertShortcutOverride } from "@deck-pack/db/queries/upsertShortcutOverride";
@@ -79,9 +74,9 @@ import { createLogoRoutes } from "../domains/logos/routes";
 import { createLogoService } from "../domains/logos/service";
 import { createMembersRoutes } from "../domains/members/routes";
 import { createMembersService } from "../domains/members/service";
-import { createOrganizationRoutes } from "../domains/organization/routes";
-import { createOrganizationService } from "../domains/organization/service";
 import { createSeatsRoutes } from "../domains/seats/routes";
+import { organizationRouter } from "../routers/organization-router";
+import { AppContainer } from "../container";
 import { createSeatsService } from "../domains/seats/service";
 import { createPhotoRoutes } from "../domains/photos/routes";
 import { createPhotoService } from "../domains/photos/service";
@@ -132,7 +127,7 @@ function resolveObjectStorage(explicit?: ObjectStorage): ObjectStorage {
   return createMemoryObjectStorage();
 }
 
-export function createAppRouter(deps: AddinRouterDeps) {
+export function createAppRouter(deps: AddinRouterDeps, container: AppContainer) {
   const storage = resolveObjectStorage(deps.storage);
   const photoService = createPhotoService({
     pexels: deps.pexels ?? new PexelsClient(deps.pexelsApiKey),
@@ -166,16 +161,6 @@ export function createAppRouter(deps: AddinRouterDeps) {
     countInsertionsByAssetTypeForOrgPeriod,
     listInsertionSeriesForOrg,
     listSeatUsageForOrg,
-  });
-
-  const organizationService = createOrganizationService({
-    findUserByEmail,
-    listOrganizationsWithOwner,
-    createOrganizationWithOwner,
-    getOrganizationWithOwner,
-    listOrganizationMembers,
-    updateOrganization,
-    deleteOrganization,
   });
 
   const agendaService = createAgendaService({
@@ -253,7 +238,7 @@ export function createAppRouter(deps: AddinRouterDeps) {
 
   return router({
     ...systemRoutes,
-    organization: router(createOrganizationRoutes(organizationService)),
+    organization: organizationRouter(container),
     members: router(createMembersRoutes(membersService)),
     seats: router(createSeatsRoutes(seatsService)),
     usage: router(createUsageRoutes(usageService)),
@@ -278,12 +263,15 @@ export function createAppRouter(deps: AddinRouterDeps) {
   });
 }
 
-export const appRouter = createAppRouter({
-  brandfetchApiKey: "dummy-key-for-now",
-  brandfetchClientId: "dummy-client-id-for-now",
-  nounProjectApiKey: "dummy-key-for-now",
-  nounProjectApiSecret: "dummy-secret-for-now",
-  pexelsApiKey: "dummy-key-for-now",
-});
+export const appRouter = createAppRouter(
+  {
+    brandfetchApiKey: "dummy-key-for-now",
+    brandfetchClientId: "dummy-client-id-for-now",
+    nounProjectApiKey: "dummy-key-for-now",
+    nounProjectApiSecret: "dummy-secret-for-now",
+    pexelsApiKey: "dummy-key-for-now",
+  },
+  AppContainer.forUnitTest(),
+);
 
 export type AppRouter = typeof appRouter;

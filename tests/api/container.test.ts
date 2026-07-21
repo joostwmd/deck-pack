@@ -27,6 +27,7 @@ describe("AppContainer", () => {
     const container = AppContainer.forUnitTest();
 
     expect(container.unitOfWork).toBeInstanceOf(UnitOfWork);
+    expect(container.organizationRepository).toBeDefined();
     expect(container.brandfetchClient).toBeDefined();
     expect(container.nounProjectClient).toBeDefined();
     expect(container.pexelsClient).toBeDefined();
@@ -37,6 +38,7 @@ describe("AppContainer", () => {
     const container = AppContainer.forIntegrationTest(db);
 
     expect(container.unitOfWork.getDb()).toBe(db);
+    expect(container.organizationRepository).toBeDefined();
   });
 
   it("forUnitTest accepts overrides", async () => {

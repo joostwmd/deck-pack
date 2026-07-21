@@ -3,11 +3,15 @@ import { env } from "@deck-pack/env/server";
 import { BrandfetchClient } from "@deck-pack/integrations/brandfetch";
 import { NounProjectClient } from "@deck-pack/integrations/noun-project";
 import { PexelsClient } from "@deck-pack/integrations/pexels";
+import type { OrganizationRepository } from "@deck-pack/organization";
+import { InMemoryOrganizationRepository } from "@deck-pack/organization/repositories/in-memory-organization-repository";
+import { DrizzleOrganizationRepository } from "@deck-pack/organization/repositories/organization-repository";
 
 import type { AddinRouterDeps } from "./trpc/router";
 
 export type AppContainerOverrides = Partial<{
   unitOfWork: UnitOfWork;
+  organizationRepository: OrganizationRepository;
   brandfetchClient: BrandfetchClient;
   nounProjectClient: NounProjectClient;
   pexelsClient: PexelsClient;
@@ -48,6 +52,7 @@ function createStubUnitOfWorkDb() {
 export class AppContainer {
   constructor(
     public readonly unitOfWork: UnitOfWork,
+    public readonly organizationRepository: OrganizationRepository,
     public readonly brandfetchClient: BrandfetchClient,
     public readonly nounProjectClient: NounProjectClient,
     public readonly pexelsClient: PexelsClient,
@@ -56,6 +61,7 @@ export class AppContainer {
   static production(): AppContainer {
     return new AppContainer(
       unitOfWork,
+      new DrizzleOrganizationRepository(unitOfWork),
       new BrandfetchClient({
         apiKey: env.BRANDFETCH_API_KEY,
         clientId: env.BRANDFETCH_CLIENT_ID,
@@ -69,8 +75,10 @@ export class AppContainer {
   }
 
   static forIntegrationTest(db: Database): AppContainer {
+    const uow = new UnitOfWork(db);
     return new AppContainer(
-      new UnitOfWork(db),
+      uow,
+      new DrizzleOrganizationRepository(uow),
       emptyBrandfetchClient,
       emptyNounProjectClient,
       emptyPexelsClient,
@@ -78,8 +86,10 @@ export class AppContainer {
   }
 
   static forUnitTest(overrides: AppContainerOverrides = {}): AppContainer {
+    const uow = overrides.unitOfWork ?? new UnitOfWork(createStubUnitOfWorkDb());
     return new AppContainer(
-      overrides.unitOfWork ?? new UnitOfWork(createStubUnitOfWorkDb()),
+      uow,
+      overrides.organizationRepository ?? new InMemoryOrganizationRepository(),
       overrides.brandfetchClient ?? emptyBrandfetchClient,
       overrides.nounProjectClient ?? emptyNounProjectClient,
       overrides.pexelsClient ?? emptyPexelsClient,

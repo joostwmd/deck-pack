@@ -1,4 +1,5 @@
 import { createAppRouter } from "@deck-pack/api/trpc/router";
+import { AppContainer } from "@deck-pack/api/container";
 import { createApp } from "@deck-pack/api/server";
 import { createDb } from "@deck-pack/db";
 import { session, user } from "@deck-pack/db/schema/auth";
@@ -53,14 +54,17 @@ describe("assets slides and shapes bearer transport", () => {
 
   function createTestApp() {
     return createApp({
-      router: createAppRouter({
-        brandfetchApiKey: "dummy-key-for-now",
-        brandfetchClientId: "dummy-client-id-for-now",
-        nounProjectApiKey: "dummy-key-for-now",
-        nounProjectApiSecret: "dummy-secret-for-now",
-        pexelsApiKey: "dummy-key-for-now",
-        storage,
-      }),
+      router: createAppRouter(
+        {
+          brandfetchApiKey: "dummy-key-for-now",
+          brandfetchClientId: "dummy-client-id-for-now",
+          nounProjectApiKey: "dummy-key-for-now",
+          nounProjectApiSecret: "dummy-secret-for-now",
+          pexelsApiKey: "dummy-key-for-now",
+          storage,
+        },
+        AppContainer.forUnitTest(),
+      ),
     });
   }
 

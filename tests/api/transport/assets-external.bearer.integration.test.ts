@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { afterAll, describe, expect, it, vi } from "vitest";
 
 import { createAppRouter } from "@deck-pack/api/trpc/router";
+import { AppContainer } from "@deck-pack/api/container";
 import { createSignedSessionFixture } from "../test-utils/create-signed-session-fixture";
 import { trpcQuery } from "../test-utils/trpc-request";
 import { createApp } from "@deck-pack/api/server";
@@ -96,16 +97,19 @@ function createExternalAssetsApp() {
     }),
   };
 
-  const router = createAppRouter({
-    brandfetchApiKey: "test",
-    brandfetchClientId: "test-client",
-    nounProjectApiKey: "test",
-    nounProjectApiSecret: "test-secret",
-    pexelsApiKey: "test",
-    pexels: pexels as never,
-    nounProject: nounProject as never,
-    brandfetch: brandfetch as never,
-  });
+  const router = createAppRouter(
+    {
+      brandfetchApiKey: "test",
+      brandfetchClientId: "test-client",
+      nounProjectApiKey: "test",
+      nounProjectApiSecret: "test-secret",
+      pexelsApiKey: "test",
+      pexels: pexels as never,
+      nounProject: nounProject as never,
+      brandfetch: brandfetch as never,
+    },
+    AppContainer.forUnitTest(),
+  );
 
   return {
     app: createApp({ router }),

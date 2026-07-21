@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { organizationEmailSchema, organizationSlugSchema } from "@deck-pack/api/domains/organization/schemas";
+import { organizationEmailSchema, organizationSlugSchema } from "@deck-pack/organization/schemas";
 
 describe("organizationEmailSchema", () => {
   it("accepts trimmed valid email", () => {
