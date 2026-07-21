@@ -18,13 +18,15 @@ export async function insertSlide(
     tracker: InsertionTracker;
   },
 ) {
-  const base64 = await fetchFileAsBase64(slide.presentationUrl);
-  await deps.office.insertSlidesFromBase64(base64);
+  const metadata = buildSlideMetadata(slide);
 
-  deps.tracker.track({
+  await deps.tracker.track({
     assetType: "slide",
     externalId: slide.id,
     client: "office",
-    metadata: buildSlideMetadata(slide),
+    metadata,
   });
+
+  const base64 = await fetchFileAsBase64(slide.presentationUrl);
+  await deps.office.insertSlidesFromBase64(base64);
 }

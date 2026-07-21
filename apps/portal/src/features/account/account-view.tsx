@@ -1,12 +1,12 @@
 import { PortalPageShell } from "@/components/portal-page-shell";
+import { UsageStatsSection } from "@/features/usage/usage-stats-section";
 
 export type AccountViewProps = {
   email?: string | null;
-  apiMessage?: string;
   addinOnly?: boolean;
 };
 
-export function AccountView({ email, apiMessage, addinOnly }: AccountViewProps) {
+export function AccountView({ email, addinOnly }: AccountViewProps) {
   return (
     <PortalPageShell
       title="Account"
@@ -18,11 +18,11 @@ export function AccountView({ email, apiMessage, addinOnly }: AccountViewProps) 
     >
       {addinOnly ? (
         <p className="text-muted-foreground text-sm">
-          Portal administration is not available for add-in-only users. Open PowerPoint and use
-          the DeckPack add-in to get started.
+          Portal administration is not available for add-in-only users. Open PowerPoint and use the
+          DeckPack add-in to get started.
         </p>
       ) : null}
-      {apiMessage ? <p className="text-sm">API: {apiMessage}</p> : null}
+      <UsageStatsSection title="Your usage" />
     </PortalPageShell>
   );
 }

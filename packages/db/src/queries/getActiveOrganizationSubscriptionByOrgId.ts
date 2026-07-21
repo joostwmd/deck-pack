@@ -9,6 +9,11 @@ export type ActiveOrganizationSubscriptionRow = {
   planId: string;
   quantity: number;
   status: string;
+  provider: string;
+  externalCustomerId: string | null;
+  externalSubscriptionId: string | null;
+  currentPeriodStart: Date | null;
+  currentPeriodEnd: Date | null;
 };
 
 export async function getActiveOrganizationSubscriptionByOrgId({
@@ -25,6 +30,11 @@ export async function getActiveOrganizationSubscriptionByOrgId({
       planId: organizationSubscriptions.planId,
       quantity: organizationSubscriptions.quantity,
       status: organizationSubscriptions.status,
+      provider: organizationSubscriptions.provider,
+      externalCustomerId: organizationSubscriptions.externalCustomerId,
+      externalSubscriptionId: organizationSubscriptions.externalSubscriptionId,
+      currentPeriodStart: organizationSubscriptions.currentPeriodStart,
+      currentPeriodEnd: organizationSubscriptions.currentPeriodEnd,
     })
     .from(organizationSubscriptions)
     .where(

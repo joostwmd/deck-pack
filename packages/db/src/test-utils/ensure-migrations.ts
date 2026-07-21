@@ -34,6 +34,22 @@ async function applyMigration(pool: pg.Pool, fileName: string): Promise<void> {
   }
 }
 
+async function columnExists(
+  pool: pg.Pool,
+  tableName: string,
+  columnName: string,
+): Promise<boolean> {
+  const result = await pool.query(
+    `SELECT EXISTS (
+      SELECT FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = $1 AND column_name = $2
+    ) AS exists`,
+    [tableName, columnName],
+  );
+
+  return Boolean(result.rows[0]?.exists);
+}
+
 export async function ensureMigrationsApplied(): Promise<void> {
   if (ensured) return;
 
@@ -54,6 +70,10 @@ export async function ensureMigrationsApplied(): Promise<void> {
 
     if (!(await tableExists(pool, "library_items"))) {
       await applyMigration(pool, "0008_library_assets.sql");
+    }
+
+    if (!(await columnExists(pool, "asset_insertions", "organization_id"))) {
+      await applyMigration(pool, "0010_usage_tracking.sql");
     }
 
     ensured = true;

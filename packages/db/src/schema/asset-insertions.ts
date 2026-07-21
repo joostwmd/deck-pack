@@ -1,6 +1,6 @@
 import { index, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
-import { user } from "./auth";
+import { organization, user } from "./auth";
 
 export const assetInsertions = pgTable(
   "asset_insertions",
@@ -8,6 +8,9 @@ export const assetInsertions = pgTable(
     id: text("id")
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
     userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
@@ -19,6 +22,11 @@ export const assetInsertions = pgTable(
   },
   (table) => [
     index("asset_insertions_userId_idx").on(table.userId),
+    index("asset_insertions_organizationId_assetType_createdAt_idx").on(
+      table.organizationId,
+      table.assetType,
+      table.createdAt,
+    ),
     index("asset_insertions_assetType_idx").on(table.assetType),
     index("asset_insertions_externalId_idx").on(table.externalId),
     index("asset_insertions_client_idx").on(table.client),

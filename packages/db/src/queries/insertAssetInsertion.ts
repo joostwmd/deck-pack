@@ -2,6 +2,7 @@ import { assetInsertions } from "../schema/asset-insertions";
 import type { Transaction } from "../transaction";
 
 export type InsertAssetInsertionInput = {
+  organizationId: string;
   userId: string;
   assetType: string;
   externalId: string;
@@ -19,6 +20,7 @@ export async function insertAssetInsertion({
   const [row] = await tx
     .insert(assetInsertions)
     .values({
+      organizationId: input.organizationId,
       userId: input.userId,
       assetType: input.assetType,
       externalId: input.externalId,
@@ -27,6 +29,7 @@ export async function insertAssetInsertion({
     })
     .returning({
       id: assetInsertions.id,
+      organizationId: assetInsertions.organizationId,
       userId: assetInsertions.userId,
       assetType: assetInsertions.assetType,
       externalId: assetInsertions.externalId,

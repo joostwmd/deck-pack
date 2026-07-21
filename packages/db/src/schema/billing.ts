@@ -1,12 +1,5 @@
 import { sql } from "drizzle-orm";
-import {
-  index,
-  integer,
-  pgTable,
-  text,
-  timestamp,
-  uniqueIndex,
-} from "drizzle-orm/pg-core";
+import { index, integer, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 
 import { organization, user } from "./auth";
 
@@ -23,6 +16,12 @@ export const PLAN_LIMIT_ASSET_TYPES = [
 
 export type PlanLimitAssetType = (typeof PLAN_LIMIT_ASSET_TYPES)[number];
 
+export const SUBSCRIPTION_PROVIDERS = ["manual", "polar"] as const;
+export type SubscriptionProvider = (typeof SUBSCRIPTION_PROVIDERS)[number];
+
+export const SUBSCRIPTION_STATUSES = ["active", "trialing", "past_due", "canceled"] as const;
+export type SubscriptionStatus = (typeof SUBSCRIPTION_STATUSES)[number];
+
 export const plans = pgTable(
   "plans",
   {
@@ -31,13 +30,19 @@ export const plans = pgTable(
       .$defaultFn(() => crypto.randomUUID()),
     name: text("name").notNull(),
     slug: text("slug").notNull(),
+    externalProductId: text("external_product_id"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .defaultNow()
       .notNull()
       .$onUpdate(() => new Date()),
   },
-  (table) => [uniqueIndex("plans_slug_uidx").on(table.slug)],
+  (table) => [
+    uniqueIndex("plans_slug_uidx").on(table.slug),
+    uniqueIndex("plans_externalProductId_uidx")
+      .on(table.externalProductId)
+      .where(sql`${table.externalProductId} IS NOT NULL`),
+  ],
 );
 
 export const planLimits = pgTable(
@@ -79,6 +84,11 @@ export const organizationSubscriptions = pgTable(
       .references(() => plans.id, { onDelete: "restrict" }),
     quantity: integer("quantity").notNull(),
     status: text("status").notNull().default("active"),
+    provider: text("provider").notNull().default("manual"),
+    externalCustomerId: text("external_customer_id"),
+    externalSubscriptionId: text("external_subscription_id"),
+    currentPeriodStart: timestamp("current_period_start", { withTimezone: true }),
+    currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .defaultNow()
@@ -89,6 +99,9 @@ export const organizationSubscriptions = pgTable(
     uniqueIndex("organization_subscriptions_org_active_uidx")
       .on(table.organizationId)
       .where(sql`${table.status} = 'active'`),
+    uniqueIndex("organization_subscriptions_externalSubscriptionId_uidx")
+      .on(table.externalSubscriptionId)
+      .where(sql`${table.externalSubscriptionId} IS NOT NULL`),
     index("organization_subscriptions_organizationId_idx").on(table.organizationId),
     index("organization_subscriptions_planId_idx").on(table.planId),
   ],

@@ -14,11 +14,7 @@ import type { WebCanvasContextValue } from "@/contexts/web-canvas-context";
 import type { PhotoFilters, PhotoSearchResponse } from "@/components/photos/types";
 import type { ShapeSearchResponse } from "@/components/shapes/types";
 import type { SlideAspectRatio, SlideSearchResponse, SlideSort } from "@/components/slides/types";
-import type {
-  AssetDetailsResponse,
-  AssetListItem,
-  AssetType,
-} from "@/types/asset-types";
+import type { AssetDetailsResponse, AssetListItem, AssetType } from "@/types/asset-types";
 import type { InsertionStrategy } from "@/lib/insertion-strategy";
 
 export type { AuthClient };
@@ -88,7 +84,7 @@ export interface InsertionStore {
     externalId: string;
     client: "office" | "web";
     metadata: Record<string, unknown>;
-  }) => void;
+  }) => Promise<void>;
 }
 
 export interface BrandProfileSummary {
@@ -164,14 +160,13 @@ export interface OfficeService {
   subscribeToSelectionChanges: typeof subscribeToSelectionChanges;
   executeFormattingCommand: typeof executeFormattingCommand;
   runPowerPoint: typeof runPowerPoint;
-  insertImageWithMetadata: (
-    base64: string,
-    metadata: Record<string, string>,
-  ) => Promise<unknown>;
+  insertImageWithMetadata: (base64: string, metadata: Record<string, string>) => Promise<unknown>;
   insertSvgWithMetadata: (svg: string, metadata: Record<string, string>) => Promise<unknown>;
   insertSlidesFromBase64: (
     base64: string,
-    options?: Parameters<typeof import("@deck-pack/office-js").officeClient.insertSlidesFromBase64>[1],
+    options?: Parameters<
+      typeof import("@deck-pack/office-js").officeClient.insertSlidesFromBase64
+    >[1],
   ) => Promise<unknown>;
 }
 

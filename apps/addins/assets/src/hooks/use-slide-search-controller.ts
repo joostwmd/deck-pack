@@ -4,9 +4,13 @@ import { toast } from "sonner";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { useAssetInsertion } from "@/hooks/use-asset-insertion";
 import { useSlideSearch } from "@/hooks/use-slide-search";
-import { useResolvedShortcutDef, useInsertSectionShortcutDefs } from "@/hooks/use-resolved-shortcut-defs";
+import {
+  useResolvedShortcutDef,
+  useInsertSectionShortcutDefs,
+} from "@/hooks/use-resolved-shortcut-defs";
 import { createInsertionTracker } from "@/lib/track-asset-insertion";
 import { insertSlide } from "@/lib/insert-slide";
+import { getUserFacingApiErrorMessage } from "@/lib/user-facing-api-error";
 import { useServices } from "@/services/services-context";
 
 import type { SlideSearchRequest, SlideSearchResponse } from "./types";
@@ -41,7 +45,7 @@ export function useSlideSearchController(
       toast.success("Slide inserted");
     }).catch((error) => {
       console.error("Error inserting slide:", error);
-      toast.error(error instanceof Error ? error.message : "Error inserting slide");
+      toast.error(getUserFacingApiErrorMessage(error, "Error inserting slide"));
     });
   }, [flow.selectedSlide, office, runInsertion, tracker]);
 

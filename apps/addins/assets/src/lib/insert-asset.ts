@@ -20,15 +20,16 @@ export async function insertDirectImage({
   tracker: InsertionTracker;
 }) {
   const combinedMetadata = { ...metadata, ...extraMetadata };
-  const base64 = await urlToBase64(imageUrl);
-  await office.insertImageWithMetadata(base64, combinedMetadata);
 
-  tracker.track({
+  await tracker.track({
     assetType,
     externalId,
     client: "office",
     metadata: combinedMetadata,
   });
+
+  const base64 = await urlToBase64(imageUrl);
+  await office.insertImageWithMetadata(base64, combinedMetadata);
 }
 
 export async function insertAssetVariant(
@@ -70,9 +71,7 @@ export async function insertAssetVariant(
     throw new Error("No SVG found");
   }
 
-  await deps.office.insertSvgWithMetadata(variant.insert.svg, metadata);
-
-  deps.tracker.track({
+  await deps.tracker.track({
     assetType,
     externalId: details.id,
     client: "office",
@@ -81,4 +80,6 @@ export async function insertAssetVariant(
       ...metadata,
     },
   });
+
+  await deps.office.insertSvgWithMetadata(variant.insert.svg, metadata);
 }

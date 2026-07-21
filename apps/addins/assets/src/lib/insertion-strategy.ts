@@ -19,11 +19,28 @@ export interface InsertionStrategy {
   insert: (item: InsertionItem) => Promise<void>;
 }
 
+async function reserveInsertion(
+  item: InsertionItem,
+  tracker: InsertionTracker,
+  client: "office" | "web",
+): Promise<void> {
+  await tracker.track({
+    assetType: item.assetType,
+    externalId: item.externalId,
+    client,
+    metadata: item.metadata,
+  });
+}
+
 async function insertOfficeItem(
   item: InsertionItem,
   office: Pick<OfficeService, "insertImageWithMetadata" | "insertSvgWithMetadata">,
   tracker: InsertionTracker,
 ): Promise<void> {
+  // Reserve quota on the server before mutating the deck so over-limit
+  // inserts fail with a toast instead of inserting silently.
+  await reserveInsertion(item, tracker, "office");
+
   if (item.insert.type === "image") {
     if (!item.insert.imageUrl) {
       throw new Error("No image URL found");
@@ -31,13 +48,6 @@ async function insertOfficeItem(
 
     const base64 = await urlToBase64(item.insert.imageUrl);
     await office.insertImageWithMetadata(base64, item.metadata);
-
-    tracker.track({
-      assetType: item.assetType,
-      externalId: item.externalId,
-      client: "office",
-      metadata: item.metadata,
-    });
     return;
   }
 
@@ -46,13 +56,6 @@ async function insertOfficeItem(
   }
 
   await office.insertSvgWithMetadata(item.insert.svg, item.metadata);
-
-  tracker.track({
-    assetType: item.assetType,
-    externalId: item.externalId,
-    client: "office",
-    metadata: item.metadata,
-  });
 }
 
 export function officeInsertionStrategyWithTracker(
@@ -74,18 +77,13 @@ export function createCanvasStrategy(
     verb: "Add to canvas",
     insertingVerb: "Adding...",
     async insert(item) {
+      await reserveInsertion(item, tracker, "web");
+
       webCanvas.addToCanvas({
         variantId: item.variantId,
         name: item.name,
         imageUrl: item.imageUrl,
         insert: item.insert,
-        metadata: item.metadata,
-      });
-
-      tracker.track({
-        assetType: item.assetType,
-        externalId: item.externalId,
-        client: "web",
         metadata: item.metadata,
       });
     },

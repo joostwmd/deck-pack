@@ -1,23 +1,29 @@
 import { eq, sql } from "drizzle-orm";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db } from "@deck-pack/db";
+import { ensureMigrationsApplied } from "@deck-pack/db/test-utils/ensure-migrations";
 import { insertAssetInsertion } from "@deck-pack/db/queries/insertAssetInsertion";
 import { assetInsertions } from "@deck-pack/db/schema/asset-insertions";
-import { user } from "@deck-pack/db/schema/auth";
+import { member, organization, user } from "@deck-pack/db/schema/auth";
 import { tx } from "@deck-pack/db/transaction";
 
 describe("insertAssetInsertion (integration)", () => {
+  beforeAll(async () => {
+    await ensureMigrationsApplied();
+  });
+
   beforeEach(async () => {
     await db.execute(
       sql.raw(
-        `TRUNCATE TABLE asset_insertions, invitation, verification, session, account, member, organization, "user" RESTART IDENTITY CASCADE`,
+        `TRUNCATE TABLE asset_insertions, organization_subscriptions, plan_limits, plans, invitation, verification, session, account, member, organization, "user" RESTART IDENTITY CASCADE`,
       ),
     );
   });
 
-  it("persists insertion events with JSONB metadata and server timestamps", async () => {
+  async function seedUserWithOrg() {
     const userId = crypto.randomUUID();
+    const organizationId = crypto.randomUUID();
     const now = new Date();
 
     await db.insert(user).values({
@@ -30,9 +36,33 @@ describe("insertAssetInsertion (integration)", () => {
       role: null,
     });
 
+    await db.insert(organization).values({
+      id: organizationId,
+      name: "Add-in Org",
+      slug: "addin-org",
+      createdAt: now,
+      metadata: JSON.stringify({ type: "individual" }),
+      logo: null,
+    });
+
+    await db.insert(member).values({
+      id: crypto.randomUUID(),
+      organizationId,
+      userId,
+      role: "organizationOwner",
+      createdAt: now,
+    });
+
+    return { userId, organizationId };
+  }
+
+  it("persists insertion events with JSONB metadata and server timestamps", async () => {
+    const { userId, organizationId } = await seedUserWithOrg();
+
     const row = await insertAssetInsertion({
       tx,
       input: {
+        organizationId,
         userId,
         assetType: "logo",
         externalId: "brand-123",
@@ -44,34 +74,25 @@ describe("insertAssetInsertion (integration)", () => {
       },
     });
 
-    expect(row.userId).toBe(userId);
-    expect(row.assetType).toBe("logo");
-    expect(row.externalId).toBe("brand-123");
-    expect(row.client).toBe("office");
-    expect(row.metadata).toEqual({
+    expect(row?.organizationId).toBe(organizationId);
+    expect(row?.userId).toBe(userId);
+    expect(row?.assetType).toBe("logo");
+    expect(row?.externalId).toBe("brand-123");
+    expect(row?.client).toBe("office");
+    expect(row?.metadata).toEqual({
       variantId: "0",
       BRAND_NAME: "Acme",
     });
-    expect(row.createdAt).toBeInstanceOf(Date);
+    expect(row?.createdAt).toBeInstanceOf(Date);
   });
 
   it("allows duplicate insertion rows for repeated usage events", async () => {
-    const userId = crypto.randomUUID();
-    const now = new Date();
-
-    await db.insert(user).values({
-      id: userId,
-      name: "Repeat User",
-      email: "repeat@integration.test.local",
-      emailVerified: false,
-      createdAt: now,
-      updatedAt: now,
-      role: null,
-    });
+    const { userId, organizationId } = await seedUserWithOrg();
 
     await insertAssetInsertion({
       tx,
       input: {
+        organizationId,
         userId,
         assetType: "icon",
         externalId: "icon-1",
@@ -82,6 +103,7 @@ describe("insertAssetInsertion (integration)", () => {
     await insertAssetInsertion({
       tx,
       input: {
+        organizationId,
         userId,
         assetType: "icon",
         externalId: "icon-1",

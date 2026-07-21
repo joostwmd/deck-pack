@@ -1,5 +1,6 @@
 import { and, eq } from "drizzle-orm";
 
+import { calendarMonthEntitlementWindow } from "../usage-period";
 import { organization } from "../schema/auth";
 import { organizationSubscriptions, plans } from "../schema/billing";
 import type { Transaction } from "../transaction";
@@ -18,6 +19,11 @@ export type CreateOrganizationSubscriptionResult =
       planId: string;
       quantity: number;
       status: string;
+      provider: string;
+      externalCustomerId: string | null;
+      externalSubscriptionId: string | null;
+      currentPeriodStart: Date | null;
+      currentPeriodEnd: Date | null;
       createdAt: Date;
       updatedAt: Date;
     }
@@ -68,6 +74,8 @@ export async function createOrganizationSubscription({
     return { ok: false, reason: "already_subscribed" };
   }
 
+  const period = calendarMonthEntitlementWindow(new Date());
+
   const [row] = await tx
     .insert(organizationSubscriptions)
     .values({
@@ -75,6 +83,9 @@ export async function createOrganizationSubscription({
       planId: input.planId,
       quantity: input.quantity,
       status: "active",
+      provider: "manual",
+      currentPeriodStart: period.start,
+      currentPeriodEnd: period.end,
     })
     .returning({
       id: organizationSubscriptions.id,
@@ -82,6 +93,11 @@ export async function createOrganizationSubscription({
       planId: organizationSubscriptions.planId,
       quantity: organizationSubscriptions.quantity,
       status: organizationSubscriptions.status,
+      provider: organizationSubscriptions.provider,
+      externalCustomerId: organizationSubscriptions.externalCustomerId,
+      externalSubscriptionId: organizationSubscriptions.externalSubscriptionId,
+      currentPeriodStart: organizationSubscriptions.currentPeriodStart,
+      currentPeriodEnd: organizationSubscriptions.currentPeriodEnd,
       createdAt: organizationSubscriptions.createdAt,
       updatedAt: organizationSubscriptions.updatedAt,
     });

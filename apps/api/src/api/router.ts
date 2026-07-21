@@ -38,6 +38,14 @@ import { getOrganizationMetadataById } from "@deck-pack/db/queries/getOrganizati
 import { getOrganizationWithOwner } from "@deck-pack/db/queries/getOrganizationWithOwner";
 import { getPlan } from "@deck-pack/db/queries/getPlan";
 import { insertAssetInsertion } from "@deck-pack/db/queries/insertAssetInsertion";
+import { countInsertionsByAssetTypeForOrgPeriod } from "@deck-pack/db/queries/countInsertionsForOrgPeriod";
+import { listInsertionSeriesForOrg } from "@deck-pack/db/queries/listInsertionSeriesForOrg";
+import { listSeatUsageForOrg } from "@deck-pack/db/queries/listSeatUsageForOrg";
+import {
+  assertInsertAllowed,
+  getEntitlementWindow,
+  getUsagePeriodContext,
+} from "@deck-pack/db/queries/usage-entitlements";
 import { listAllShortcutOverridesByUser } from "@deck-pack/db/queries/listShortcutOverridesByUser";
 import { listBrandProfilesByUser } from "@deck-pack/db/queries/listBrandProfilesByUser";
 import { listOrganizationMembers } from "@deck-pack/db/queries/listOrganizationMembers";
@@ -83,6 +91,8 @@ import { createShortcutRoutes } from "../domains/shortcuts/routes";
 import { createShortcutService } from "../domains/shortcuts/service";
 import { createSlideRoutes } from "../domains/slides/routes";
 import { createSlideService } from "../domains/slides/service";
+import { createUsageRoutes } from "../domains/usage/routes";
+import { createUsageService } from "../domains/usage/service";
 import { createUsersRoutes } from "../domains/users/routes";
 import { createUsersService } from "../domains/users/service";
 import { createLibraryRoutes } from "../domains/library/routes";
@@ -146,7 +156,17 @@ export function createAppRouter(deps: AddinRouterDeps) {
       }),
   });
   const flagService = createFlagService({ storage });
-  const addinService = createAddinService({ insertAssetInsertion });
+  const addinService = createAddinService({ insertAssetInsertion, assertInsertAllowed });
+
+  const usageService = createUsageService({
+    getActiveOrganizationSubscriptionByOrgId,
+    getPlan,
+    getEntitlementWindow,
+    getUsagePeriodContext,
+    countInsertionsByAssetTypeForOrgPeriod,
+    listInsertionSeriesForOrg,
+    listSeatUsageForOrg,
+  });
 
   const organizationService = createOrganizationService({
     findUserByEmail,
@@ -236,6 +256,7 @@ export function createAppRouter(deps: AddinRouterDeps) {
     organization: router(createOrganizationRoutes(organizationService)),
     members: router(createMembersRoutes(membersService)),
     seats: router(createSeatsRoutes(seatsService)),
+    usage: router(createUsageRoutes(usageService)),
     users: router(createUsersRoutes(usersService)),
     billing: router(createBillingRoutes(billingService)),
     library: router({

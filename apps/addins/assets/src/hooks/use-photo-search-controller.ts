@@ -3,11 +3,15 @@ import { toast } from "sonner";
 
 import { useAssetInsertion } from "@/hooks/use-asset-insertion";
 import { useInsertionStrategy } from "@/hooks/use-insertion-strategy";
-import { useResolvedShortcutDef, useInsertSectionShortcutDefs } from "@/hooks/use-resolved-shortcut-defs";
+import {
+  useResolvedShortcutDef,
+  useInsertSectionShortcutDefs,
+} from "@/hooks/use-resolved-shortcut-defs";
 
 import type { PhotoSearchRequest, PhotoSearchResponse } from "./types";
 import { usePhotoSearch } from "@/hooks/use-photo-search";
 import { usePhotoSearchHotkeys } from "@/hooks/use-photo-search-hotkeys";
+import { getUserFacingApiErrorMessage } from "@/lib/user-facing-api-error";
 
 export function usePhotoSearchController(
   search: (input: PhotoSearchRequest) => Promise<PhotoSearchResponse>,
@@ -50,7 +54,7 @@ export function usePhotoSearchController(
       );
     }).catch((error) => {
       console.error("Error inserting photo:", error);
-      toast.error(error instanceof Error ? error.message : "Error inserting photo");
+      toast.error(getUserFacingApiErrorMessage(error, "Error inserting photo"));
     });
   }, [flow.selectedPhoto, insertionStrategy, runInsertion]);
 
