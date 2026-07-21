@@ -9,26 +9,10 @@ import { createOrganizationSubscription } from "@deck-pack/db/queries/createOrga
 import { createPlan } from "@deck-pack/db/queries/createPlan";
 import { deleteAllShortcutOverrides } from "@deck-pack/db/queries/deleteAllShortcutOverrides";
 import { deleteShortcutOverride } from "@deck-pack/db/queries/deleteShortcutOverride";
-import { assignOrganizationSeat } from "@deck-pack/db/queries/assignOrganizationSeat";
-import { addOrganizationMember } from "@deck-pack/db/queries/addOrganizationMember";
-import { cancelInvitation } from "@deck-pack/db/queries/listPendingInvitations";
-import { createInvitationViaAuth } from "../domains/members/create-invitation-via-auth";
-import { findUserByEmail } from "@deck-pack/db/queries/findUserByEmail";
 import { getActiveOrganizationSubscriptionByOrgId } from "@deck-pack/db/queries/getActiveOrganizationSubscriptionByOrgId";
-import { listPendingInvitations } from "@deck-pack/db/queries/listPendingInvitations";
-import { removeOrganizationMember } from "@deck-pack/db/queries/removeOrganizationMember";
-import { updateOrganizationMemberRole } from "@deck-pack/db/queries/updateOrganizationMemberRole";
-import { getInvitationById } from "@deck-pack/db/queries/getInvitationById";
-import { getCurrentMembershipSummary } from "@deck-pack/db/queries/getCurrentMembershipSummary";
-import { vacateCurrentOrganization } from "@deck-pack/db/queries/vacateCurrentOrganization";
-import { acceptInvitationForUser } from "@deck-pack/db/queries/acceptInvitationForUser";
-import { findPendingOrgIntentByEmail } from "@deck-pack/db/queries/findPendingOrgIntentByEmail";
-import { activateSeatForUser } from "@deck-pack/db/queries/activateSeatForUser";
-import { setSessionActiveOrganization } from "@deck-pack/db/queries/setSessionActiveOrganization";
 import { getAgendaInstance } from "@deck-pack/db/queries/getAgendaInstance";
 import { getBrandProfileWithVersion } from "@deck-pack/db/queries/getBrandProfileWithVersion";
 import { getOrganizationSubscription } from "@deck-pack/db/queries/getOrganizationSubscription";
-import { getOrganizationMetadataById } from "@deck-pack/db/queries/getOrganizationMetadataById";
 import { getPlan } from "@deck-pack/db/queries/getPlan";
 import { insertAssetInsertion } from "@deck-pack/db/queries/insertAssetInsertion";
 import { countInsertionsByAssetTypeForOrgPeriod } from "@deck-pack/db/queries/countInsertionsForOrgPeriod";
@@ -41,7 +25,6 @@ import {
 } from "@deck-pack/db/queries/usage-entitlements";
 import { listAllShortcutOverridesByUser } from "@deck-pack/db/queries/listShortcutOverridesByUser";
 import { listBrandProfilesByUser } from "@deck-pack/db/queries/listBrandProfilesByUser";
-import { listOrganizationMembers } from "@deck-pack/db/queries/listOrganizationMembers";
 import { listOrganizationSubscriptions } from "@deck-pack/db/queries/listOrganizationSubscriptions";
 import { listPlans } from "@deck-pack/db/queries/listPlans";
 import { setDefaultBrandProfile } from "@deck-pack/db/queries/setDefaultBrandProfile";
@@ -67,8 +50,7 @@ import { createIconRoutes } from "../domains/icons/routes";
 import { createIconService } from "../domains/icons/service";
 import { createLogoRoutes } from "../domains/logos/routes";
 import { createLogoService } from "../domains/logos/service";
-import { createMembersRoutes } from "../domains/members/routes";
-import { createMembersService } from "../domains/members/service";
+import { membersRouter } from "../routers/members-router";
 import { organizationRouter } from "../routers/organization-router";
 import { usersRouter } from "../routers/users-router";
 import { seatsRouter } from "../routers/seats-router";
@@ -190,35 +172,13 @@ export function createAppRouter(deps: AddinRouterDeps, container: AppContainer) 
     updateOrganizationSubscription,
   });
 
-  const membersService = createMembersService({
-    listOrganizationMembers,
-    listPendingInvitations,
-    findUserByEmail,
-    addOrganizationMember,
-    createInvitation: createInvitationViaAuth,
-    updateOrganizationMemberRole,
-    removeOrganizationMember,
-    cancelInvitation,
-    assignOrganizationSeat,
-    getOrganizationMetadataById,
-    getActiveOrganizationSubscriptionByOrgId,
-    getPlan,
-    getInvitationById,
-    getCurrentMembershipSummary,
-    vacateCurrentOrganization,
-    acceptInvitationForUser,
-    findPendingOrgIntentByEmail,
-    activateSeatForUser,
-    setSessionActiveOrganization,
-  });
-
   const libraryService = createLibraryService({ storage });
   const orgLibraryService = createOrgLibraryService({ storage });
 
   return router({
     ...systemRoutes,
     organization: organizationRouter(container),
-    members: router(createMembersRoutes(membersService)),
+    members: membersRouter(container),
     seats: seatsRouter(container),
     usage: router(createUsageRoutes(usageService)),
     users: usersRouter(container),

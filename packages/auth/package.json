@@ -23,6 +23,7 @@
     "@deck-pack/env": "workspace:*",
     "better-auth": "catalog:",
     "dotenv": "catalog:",
+    "drizzle-orm": "^0.45.1",
     "jose": "^6.2.3",
     "resend": "catalog:",
     "zod": "catalog:"

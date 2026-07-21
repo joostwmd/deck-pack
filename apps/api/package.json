@@ -24,6 +24,7 @@
     "@deck-pack/env": "workspace:*",
     "@deck-pack/errors": "workspace:*",
     "@deck-pack/integrations": "workspace:*",
+    "@deck-pack/members": "workspace:*",
     "@deck-pack/organization": "workspace:*",
     "@deck-pack/presentation-check": "workspace:*",
     "@deck-pack/seats": "workspace:*",

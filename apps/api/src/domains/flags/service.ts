@@ -1,13 +1,11 @@
-import {
-  getReadyFlagDetails,
-  searchReadyFlags,
-} from "@deck-pack/db/queries/libraryDiscovery";
+import { getReadyFlagDetails, searchReadyFlags } from "@deck-pack/db/queries/libraryDiscovery";
 import type { Transaction } from "@deck-pack/db/transaction";
 import type { ObjectStorage } from "@deck-pack/storage";
 
 import { createDiscoveryDownloadUrl } from "../library/signed-urls";
 
 import { mapFlagDetailsResponse, mapFlagSearchResponse } from "./mappers";
+import type { FlagSearchResult } from "./types";
 
 export type FlagServiceDeps = {
   storage: ObjectStorage;
@@ -42,11 +40,7 @@ export function createFlagService(deps: FlagServiceDeps) {
       return mapFlagSearchResponse(withUrls);
     },
 
-    getDetails: async (
-      tx: Transaction,
-      externalId: string,
-      organizationId?: string | null,
-    ) => {
+    getDetails: async (tx: Transaction, externalId: string, organizationId?: string | null) => {
       const flag = await getReadyFlagDetails({ tx, id: externalId, organizationId });
       if (!flag) return null;
 

@@ -3,6 +3,10 @@ import { env } from "@deck-pack/env/server";
 import { BrandfetchClient } from "@deck-pack/integrations/brandfetch";
 import { NounProjectClient } from "@deck-pack/integrations/noun-project";
 import { PexelsClient } from "@deck-pack/integrations/pexels";
+import type { InvitationPort, MembersRepository } from "@deck-pack/members";
+import { InMemoryInvitationPort } from "@deck-pack/members/integrations/in-memory-invitation-port";
+import { InMemoryMembersRepository } from "@deck-pack/members/repositories/in-memory-members-repository";
+import { DrizzleMembersRepository } from "@deck-pack/members/repositories/members-repository";
 import type { OrganizationRepository } from "@deck-pack/organization";
 import { InMemoryOrganizationRepository } from "@deck-pack/organization/repositories/in-memory-organization-repository";
 import { DrizzleOrganizationRepository } from "@deck-pack/organization/repositories/organization-repository";
@@ -13,6 +17,7 @@ import type { UsersRepository } from "@deck-pack/users";
 import { InMemoryUsersRepository } from "@deck-pack/users/repositories/in-memory-users-repository";
 import { DrizzleUsersRepository } from "@deck-pack/users/repositories/users-repository";
 
+import { createBetterAuthInvitationPort } from "./integrations/create-better-auth-invitation-port";
 import type { AddinRouterDeps } from "./trpc/router";
 
 export type AppContainerOverrides = Partial<{
@@ -20,6 +25,8 @@ export type AppContainerOverrides = Partial<{
   organizationRepository: OrganizationRepository;
   usersRepository: UsersRepository;
   seatsRepository: SeatsRepository;
+  membersRepository: MembersRepository;
+  invitationPort: InvitationPort;
   brandfetchClient: BrandfetchClient;
   nounProjectClient: NounProjectClient;
   pexelsClient: PexelsClient;
@@ -63,6 +70,8 @@ export class AppContainer {
     public readonly organizationRepository: OrganizationRepository,
     public readonly usersRepository: UsersRepository,
     public readonly seatsRepository: SeatsRepository,
+    public readonly membersRepository: MembersRepository,
+    public readonly invitationPort: InvitationPort,
     public readonly brandfetchClient: BrandfetchClient,
     public readonly nounProjectClient: NounProjectClient,
     public readonly pexelsClient: PexelsClient,
@@ -74,6 +83,8 @@ export class AppContainer {
       new DrizzleOrganizationRepository(unitOfWork),
       new DrizzleUsersRepository(unitOfWork),
       new DrizzleSeatsRepository(unitOfWork),
+      new DrizzleMembersRepository(unitOfWork),
+      createBetterAuthInvitationPort(),
       new BrandfetchClient({
         apiKey: env.BRANDFETCH_API_KEY,
         clientId: env.BRANDFETCH_CLIENT_ID,
@@ -93,6 +104,8 @@ export class AppContainer {
       new DrizzleOrganizationRepository(uow),
       new DrizzleUsersRepository(uow),
       new DrizzleSeatsRepository(uow),
+      new DrizzleMembersRepository(uow),
+      new InMemoryInvitationPort(),
       emptyBrandfetchClient,
       emptyNounProjectClient,
       emptyPexelsClient,
@@ -106,6 +119,8 @@ export class AppContainer {
       overrides.organizationRepository ?? new InMemoryOrganizationRepository(),
       overrides.usersRepository ?? new InMemoryUsersRepository(),
       overrides.seatsRepository ?? new InMemorySeatsRepository(),
+      overrides.membersRepository ?? new InMemoryMembersRepository(),
+      overrides.invitationPort ?? new InMemoryInvitationPort(),
       overrides.brandfetchClient ?? emptyBrandfetchClient,
       overrides.nounProjectClient ?? emptyNounProjectClient,
       overrides.pexelsClient ?? emptyPexelsClient,
