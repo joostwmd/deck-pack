@@ -1,0 +1,36 @@
+{
+  "name": "@deck-pack/gallery",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./schemas": {
+      "default": "./src/schemas.ts"
+    },
+    "./repositories/*": {
+      "default": "./src/repositories/*.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@deck-pack/db": "workspace:*",
+    "@deck-pack/env": "workspace:*",
+    "@deck-pack/errors": "workspace:*",
+    "@deck-pack/storage": "workspace:*",
+    "drizzle-orm": "^0.45.1",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@deck-pack/config": "workspace:*",
+    "@types/node": "catalog:",
+    "typescript": "catalog:"
+  }
+}

@@ -2,7 +2,7 @@ import { getReadyFlagDetails, searchReadyFlags } from "@deck-pack/db/queries/lib
 import type { Transaction } from "@deck-pack/db/transaction";
 import type { ObjectStorage } from "@deck-pack/storage";
 
-import { createDiscoveryDownloadUrl } from "../library/signed-urls";
+import { createDiscoveryDownloadUrl } from "@deck-pack/gallery";
 
 import { mapFlagDetailsResponse, mapFlagSearchResponse } from "./mappers";
 import type { FlagSearchResult } from "./types";

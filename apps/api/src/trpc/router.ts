@@ -33,6 +33,7 @@ import { createIconService } from "../domains/icons/service";
 import { createLogoRoutes } from "../domains/logos/routes";
 import { createLogoService } from "../domains/logos/service";
 import { billingRouter } from "../routers/billing-router";
+import { galleryRouter } from "../routers/gallery-router";
 import { membersRouter } from "../routers/members-router";
 import { organizationRouter } from "../routers/organization-router";
 import { usersRouter } from "../routers/users-router";
@@ -47,17 +48,8 @@ import { createShortcutRoutes } from "../domains/shortcuts/routes";
 import { createShortcutService } from "../domains/shortcuts/service";
 import { createSlideRoutes } from "../domains/slides/routes";
 import { createSlideService } from "../domains/slides/service";
-import { createLibraryRoutes } from "../domains/library/routes";
-import { createOrgLibraryRoutes } from "../domains/library/org-routes";
-import { createLibraryService } from "../domains/library/service";
-import { createOrgLibraryService } from "../domains/library/org-service";
 import { systemRoutes } from "../domains/system/routes";
-import {
-  createAzureObjectStorage,
-  createMemoryObjectStorage,
-  type ObjectStorage,
-} from "@deck-pack/storage";
-import { env } from "@deck-pack/env/server";
+import type { ObjectStorage } from "@deck-pack/storage";
 
 import { router } from "./init";
 
@@ -73,19 +65,8 @@ export type AddinRouterDeps = {
   storage?: ObjectStorage;
 };
 
-function resolveObjectStorage(explicit?: ObjectStorage): ObjectStorage {
-  if (explicit) return explicit;
-  if (env.AZURE_STORAGE_ACCOUNT_NAME && env.AZURE_STORAGE_CONTAINER) {
-    return createAzureObjectStorage({
-      accountName: env.AZURE_STORAGE_ACCOUNT_NAME,
-      containerName: env.AZURE_STORAGE_CONTAINER,
-    });
-  }
-  return createMemoryObjectStorage();
-}
-
 export function createAppRouter(deps: AddinRouterDeps, container: AppContainer) {
-  const storage = resolveObjectStorage(deps.storage);
+  const storage = deps.storage ?? container.objectStorage;
   const photoService = createPhotoService({
     pexels: deps.pexels ?? new PexelsClient(deps.pexelsApiKey),
   });
@@ -133,9 +114,6 @@ export function createAppRouter(deps: AddinRouterDeps, container: AppContainer) 
     deleteAllShortcutOverrides,
   });
 
-  const libraryService = createLibraryService({ storage });
-  const orgLibraryService = createOrgLibraryService({ storage });
-
   return router({
     ...systemRoutes,
     organization: organizationRouter(container),
@@ -144,10 +122,7 @@ export function createAppRouter(deps: AddinRouterDeps, container: AppContainer) 
     usage: usageRouter(container),
     users: usersRouter(container),
     billing: billingRouter(container),
-    library: router({
-      ...createLibraryRoutes(libraryService),
-      org: router(createOrgLibraryRoutes(orgLibraryService)),
-    }),
+    library: galleryRouter(container),
     assets: router({
       photos: router(createPhotoRoutes(photoService)),
       slides: router(createSlideRoutes(slideService)),

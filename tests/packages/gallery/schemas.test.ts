@@ -5,9 +5,9 @@ import {
   libraryItemDetailSchema,
   libraryUploadRoleSchema,
   uploadTargetSchema,
-} from "@deck-pack/api/domains/library/schemas";
+} from "@deck-pack/gallery/schemas";
 
-describe("library schemas", () => {
+describe("gallery schemas", () => {
   it("accepts asset classes and upload roles", () => {
     expect(libraryAssetClassSchema.parse("flag")).toBe("flag");
     expect(libraryUploadRoleSchema.parse("rectangle")).toBe("rectangle");

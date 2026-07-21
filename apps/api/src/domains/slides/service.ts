@@ -1,13 +1,10 @@
-import {
-  listAllReadySlides,
-  searchReadySlides,
-} from "@deck-pack/db/queries/libraryDiscovery";
+import { listAllReadySlides, searchReadySlides } from "@deck-pack/db/queries/libraryDiscovery";
 import type { SlideAspectRatio, SlideCategory } from "@deck-pack/db/schema/library-assets";
 import type { Transaction } from "@deck-pack/db/transaction";
 import type { ObjectStorage } from "@deck-pack/storage";
 import type { z } from "zod";
 
-import { createDiscoveryDownloadUrl } from "../library/signed-urls";
+import { createDiscoveryDownloadUrl } from "@deck-pack/gallery";
 
 import type { slideSearchInputSchema, slideSearchResponseSchema } from "./schemas";
 

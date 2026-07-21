@@ -4,7 +4,7 @@ vi.mock("@deck-pack/env/server", () => ({
   env: { NODE_ENV: "development" },
 }));
 
-import { uploadTargetForClient } from "@deck-pack/api/domains/library/upload-target-for-client";
+import { uploadTargetForClient } from "@deck-pack/gallery/upload-target-for-client";
 
 describe("uploadTargetForClient", () => {
   const directTarget = {

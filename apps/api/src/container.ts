@@ -3,6 +3,9 @@ import { env } from "@deck-pack/env/server";
 import type { BillingRepository } from "@deck-pack/billing";
 import { InMemoryBillingRepository } from "@deck-pack/billing/repositories/in-memory-billing-repository";
 import { DrizzleBillingRepository } from "@deck-pack/billing/repositories/billing-repository";
+import type { GalleryRepository } from "@deck-pack/gallery";
+import { InMemoryGalleryRepository } from "@deck-pack/gallery/repositories/in-memory-gallery-repository";
+import { DrizzleGalleryRepository } from "@deck-pack/gallery/repositories/gallery-repository";
 import { BrandfetchClient } from "@deck-pack/integrations/brandfetch";
 import { NounProjectClient } from "@deck-pack/integrations/noun-project";
 import { PexelsClient } from "@deck-pack/integrations/pexels";
@@ -16,6 +19,11 @@ import { DrizzleOrganizationRepository } from "@deck-pack/organization/repositor
 import type { SeatsRepository } from "@deck-pack/seats";
 import { InMemorySeatsRepository } from "@deck-pack/seats/repositories/in-memory-seats-repository";
 import { DrizzleSeatsRepository } from "@deck-pack/seats/repositories/seats-repository";
+import {
+  createAzureObjectStorage,
+  createMemoryObjectStorage,
+  type ObjectStorage,
+} from "@deck-pack/storage";
 import type { UsageRepository } from "@deck-pack/usage";
 import { InMemoryUsageRepository } from "@deck-pack/usage/repositories/in-memory-usage-repository";
 import { DrizzleUsageRepository } from "@deck-pack/usage/repositories/usage-repository";
@@ -35,6 +43,8 @@ export type AppContainerOverrides = Partial<{
   invitationPort: InvitationPort;
   billingRepository: BillingRepository;
   usageRepository: UsageRepository;
+  galleryRepository: GalleryRepository;
+  objectStorage: ObjectStorage;
   brandfetchClient: BrandfetchClient;
   nounProjectClient: NounProjectClient;
   pexelsClient: PexelsClient;
@@ -72,6 +82,17 @@ function createStubUnitOfWorkDb() {
   } as Database;
 }
 
+function resolveObjectStorage(explicit?: ObjectStorage): ObjectStorage {
+  if (explicit) return explicit;
+  if (env.AZURE_STORAGE_ACCOUNT_NAME && env.AZURE_STORAGE_CONTAINER) {
+    return createAzureObjectStorage({
+      accountName: env.AZURE_STORAGE_ACCOUNT_NAME,
+      containerName: env.AZURE_STORAGE_CONTAINER,
+    });
+  }
+  return createMemoryObjectStorage();
+}
+
 export class AppContainer {
   constructor(
     public readonly unitOfWork: UnitOfWork,
@@ -82,12 +103,15 @@ export class AppContainer {
     public readonly invitationPort: InvitationPort,
     public readonly billingRepository: BillingRepository,
     public readonly usageRepository: UsageRepository,
+    public readonly galleryRepository: GalleryRepository,
+    public readonly objectStorage: ObjectStorage,
     public readonly brandfetchClient: BrandfetchClient,
     public readonly nounProjectClient: NounProjectClient,
     public readonly pexelsClient: PexelsClient,
   ) {}
 
   static production(): AppContainer {
+    const storage = resolveObjectStorage();
     return new AppContainer(
       unitOfWork,
       new DrizzleOrganizationRepository(unitOfWork),
@@ -97,6 +121,8 @@ export class AppContainer {
       createBetterAuthInvitationPort(),
       new DrizzleBillingRepository(unitOfWork),
       new DrizzleUsageRepository(unitOfWork),
+      new DrizzleGalleryRepository(unitOfWork),
+      storage,
       new BrandfetchClient({
         apiKey: env.BRANDFETCH_API_KEY,
         clientId: env.BRANDFETCH_CLIENT_ID,
@@ -120,6 +146,8 @@ export class AppContainer {
       new InMemoryInvitationPort(),
       new DrizzleBillingRepository(uow),
       new DrizzleUsageRepository(uow),
+      new DrizzleGalleryRepository(uow),
+      createMemoryObjectStorage(),
       emptyBrandfetchClient,
       emptyNounProjectClient,
       emptyPexelsClient,
@@ -137,6 +165,8 @@ export class AppContainer {
       overrides.invitationPort ?? new InMemoryInvitationPort(),
       overrides.billingRepository ?? new InMemoryBillingRepository(),
       overrides.usageRepository ?? new InMemoryUsageRepository(),
+      overrides.galleryRepository ?? new InMemoryGalleryRepository(),
+      overrides.objectStorage ?? createMemoryObjectStorage(),
       overrides.brandfetchClient ?? emptyBrandfetchClient,
       overrides.nounProjectClient ?? emptyNounProjectClient,
       overrides.pexelsClient ?? emptyPexelsClient,
@@ -153,6 +183,7 @@ export class AppContainer {
       brandfetch: this.brandfetchClient,
       nounProject: this.nounProjectClient,
       pexels: this.pexelsClient,
+      storage: this.objectStorage,
     };
   }
 }

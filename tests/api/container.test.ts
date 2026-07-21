@@ -34,6 +34,8 @@ describe("AppContainer", () => {
     expect(container.invitationPort).toBeDefined();
     expect(container.billingRepository).toBeDefined();
     expect(container.usageRepository).toBeDefined();
+    expect(container.galleryRepository).toBeDefined();
+    expect(container.objectStorage).toBeDefined();
     expect(container.brandfetchClient).toBeDefined();
     expect(container.nounProjectClient).toBeDefined();
     expect(container.pexelsClient).toBeDefined();
