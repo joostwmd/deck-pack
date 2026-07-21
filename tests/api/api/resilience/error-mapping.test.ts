@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { describe, expect, it } from "vitest";
 
+import { ConflictError, ForbiddenError, InvalidStateError, NotFoundError } from "@deck-pack/errors";
 import { normalizeProcedureError } from "@deck-pack/api/api/resilience/error-mapping";
 
 describe("normalizeProcedureError", () => {
@@ -11,6 +12,27 @@ describe("normalizeProcedureError", () => {
     });
     const out = normalizeProcedureError(inner);
     expect(out).toBe(inner);
+  });
+
+  it("maps NotFoundError to NOT_FOUND", () => {
+    const out = normalizeProcedureError(new NotFoundError("missing"));
+    expect(out.code).toBe("NOT_FOUND");
+    expect(out.message).toBe("missing");
+  });
+
+  it("maps ConflictError to CONFLICT", () => {
+    const out = normalizeProcedureError(new ConflictError("duplicate"));
+    expect(out.code).toBe("CONFLICT");
+  });
+
+  it("maps ForbiddenError to FORBIDDEN", () => {
+    const out = normalizeProcedureError(new ForbiddenError("denied"));
+    expect(out.code).toBe("FORBIDDEN");
+  });
+
+  it("maps InvalidStateError to BAD_REQUEST", () => {
+    const out = normalizeProcedureError(new InvalidStateError("bad state"));
+    expect(out.code).toBe("BAD_REQUEST");
   });
 
   it("wraps non-TRPC errors as INTERNAL_SERVER_ERROR with cause", () => {

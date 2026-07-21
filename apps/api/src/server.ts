@@ -1,99 +1,34 @@
-import { trpcServer } from "@hono/trpc-server";
 import { serve } from "@hono/node-server";
-import { TRPCError } from "@trpc/server";
-import { getLogger } from "@logtape/logtape";
 import { Hono } from "hono";
 
-import { auth } from "@deck-pack/auth/server";
 import { env } from "@deck-pack/env/server";
 
-import { createContext } from "./api/context";
-import type { Context } from "./api/context";
+import { ApiAppBuilder } from "./app-builder";
 import { createAppRouter, type AppRouter } from "./api/router";
-import { initializeApitally } from "./lib/observability/apitally";
-import { captureRequestError } from "./lib/observability/sentry";
-import { apitallySessionConsumerMiddleware } from "./transport/apitally-consumer";
-import { sessionMiddleware } from "./transport/auth-session";
-import { registerErrorHandlers } from "./transport/error-handling";
-import { registerHealthRoutes } from "./transport/health-checks";
-import { requestContextMiddleware } from "./transport/request-context";
-import { requestLoggingMiddleware } from "./transport/request-logging";
-import { corsMiddleware, securityHeadersMiddleware, applyCorsToResponse } from "./transport/security";
+import { AppContainer } from "./container";
 import type { AppEnv } from "./types";
 
 export type CreateAppOptions = {
   router?: AppRouter;
+  container?: AppContainer;
 };
 
-export function createApp(options?: CreateAppOptions) {
-  const app = new Hono<AppEnv>();
+export function createApp(options?: CreateAppOptions): Hono<AppEnv> {
+  const container = options?.container ?? AppContainer.production();
+  const appRouter = options?.router ?? createAppRouter(container.toRouterDeps());
 
-  const appRouter =
-    options?.router ??
-    createAppRouter({
-      brandfetchApiKey: env.BRANDFETCH_API_KEY,
-      brandfetchClientId: env.BRANDFETCH_CLIENT_ID,
-      nounProjectApiKey: env.NOUN_PROJECT_API_KEY,
-      nounProjectApiSecret: env.NOUN_PROJECT_API_SECRET,
-      pexelsApiKey: env.PEXELS_API_KEY,
-    });
-
-  app.use("*", corsMiddleware);
-
-  initializeApitally(app);
-
-  app.use("*", securityHeadersMiddleware);
-
-  app.on(["POST", "GET"], "/api/auth/*", async (c) => {
-    const response = await auth.handler(c.req.raw);
-    return applyCorsToResponse(c.req.header("Origin"), response);
-  });
-
-  app.use("*", requestContextMiddleware);
-  app.use("*", requestLoggingMiddleware);
-  app.use("*", sessionMiddleware);
-  /** When `/api/machine` exists, mount machine auth + Apitally consumer on that sub-app only. */
-  app.use("*", apitallySessionConsumerMiddleware);
-
-  app.use(
-    "/trpc/*",
-    trpcServer({
-      router: appRouter,
-      createContext: (_opts, c) => createContext({ context: c }),
-      onError: ({ error, path, type, ctx }) => {
-        const trpcLogger = getLogger(["deck-pack", "api", "trpc"]);
-        const cctx = ctx as Context | undefined;
-        trpcLogger.error("tRPC error", {
-          path,
-          type,
-          code: error.code,
-          message: error.message,
-          requestId: cctx?.requestId,
-        });
-
-        if (
-          error instanceof TRPCError &&
-          (error.code === "INTERNAL_SERVER_ERROR" || error.code === "TIMEOUT")
-        ) {
-          captureRequestError(error.cause ?? error, {
-            requestId: cctx?.requestId,
-            userId: cctx?.user?.id,
-            tags: {
-              trpcPath: path ?? "",
-              trpcType: String(type),
-            },
-          });
-        }
-      },
-    }),
-  );
-
-  app.get("/", (c) => c.text("OK"));
-
-  registerHealthRoutes(app);
-  registerErrorHandlers(app);
-
-  return app;
+  return new ApiAppBuilder()
+    .withCors()
+    .withMonitoring()
+    .withSecurityHeaders()
+    .withAuthRoutes()
+    .withRequestContext()
+    .withSession()
+    .withApitallyConsumer()
+    .withTrpc(appRouter)
+    .withHealth()
+    .withErrorHandlers()
+    .build();
 }
 
 export function startServer() {

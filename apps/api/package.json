@@ -22,6 +22,7 @@
     "@deck-pack/auth": "workspace:*",
     "@deck-pack/db": "workspace:*",
     "@deck-pack/env": "workspace:*",
+    "@deck-pack/errors": "workspace:*",
     "@deck-pack/integrations": "workspace:*",
     "@deck-pack/presentation-check": "workspace:*",
     "@deck-pack/shortcuts": "workspace:*",
