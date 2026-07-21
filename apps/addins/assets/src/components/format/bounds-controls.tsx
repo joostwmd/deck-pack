@@ -1,6 +1,6 @@
 import { Button } from "@deck-pack/ui/components/system/button";
 import { Input } from "@deck-pack/ui/components/system/input";
-import type { ShapeSelection } from "@deck-pack/presentation-formatting";
+import type { ShapeSelection } from "@deck-pack/shape-commands";
 import { useMemo, useState } from "react";
 
 import { getSharedNumericValue, SelectionSummary } from "./selection-summary";
@@ -58,7 +58,9 @@ export function BoundsControls({ selection, busy = false, onApply }: BoundsContr
               value={draft[field] ?? sharedValues[field]}
               placeholder={sharedValues[field] ? undefined : "Mixed"}
               disabled={!selection || selection.shapes.length === 0 || busy}
-              onChange={(event) => setDraft((current) => ({ ...current, [field]: event.target.value }))}
+              onChange={(event) =>
+                setDraft((current) => ({ ...current, [field]: event.target.value }))
+              }
               onBlur={() => commit(field)}
               onKeyDown={(event) => {
                 if (event.key === "Enter") {

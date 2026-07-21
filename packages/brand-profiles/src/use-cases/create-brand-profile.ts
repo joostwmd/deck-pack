@@ -2,7 +2,7 @@ import {
   brandProfileDetailSchema,
   normalizeBrandProfileConfiguration,
   type BrandProfileConfigurationInput,
-} from "@deck-pack/presentation-check";
+} from "@deck-pack/brand-compliance";
 
 import type { BrandProfilesRepository } from "../repositories/brand-profiles-repository";
 

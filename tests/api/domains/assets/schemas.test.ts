@@ -2,18 +2,24 @@ import { describe, expect, it } from "vitest";
 
 import {
   assetClientSchema,
-  assetExternalIdSchema,
-  assetSearchQuerySchema,
   assetTypeSchema,
-} from "@deck-pack/api/domains/assets/schemas";
+  flagExternalIdSchema,
+  flagSearchQuerySchema,
+} from "@deck-pack/gallery";
+import { iconExternalIdSchema, iconSearchQuerySchema } from "@deck-pack/icons";
+import { logoExternalIdSchema, logoSearchQuerySchema } from "@deck-pack/logos";
 
-describe("assets schemas", () => {
+describe("discovery asset schemas", () => {
   it("accepts valid search queries", () => {
-    expect(assetSearchQuerySchema.parse("apple")).toBe("apple");
+    expect(logoSearchQuerySchema.parse("apple")).toBe("apple");
+    expect(iconSearchQuerySchema.parse("apple")).toBe("apple");
+    expect(flagSearchQuerySchema.parse("apple")).toBe("apple");
   });
 
   it("rejects empty search queries", () => {
-    expect(() => assetSearchQuerySchema.parse("")).toThrow();
+    expect(() => logoSearchQuerySchema.parse("")).toThrow();
+    expect(() => iconSearchQuerySchema.parse("")).toThrow();
+    expect(() => flagSearchQuerySchema.parse("")).toThrow();
   });
 
   it("accepts supported asset types", () => {
@@ -36,7 +42,9 @@ describe("assets schemas", () => {
   });
 
   it("requires external ids", () => {
-    expect(assetExternalIdSchema.parse("brand-123")).toBe("brand-123");
-    expect(() => assetExternalIdSchema.parse("")).toThrow();
+    expect(logoExternalIdSchema.parse("brand-123")).toBe("brand-123");
+    expect(iconExternalIdSchema.parse("brand-123")).toBe("brand-123");
+    expect(flagExternalIdSchema.parse("brand-123")).toBe("brand-123");
+    expect(() => logoExternalIdSchema.parse("")).toThrow();
   });
 });

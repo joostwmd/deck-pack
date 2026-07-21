@@ -7,7 +7,7 @@ import {
   normalizeHarveyBallConfig,
   serializeHarveyBallSvg,
   validateHarveyBallConfig,
-} from "@/lib/harvey-ball-svg";
+} from "@/utils/harvey-ball-svg";
 
 describe("harvey-ball-svg", () => {
   it("exposes the expected preset values", () => {
@@ -22,9 +22,7 @@ describe("harvey-ball-svg", () => {
 
   it("validates outline width and color values", () => {
     expect(validateHarveyBallConfig(DEFAULT_HARVEY_BALL_CONFIG)).toEqual({ valid: true });
-    expect(
-      validateHarveyBallConfig({ ...DEFAULT_HARVEY_BALL_CONFIG, outlineWidth: -1 }),
-    ).toEqual({
+    expect(validateHarveyBallConfig({ ...DEFAULT_HARVEY_BALL_CONFIG, outlineWidth: -1 })).toEqual({
       valid: false,
       message: "Outline width must be zero or greater.",
     });

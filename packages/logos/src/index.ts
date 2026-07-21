@@ -15,3 +15,10 @@ export { SearchLogos } from "./use-cases/search-logos";
 export type { SearchLogosInput } from "./use-cases/search-logos";
 export { GetLogoDetails } from "./use-cases/get-logo-details";
 export type { GetLogoDetailsInput } from "./use-cases/get-logo-details";
+
+export {
+  logoDetailsResponseSchema,
+  logoExternalIdSchema,
+  logoSearchQuerySchema,
+  logoSearchResponseSchema,
+} from "./schemas";

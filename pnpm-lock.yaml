@@ -105,6 +105,9 @@ importers:
       '@deck-pack/auth':
         specifier: workspace:*
         version: link:../../../packages/auth
+      '@deck-pack/brand-compliance':
+        specifier: workspace:*
+        version: link:../../../packages/brand-compliance
       '@deck-pack/env':
         specifier: workspace:*
         version: link:../../../packages/env
@@ -114,12 +117,9 @@ importers:
       '@deck-pack/office-js':
         specifier: workspace:*
         version: link:../../../packages/office-js
-      '@deck-pack/presentation-check':
+      '@deck-pack/shape-commands':
         specifier: workspace:*
-        version: link:../../../packages/presentation-check
-      '@deck-pack/presentation-formatting':
-        specifier: workspace:*
-        version: link:../../../packages/presentation-formatting
+        version: link:../../../packages/shape-commands
       '@deck-pack/shortcuts':
         specifier: workspace:*
         version: link:../../../packages/shortcuts
@@ -241,6 +241,9 @@ importers:
       '@deck-pack/billing':
         specifier: workspace:*
         version: link:../../packages/billing
+      '@deck-pack/brand-compliance':
+        specifier: workspace:*
+        version: link:../../packages/brand-compliance
       '@deck-pack/brand-profiles':
         specifier: workspace:*
         version: link:../../packages/brand-profiles
@@ -268,15 +271,15 @@ importers:
       '@deck-pack/members':
         specifier: workspace:*
         version: link:../../packages/members
+      '@deck-pack/observability':
+        specifier: workspace:*
+        version: link:../../packages/observability
       '@deck-pack/organization':
         specifier: workspace:*
         version: link:../../packages/organization
       '@deck-pack/photos':
         specifier: workspace:*
         version: link:../../packages/photos
-      '@deck-pack/presentation-check':
-        specifier: workspace:*
-        version: link:../../packages/presentation-check
       '@deck-pack/seats':
         specifier: workspace:*
         version: link:../../packages/seats
@@ -699,17 +702,33 @@ importers:
         specifier: 'catalog:'
         version: 6.0.3
 
+  packages/brand-compliance:
+    dependencies:
+      zod:
+        specifier: 'catalog:'
+        version: 4.3.6
+    devDependencies:
+      '@deck-pack/config':
+        specifier: workspace:*
+        version: link:../config
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+      vitest:
+        specifier: 'catalog:'
+        version: 3.2.4(@types/node@25.6.0)(jiti@2.6.1)(jsdom@26.1.0)(lightningcss@1.32.0)(msw@2.13.4(@types/node@25.6.0)(typescript@6.0.3))(terser@5.49.0)(tsx@4.21.0)(yaml@2.9.0)
+
   packages/brand-profiles:
     dependencies:
+      '@deck-pack/brand-compliance':
+        specifier: workspace:*
+        version: link:../brand-compliance
       '@deck-pack/db':
         specifier: workspace:*
         version: link:../db
       '@deck-pack/errors':
         specifier: workspace:*
         version: link:../errors
-      '@deck-pack/presentation-check':
-        specifier: workspace:*
-        version: link:../presentation-check
       drizzle-orm:
         specifier: ^0.45.1
         version: 0.45.2(@electric-sql/pglite@0.5.4)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(better-sqlite3@11.10.0)(kysely@0.28.16)(pg@8.20.0)
@@ -861,6 +880,9 @@ importers:
       '@deck-pack/integrations':
         specifier: workspace:*
         version: link:../integrations
+      zod:
+        specifier: 'catalog:'
+        version: 4.3.6
     devDependencies:
       '@deck-pack/config':
         specifier: workspace:*
@@ -902,6 +924,9 @@ importers:
       '@deck-pack/integrations':
         specifier: workspace:*
         version: link:../integrations
+      zod:
+        specifier: 'catalog:'
+        version: 4.3.6
     devDependencies:
       '@deck-pack/config':
         specifier: workspace:*
@@ -943,9 +968,21 @@ importers:
 
   packages/observability:
     dependencies:
+      '@logtape/logtape':
+        specifier: ^2.0.5
+        version: 2.0.5
+      '@sentry/node':
+        specifier: ^10.51.0
+        version: 10.51.0
       '@sentry/react':
         specifier: ^10.51.0
         version: 10.66.0(react@19.2.5)
+      apitally:
+        specifier: ^0.25.6
+        version: 0.25.6(@sentry/node@10.51.0)(express@5.2.1)(hono@4.12.14)
+      hono:
+        specifier: 'catalog:'
+        version: 4.12.14
       react:
         specifier: ^19.2.5
         version: 19.2.5
@@ -986,12 +1023,12 @@ importers:
       '@deck-pack/agenda':
         specifier: workspace:*
         version: link:../agenda
-      '@deck-pack/presentation-check':
+      '@deck-pack/brand-compliance':
         specifier: workspace:*
-        version: link:../presentation-check
-      '@deck-pack/presentation-formatting':
+        version: link:../brand-compliance
+      '@deck-pack/shape-commands':
         specifier: workspace:*
-        version: link:../presentation-formatting
+        version: link:../shape-commands
     devDependencies:
       '@deck-pack/config':
         specifier: workspace:*
@@ -1053,34 +1090,6 @@ importers:
         specifier: 'catalog:'
         version: 6.0.3
 
-  packages/presentation-check:
-    dependencies:
-      zod:
-        specifier: 'catalog:'
-        version: 4.3.6
-    devDependencies:
-      '@deck-pack/config':
-        specifier: workspace:*
-        version: link:../config
-      typescript:
-        specifier: 'catalog:'
-        version: 6.0.3
-      vitest:
-        specifier: 'catalog:'
-        version: 3.2.4(@types/node@25.6.0)(jiti@2.6.1)(jsdom@26.1.0)(lightningcss@1.32.0)(msw@2.13.4(@types/node@25.6.0)(typescript@6.0.3))(terser@5.49.0)(tsx@4.21.0)(yaml@2.9.0)
-
-  packages/presentation-formatting:
-    devDependencies:
-      '@deck-pack/config':
-        specifier: workspace:*
-        version: link:../config
-      typescript:
-        specifier: 'catalog:'
-        version: 6.0.3
-      vitest:
-        specifier: 'catalog:'
-        version: 3.2.4(@types/node@25.6.0)(jiti@2.6.1)(jsdom@26.1.0)(lightningcss@1.32.0)(msw@2.13.4(@types/node@25.6.0)(typescript@6.0.3))(terser@5.49.0)(tsx@4.21.0)(yaml@2.9.0)
-
   packages/seats:
     dependencies:
       '@deck-pack/auth':
@@ -1108,6 +1117,18 @@ importers:
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
+
+  packages/shape-commands:
+    devDependencies:
+      '@deck-pack/config':
+        specifier: workspace:*
+        version: link:../config
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+      vitest:
+        specifier: 'catalog:'
+        version: 3.2.4(@types/node@25.6.0)(jiti@2.6.1)(jsdom@26.1.0)(lightningcss@1.32.0)(msw@2.13.4(@types/node@25.6.0)(typescript@6.0.3))(terser@5.49.0)(tsx@4.21.0)(yaml@2.9.0)
 
   packages/shortcut-overrides:
     dependencies:
@@ -9897,7 +9918,7 @@ snapshots:
       nanostores: 1.3.0
       zod: 4.3.6
 
-  '@better-auth/drizzle-adapter@1.5.5(@better-auth/core@1.5.5(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(better-call@1.3.2(zod@4.3.6))(jose@6.2.3)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.3.1)(drizzle-orm@0.45.2(@electric-sql/pglite@0.5.4)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(better-sqlite3@11.10.0)(kysely@0.28.16)(pg@8.20.0))':
+  '@better-auth/drizzle-adapter@1.5.5(@better-auth/core@1.5.5(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(better-call@1.3.2(zod@4.3.6))(jose@6.2.3)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.3.1)(drizzle-orm@0.45.2(@electric-sql/pglite@0.5.4)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))':
     dependencies:
       '@better-auth/core': 1.5.5(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(better-call@1.3.2(zod@4.3.6))(jose@6.2.3)(kysely@0.28.16)(nanostores@1.3.0)
       '@better-auth/utils': 0.3.1
@@ -13550,7 +13571,7 @@ snapshots:
   better-auth@1.5.5(better-sqlite3@11.10.0)(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@electric-sql/pglite@0.5.4)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(better-sqlite3@11.10.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.1.1)(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vitest@3.2.4(@types/node@22.19.17)(jiti@2.6.1)(jsdom@26.1.0)(lightningcss@1.32.0)(msw@2.13.4(@types/node@22.19.17)(typescript@6.0.3))(terser@5.49.0)(tsx@4.21.0)(yaml@2.9.0)):
     dependencies:
       '@better-auth/core': 1.5.5(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(better-call@1.3.2(zod@4.3.6))(jose@6.2.3)(kysely@0.28.16)(nanostores@1.3.0)
-      '@better-auth/drizzle-adapter': 1.5.5(@better-auth/core@1.5.5(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(better-call@1.3.2(zod@4.3.6))(jose@6.2.3)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.3.1)(drizzle-orm@0.45.2(@electric-sql/pglite@0.5.4)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(better-sqlite3@11.10.0)(kysely@0.28.16)(pg@8.20.0))
+      '@better-auth/drizzle-adapter': 1.5.5(@better-auth/core@1.5.5(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(better-call@1.3.2(zod@4.3.6))(jose@6.2.3)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.3.1)(drizzle-orm@0.45.2(@electric-sql/pglite@0.5.4)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))
       '@better-auth/kysely-adapter': 1.5.5(@better-auth/core@1.5.5(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(better-call@1.3.2(zod@4.3.6))(jose@6.2.3)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.3.1)(kysely@0.28.16)
       '@better-auth/memory-adapter': 1.5.5(@better-auth/core@1.5.5(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(better-call@1.3.2(zod@4.3.6))(jose@6.2.3)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.3.1)
       '@better-auth/mongo-adapter': 1.5.5(@better-auth/core@1.5.5(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(better-call@1.3.2(zod@4.3.6))(jose@6.2.3)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.3.1)(mongodb@7.1.1)
@@ -13581,7 +13602,7 @@ snapshots:
   better-auth@1.5.5(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@electric-sql/pglite@0.5.4)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.1.1)(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vitest@3.2.4(@types/node@25.6.0)(jiti@2.6.1)(jsdom@26.1.0)(lightningcss@1.32.0)(msw@2.13.4(@types/node@25.6.0)(typescript@6.0.3))(terser@5.49.0)(tsx@4.21.0)(yaml@2.9.0)):
     dependencies:
       '@better-auth/core': 1.5.5(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(better-call@1.3.2(zod@4.3.6))(jose@6.2.3)(kysely@0.28.16)(nanostores@1.3.0)
-      '@better-auth/drizzle-adapter': 1.5.5(@better-auth/core@1.5.5(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(better-call@1.3.2(zod@4.3.6))(jose@6.2.3)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.3.1)(drizzle-orm@0.45.2(@electric-sql/pglite@0.5.4)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(better-sqlite3@11.10.0)(kysely@0.28.16)(pg@8.20.0))
+      '@better-auth/drizzle-adapter': 1.5.5(@better-auth/core@1.5.5(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(better-call@1.3.2(zod@4.3.6))(jose@6.2.3)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.3.1)(drizzle-orm@0.45.2(@electric-sql/pglite@0.5.4)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))
       '@better-auth/kysely-adapter': 1.5.5(@better-auth/core@1.5.5(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(better-call@1.3.2(zod@4.3.6))(jose@6.2.3)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.3.1)(kysely@0.28.16)
       '@better-auth/memory-adapter': 1.5.5(@better-auth/core@1.5.5(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(better-call@1.3.2(zod@4.3.6))(jose@6.2.3)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.3.1)
       '@better-auth/mongo-adapter': 1.5.5(@better-auth/core@1.5.5(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(better-call@1.3.2(zod@4.3.6))(jose@6.2.3)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.3.1)(mongodb@7.1.1)

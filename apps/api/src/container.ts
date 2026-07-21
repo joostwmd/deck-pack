@@ -37,11 +37,7 @@ import { DrizzleSeatsRepository } from "@deck-pack/seats/repositories/seats-repo
 import type { ShortcutOverridesRepository } from "@deck-pack/shortcut-overrides";
 import { InMemoryShortcutOverridesRepository } from "@deck-pack/shortcut-overrides/repositories/in-memory-shortcut-overrides-repository";
 import { DrizzleShortcutOverridesRepository } from "@deck-pack/shortcut-overrides/repositories/shortcut-overrides-repository";
-import {
-  createAzureObjectStorage,
-  createMemoryObjectStorage,
-  type ObjectStorage,
-} from "@deck-pack/storage";
+import { AzureObjectStorage, InMemoryObjectStorage, type ObjectStorage } from "@deck-pack/storage";
 import type { UsageRepository } from "@deck-pack/usage";
 import { InMemoryUsageRepository } from "@deck-pack/usage/repositories/in-memory-usage-repository";
 import { DrizzleUsageRepository } from "@deck-pack/usage/repositories/usage-repository";
@@ -109,12 +105,12 @@ function createStubUnitOfWorkDb() {
 function resolveObjectStorage(explicit?: ObjectStorage): ObjectStorage {
   if (explicit) return explicit;
   if (env.AZURE_STORAGE_ACCOUNT_NAME && env.AZURE_STORAGE_CONTAINER) {
-    return createAzureObjectStorage({
+    return new AzureObjectStorage({
       accountName: env.AZURE_STORAGE_ACCOUNT_NAME,
       containerName: env.AZURE_STORAGE_CONTAINER,
     });
   }
-  return createMemoryObjectStorage();
+  return new InMemoryObjectStorage();
 }
 
 export class AppContainer {
@@ -189,7 +185,7 @@ export class AppContainer {
       new DrizzleBrandProfilesRepository(uow),
       new DrizzleAgendaServiceRepository(uow),
       new DrizzleShortcutOverridesRepository(uow),
-      createMemoryObjectStorage(),
+      new InMemoryObjectStorage(),
       emptyBrandfetchClient,
       new BrandfetchLogoIntegration(emptyBrandfetchClient),
       emptyNounProjectClient,
@@ -214,7 +210,7 @@ export class AppContainer {
       overrides.brandProfilesRepository ?? new InMemoryBrandProfilesRepository(),
       overrides.agendaServiceRepository ?? new InMemoryAgendaServiceRepository(),
       overrides.shortcutOverridesRepository ?? new InMemoryShortcutOverridesRepository(),
-      overrides.objectStorage ?? createMemoryObjectStorage(),
+      overrides.objectStorage ?? new InMemoryObjectStorage(),
       overrides.brandfetchClient ?? emptyBrandfetchClient,
       overrides.logoIntegration ?? new InMemoryLogoIntegration(),
       overrides.nounProjectClient ?? emptyNounProjectClient,

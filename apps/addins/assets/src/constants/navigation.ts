@@ -1,5 +1,5 @@
-import type { ShortcutDef } from "@/lib/shortcuts";
-import { SHORTCUTS } from "@/lib/shortcuts";
+import type { ShortcutDef } from "@/utils/shortcuts";
+import { SHORTCUTS } from "@/utils/shortcuts";
 
 export type AppEnvironment = "office" | "web";
 

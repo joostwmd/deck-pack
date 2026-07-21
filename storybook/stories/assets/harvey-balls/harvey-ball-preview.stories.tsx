@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { HarveyBallPreview } from "@/components/harvey-balls/harvey-ball-preview";
-import { DEFAULT_HARVEY_BALL_CONFIG } from "@/lib/harvey-ball-svg";
+import { DEFAULT_HARVEY_BALL_CONFIG } from "@/utils/harvey-ball-svg";
 
 import { withAssetsPanel } from "../decorators";
 

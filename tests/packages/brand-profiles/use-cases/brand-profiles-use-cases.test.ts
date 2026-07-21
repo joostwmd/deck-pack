@@ -15,7 +15,7 @@ import {
 import {
   DEFAULT_BRAND_PROFILE_CONFIGURATION,
   brandProfileConfigurationSchema,
-} from "@deck-pack/presentation-check";
+} from "@deck-pack/brand-compliance";
 
 describe("brand profile configuration schema (via presentation-check)", () => {
   it("accepts the default configuration", () => {

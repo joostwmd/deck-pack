@@ -8,7 +8,7 @@ import { InsertSection } from "@/components/asset-browser/insert-section";
 import { ScreenHeader } from "@/components/asset-browser/screen-header";
 import { SearchBar } from "@/components/asset-browser/search-bar";
 import { ShortcutKeys } from "@/components/shortcuts/shortcut-hint";
-import type { PhotoSearchController } from "@/hooks/use-photo-search-controller";
+import type { PhotoSearchController } from "@/hooks/photos/use-photo-search-controller";
 
 import { PhotoFiltersBar } from "./photo-filters";
 import { PhotoGrid } from "./photo-grid";
@@ -59,9 +59,7 @@ export function PhotoSearchView({ controller }: PhotoSearchViewProps) {
               activeDescendantId={activeResultId}
               isExpanded={showsResults}
               className="min-w-0 flex-1"
-              rightSlot={
-                <ShortcutKeys tokens={focusSearchShortcut.keys} className="opacity-70" />
-              }
+              rightSlot={<ShortcutKeys tokens={focusSearchShortcut.keys} className="opacity-70" />}
             />
 
             <PhotoFiltersBar

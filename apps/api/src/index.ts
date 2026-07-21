@@ -1,10 +1,8 @@
 import "dotenv/config";
 
-import { initSentry } from "./lib/observability/sentry";
-import { initObservability } from "./observability";
+import { initLogging } from "@deck-pack/observability/server";
 
-initSentry();
-await initObservability();
+await initLogging();
 
 const { startServer } = await import("./server.js");
 startServer();

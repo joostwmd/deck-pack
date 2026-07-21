@@ -1,5 +1,5 @@
 import type { AgendaConfigV1, AgendaEventType } from "@deck-pack/agenda";
-import type { BrandProfileConfiguration } from "@deck-pack/presentation-check";
+import type { BrandProfileConfiguration } from "@deck-pack/brand-compliance";
 import type { AuthClient } from "@deck-pack/auth/client";
 import type { SignOutStrategy } from "@deck-pack/auth/microsoft-sign-in";
 import type {
@@ -15,7 +15,7 @@ import type { PhotoFilters, PhotoSearchResponse } from "@/components/photos/type
 import type { ShapeSearchResponse } from "@/components/shapes/types";
 import type { SlideAspectRatio, SlideSearchResponse, SlideSort } from "@/components/slides/types";
 import type { AssetDetailsResponse, AssetListItem, AssetType } from "@/types/asset-types";
-import type { InsertionStrategy } from "@/lib/insertion-strategy";
+import type { InsertionStrategy } from "@/utils/insertion-strategy";
 
 export type { AuthClient };
 

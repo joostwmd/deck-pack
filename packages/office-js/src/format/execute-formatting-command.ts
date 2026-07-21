@@ -1,4 +1,4 @@
-import type { AnyFormattingCommand } from "@deck-pack/presentation-formatting";
+import type { AnyFormattingCommand } from "@deck-pack/shape-commands";
 
 import { FormattingUnavailableError } from "./formatting-errors";
 import { applyShapeMutationsInContext } from "./apply-shape-mutations";

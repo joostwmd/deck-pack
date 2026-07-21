@@ -12,7 +12,20 @@
     "./postcss.config": "./postcss.config.mjs",
     "./components/gallery/*": "./src/components/gallery/*.tsx",
     "./components/gallery/class-config": "./src/components/gallery/class-config.ts",
-    "./components/gallery/types": "./src/components/gallery/types.ts"
+    "./components/gallery/types": "./src/components/gallery/types.ts",
+    "./components/organization/*": "./src/components/organization/*.tsx",
+    "./components/organization/types": "./src/components/organization/types.ts",
+    "./components/billing/*": "./src/components/billing/*.tsx",
+    "./components/billing/types": "./src/components/billing/types.ts",
+    "./components/billing/asset-types": "./src/components/billing/asset-types.ts",
+    "./components/users/*": "./src/components/users/*.tsx",
+    "./components/users/types": "./src/components/users/types.ts",
+    "./components/members/*": "./src/components/members/*.tsx",
+    "./components/members/types": "./src/components/members/types.ts",
+    "./components/seats/*": "./src/components/seats/*.tsx",
+    "./components/seats/types": "./src/components/seats/types.ts",
+    "./components/usage/*": "./src/components/usage/*.tsx",
+    "./components/usage/types": "./src/components/usage/types.ts"
   },
   "scripts": {
     "check-types": "tsc --noEmit"

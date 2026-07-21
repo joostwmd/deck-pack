@@ -19,7 +19,8 @@
   },
   "dependencies": {
     "@deck-pack/errors": "workspace:*",
-    "@deck-pack/integrations": "workspace:*"
+    "@deck-pack/integrations": "workspace:*",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@deck-pack/config": "workspace:*",

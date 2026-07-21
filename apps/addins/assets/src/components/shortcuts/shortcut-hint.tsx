@@ -1,7 +1,7 @@
 import { Kbd, KbdGroup } from "@deck-pack/ui/components/system/kbd";
 import { cn } from "@deck-pack/ui/lib/utils";
 
-import type { KeyToken, ShortcutDef } from "@/lib/shortcuts";
+import type { KeyToken, ShortcutDef } from "@/utils/shortcuts";
 
 const shortcutKbdClassName =
   "min-w-5.5 rounded-sm border-[0.5px] border-border px-1.5 text-xs font-medium text-foreground shadow-xs";

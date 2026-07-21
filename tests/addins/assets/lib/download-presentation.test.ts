@@ -7,7 +7,7 @@ import {
   SLIDE_WIDTH_IN,
   getHeightFraction,
   toSlideCoordinates,
-} from "@/lib/download-presentation";
+} from "@/utils/download-presentation";
 
 function createItem(overrides: Partial<PlacedCanvasItem> = {}): PlacedCanvasItem {
   return {

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { brandProfileConfigurationSchema } from "@deck-pack/presentation-check";
+import { brandProfileConfigurationSchema } from "@deck-pack/brand-compliance";
 
 export {
   BRAND_PROFILE_SCHEMA_VERSION,
@@ -8,7 +8,7 @@ export {
   brandProfileDetailSchema,
   brandProfileSummarySchema,
   normalizeBrandProfileConfiguration,
-} from "@deck-pack/presentation-check";
+} from "@deck-pack/brand-compliance";
 
 export const profileIdSchema = z.object({ profileId: z.string().uuid() });
 

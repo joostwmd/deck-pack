@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { hotkeyToKeyTokens } from "@/lib/hotkey-display";
+import { hotkeyToKeyTokens } from "@/utils/hotkey-display";
 
 describe("hotkeyToKeyTokens", () => {
   it("splits canonical hotkeys into one text token per key", () => {

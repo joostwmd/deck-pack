@@ -5,7 +5,7 @@ import {
   NavigationDrawerSectionView,
   NavigationDrawerView,
 } from "@/components/shell/navigation-drawer-view";
-import { useResolvedShortcutDef } from "@/hooks/use-resolved-shortcut-defs";
+import { useResolvedShortcutDef } from "@/hooks/shortcuts/use-resolved-shortcut-defs";
 import type { AppEnvironment } from "@/constants/navigation";
 import {
   NAVIGATION_SECTIONS,

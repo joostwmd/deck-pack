@@ -7,7 +7,7 @@ import { EmptyState } from "@/components/asset-browser/empty-state";
 import { ErrorState } from "@/components/asset-browser/error-state";
 import { InsertSection } from "@/components/asset-browser/insert-section";
 import { ScreenHeader } from "@/components/asset-browser/screen-header";
-import type { ShapeLibraryController } from "@/hooks/use-shape-library-controller";
+import type { ShapeLibraryController } from "@/hooks/shapes/use-shape-library-controller";
 
 import { ShapeCategoryTabs } from "./shape-category-tabs";
 import { ShapeGrid } from "./shape-grid";

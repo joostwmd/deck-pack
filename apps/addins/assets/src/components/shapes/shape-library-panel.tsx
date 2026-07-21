@@ -1,6 +1,6 @@
 import type { ShapeSearchRequest, ShapeSearchResponse } from "./types";
 import { ShapeLibraryView } from "./shape-library-view";
-import { useShapeLibraryController } from "@/hooks/use-shape-library-controller";
+import { useShapeLibraryController } from "@/hooks/shapes/use-shape-library-controller";
 
 interface ShapeLibraryPanelProps {
   search: (input: ShapeSearchRequest) => Promise<ShapeSearchResponse>;

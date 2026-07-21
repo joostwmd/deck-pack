@@ -2,7 +2,7 @@ import { cn } from "@deck-pack/ui/lib/utils";
 import type { ReactNode, Ref } from "react";
 
 import { ShortcutHints } from "@/components/shortcuts/shortcut-hint";
-import type { ShortcutDef } from "@/lib/shortcuts";
+import type { ShortcutDef } from "@/utils/shortcuts";
 
 import { SearchBar } from "./search-bar";
 

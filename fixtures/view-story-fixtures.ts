@@ -8,20 +8,20 @@ import type { FormatPanelViewProps } from "@/components/format/format-panel-view
 import type { PhotoSearchController } from "@/components/photos/use-photo-search-controller";
 import type { ShapeLibraryController } from "@/components/shapes/use-shape-library-controller";
 import type { SlideSearchController } from "@/components/slides/use-slide-search-controller";
-import type { useAssetSearchFlow } from "@/hooks/use-asset-search-flow";
-import type { SelectionState } from "@/hooks/use-powerpoint-selection";
+import type { useAssetSearchFlow } from "@/hooks/asset-browser/use-asset-search-flow";
+import type { SelectionState } from "@/hooks/shared/use-powerpoint-selection";
 import {
   DEFAULT_HARVEY_BALL_CONFIG,
   normalizeHarveyBallConfig,
   validateHarveyBallConfig,
-} from "@/lib/harvey-ball-svg";
+} from "@/utils/harvey-ball-svg";
 import {
   NAVIGATE_RESULTS_DISPLAY,
   NAVIGATE_VARIANTS_DISPLAY,
   SELECT_RESULT_DISPLAY,
   SHORTCUTS,
   getShortcutDefsByGroup,
-} from "@/lib/shortcuts";
+} from "@/utils/shortcuts";
 import { resolveDefaultShortcuts } from "@deck-pack/shortcuts";
 
 import { mockFlagResults } from "@fixtures/asset-search";

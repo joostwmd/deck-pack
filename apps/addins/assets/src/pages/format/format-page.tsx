@@ -1,7 +1,7 @@
 import { MIN_TEXT_API } from "@deck-pack/office-js";
 
 import { FormatPanelView } from "@/components/format/format-panel-view";
-import { useFormatPanelController } from "@/hooks/use-format-panel-controller";
+import { useFormatPanelController } from "@/hooks/format/use-format-panel-controller";
 
 export function FormatPage() {
   const controller = useFormatPanelController();

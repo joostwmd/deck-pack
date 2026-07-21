@@ -153,3 +153,49 @@ export const slideSearchResponseSchema = z.object({
   total: z.number().int(),
   facets: slideSearchFacetsSchema,
 });
+
+/** Add-in asset browser types shared across discovery endpoints. */
+export const assetTypeSchema = z.enum([
+  "logo",
+  "flag",
+  "icon",
+  "harvey_ball",
+  "photo",
+  "slide",
+  "shape",
+]);
+
+export const assetClientSchema = z.enum(["office", "web"]);
+
+export const flagSearchQuerySchema = z.string().trim().min(1).max(100);
+
+export const flagExternalIdSchema = z.string().trim().min(1);
+
+export const discoveryAssetListItemSchema = z.object({
+  id: z.string(),
+  imageUrl: z.string(),
+  name: z.string(),
+  scope: z.enum(["global", "org"]).optional(),
+});
+
+export const discoveryAssetInsertPayloadSchema = z.object({
+  type: z.enum(["image", "svg"]),
+  imageUrl: z.string().optional(),
+  svg: z.string().optional(),
+});
+
+export const discoveryAssetVariantItemSchema = discoveryAssetListItemSchema.extend({
+  insert: discoveryAssetInsertPayloadSchema,
+});
+
+export const flagSearchResponseSchema = z.object({
+  results: z.array(discoveryAssetListItemSchema),
+});
+
+export const flagDetailsResponseSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  imageUrl: z.string(),
+  variants: z.array(discoveryAssetVariantItemSchema),
+  metadata: z.record(z.string(), z.string()),
+});

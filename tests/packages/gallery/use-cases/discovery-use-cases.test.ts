@@ -26,13 +26,9 @@ import {
   SearchReadyShapes,
   SearchReadySlides,
 } from "@deck-pack/gallery";
-import { createMemoryObjectStorage } from "@deck-pack/storage";
+import { InMemoryObjectStorage } from "@deck-pack/storage";
 
-async function putBlob(
-  storage: ReturnType<typeof createMemoryObjectStorage>,
-  key: string,
-  contentType = "image/png",
-) {
+async function putBlob(storage: InMemoryObjectStorage, key: string, contentType = "image/png") {
   await storage.put({
     key,
     contentType,
@@ -43,7 +39,7 @@ async function putBlob(
 describe("gallery discovery use-cases", () => {
   it("searches ready flags and returns signed preview urls", async () => {
     const repo = new InMemoryGalleryRepository();
-    const storage = createMemoryObjectStorage();
+    const storage = new InMemoryObjectStorage();
     await putBlob(storage, "flags/us.png");
 
     repo.seedDiscovery({
@@ -74,7 +70,7 @@ describe("gallery discovery use-cases", () => {
 
   it("returns flag details and throws FlagNotFoundError when missing", async () => {
     const repo = new InMemoryGalleryRepository();
-    const storage = createMemoryObjectStorage();
+    const storage = new InMemoryObjectStorage();
     await putBlob(storage, "flags/us-rect.png");
     await putBlob(storage, "flags/us-square.png");
     await putBlob(storage, "flags/us-circle.png");
@@ -105,7 +101,7 @@ describe("gallery discovery use-cases", () => {
 
   it("searches ready shapes with category facets", async () => {
     const repo = new InMemoryGalleryRepository();
-    const storage = createMemoryObjectStorage();
+    const storage = new InMemoryObjectStorage();
     await putBlob(storage, "shapes/chevron.svg", "image/svg+xml");
 
     const now = new Date();
@@ -132,7 +128,7 @@ describe("gallery discovery use-cases", () => {
 
   it("searches ready slides and builds tag facets", async () => {
     const repo = new InMemoryGalleryRepository();
-    const storage = createMemoryObjectStorage();
+    const storage = new InMemoryObjectStorage();
     await putBlob(storage, "slides/a-thumb.png");
     await putBlob(storage, "slides/a-pres.pptx", "application/vnd.ms-powerpoint");
     await putBlob(storage, "slides/b-thumb.png");

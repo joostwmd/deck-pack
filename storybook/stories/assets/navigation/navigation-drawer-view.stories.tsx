@@ -6,7 +6,7 @@ import {
   NavigationDrawerSectionView,
   NavigationDrawerView,
 } from "@/components/shell/navigation-drawer-view";
-import { SHORTCUTS } from "@/lib/shortcuts";
+import { SHORTCUTS } from "@/utils/shortcuts";
 
 import { withAssetsPanel } from "../decorators";
 

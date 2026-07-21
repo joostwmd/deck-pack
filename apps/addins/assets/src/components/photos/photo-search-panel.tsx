@@ -1,6 +1,6 @@
 import type { PhotoSearchRequest, PhotoSearchResponse } from "./types";
 import { PhotoSearchView } from "./photo-search-view";
-import { usePhotoSearchController } from "@/hooks/use-photo-search-controller";
+import { usePhotoSearchController } from "@/hooks/photos/use-photo-search-controller";
 
 interface PhotoSearchPanelProps {
   search: (input: PhotoSearchRequest) => Promise<PhotoSearchResponse>;

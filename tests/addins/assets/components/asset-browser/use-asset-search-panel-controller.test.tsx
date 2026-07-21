@@ -2,7 +2,7 @@ import { renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-import { useAssetSearchPanelController } from "@/hooks/use-asset-search-panel-controller";
+import { useAssetSearchPanelController } from "@/hooks/asset-browser/use-asset-search-panel-controller";
 import { EnvironmentProvider } from "@/contexts/EnvironmentContext";
 import { WebCanvasProvider } from "@/contexts/web-canvas-context";
 import { AppHotkeysProvider } from "@/providers/app-hotkeys-provider";

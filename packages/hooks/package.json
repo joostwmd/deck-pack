@@ -13,6 +13,42 @@
     "./gallery/*": {
       "default": "./src/gallery/*.ts"
     },
+    "./organization": {
+      "default": "./src/organization/index.ts"
+    },
+    "./organization/*": {
+      "default": "./src/organization/*.ts"
+    },
+    "./users": {
+      "default": "./src/users/index.ts"
+    },
+    "./users/*": {
+      "default": "./src/users/*.ts"
+    },
+    "./billing": {
+      "default": "./src/billing/index.ts"
+    },
+    "./billing/*": {
+      "default": "./src/billing/*.ts"
+    },
+    "./members": {
+      "default": "./src/members/index.ts"
+    },
+    "./members/*": {
+      "default": "./src/members/*.ts"
+    },
+    "./seats": {
+      "default": "./src/seats/index.ts"
+    },
+    "./seats/*": {
+      "default": "./src/seats/*.ts"
+    },
+    "./usage": {
+      "default": "./src/usage/index.ts"
+    },
+    "./usage/*": {
+      "default": "./src/usage/*.ts"
+    },
     "./*": {
       "default": "./src/*.ts"
     }

@@ -2,7 +2,7 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import { useSlideSearch } from "@/hooks/use-slide-search";
+import { useSlideSearch } from "@/hooks/slides/use-slide-search";
 
 const sampleSlide = {
   id: "slide-1",

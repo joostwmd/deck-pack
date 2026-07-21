@@ -1,4 +1,4 @@
-import type { CommandApplicability } from "@/hooks/use-powerpoint-selection";
+import type { CommandApplicability } from "@/hooks/shared/use-powerpoint-selection";
 
 import { FormatActionButton } from "./action-button";
 import { getActionsForSection, type FormatActionSection } from "./action-ui-registry";
@@ -28,7 +28,13 @@ function TextSectionControls({
             id={action.id}
             label={action.label}
             description={action.description}
-            applicability={applicabilityById.get(action.id) ?? { applicable: false, code: "unknown", reason: "Unavailable" }}
+            applicability={
+              applicabilityById.get(action.id) ?? {
+                applicable: false,
+                code: "unknown",
+                reason: "Unavailable",
+              }
+            }
             busy={busyActionId === action.id}
             onClick={onAction}
           />

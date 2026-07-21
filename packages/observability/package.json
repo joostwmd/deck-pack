@@ -7,6 +7,12 @@
     ".": {
       "default": "./src/index.ts"
     },
+    "./browser": {
+      "default": "./src/browser/index.ts"
+    },
+    "./server": {
+      "default": "./src/server/index.ts"
+    },
     "./vite": {
       "types": "./vite/sentry-vite-plugin.d.ts",
       "default": "./vite/sentry-vite-plugin.mjs"
@@ -17,7 +23,11 @@
     "test": "vitest run --config ../../vitest.config.ts --project unit-jsdom"
   },
   "dependencies": {
+    "@logtape/logtape": "^2.0.5",
+    "@sentry/node": "^10.51.0",
     "@sentry/react": "^10.51.0",
+    "apitally": "^0.25.6",
+    "hono": "catalog:",
     "react": "^19.2.5"
   },
   "devDependencies": {

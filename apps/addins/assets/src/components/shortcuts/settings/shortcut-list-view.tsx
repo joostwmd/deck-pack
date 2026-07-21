@@ -4,7 +4,7 @@ import { Button } from "@deck-pack/ui/components/system/button";
 import { ResetShortcutsDialog } from "@/components/shortcuts/settings/reset-shortcuts-dialog";
 import { ShortcutRulesDialog } from "@/components/shortcuts/settings/shortcut-rules-dialog";
 import { ShortcutSettingsSection } from "@/components/shortcuts/settings/shortcut-settings-row";
-import type { ShortcutDef, ShortcutId } from "@/lib/shortcuts";
+import type { ShortcutDef, ShortcutId } from "@/utils/shortcuts";
 
 export interface ShortcutListGroup {
   id: string;
@@ -32,7 +32,11 @@ export function ShortcutListView({
       {loadError ? (
         <div className="rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-sm">
           <p>{loadError}</p>
-          <button type="button" className="mt-1 font-medium underline" onClick={() => void onRetry()}>
+          <button
+            type="button"
+            className="mt-1 font-medium underline"
+            onClick={() => void onRetry()}
+          >
             Retry
           </button>
         </div>

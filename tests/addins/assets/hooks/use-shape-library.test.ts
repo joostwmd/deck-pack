@@ -2,7 +2,7 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import { useShapeLibrary } from "@/hooks/use-shape-library";
+import { useShapeLibrary } from "@/hooks/shapes/use-shape-library";
 
 const sampleShape = {
   id: "shape-1",

@@ -5,7 +5,7 @@ import { createDb } from "@deck-pack/db";
 import { session, user } from "@deck-pack/db/schema/auth";
 import { ensureMigrationsApplied } from "@deck-pack/db/test-utils/ensure-migrations";
 import { tx } from "@deck-pack/db/transaction";
-import { createMemoryObjectStorage } from "@deck-pack/storage";
+import { InMemoryObjectStorage } from "@deck-pack/storage";
 import { eq, sql } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
@@ -16,7 +16,7 @@ import { trpcQuery } from "../test-utils/trpc-request";
 describe("assets flags bearer transport", () => {
   const db = createDb();
   const createdUserIds: string[] = [];
-  const storage = createMemoryObjectStorage();
+  const storage = new InMemoryObjectStorage();
   let seededFlagId = "";
 
   beforeAll(async () => {

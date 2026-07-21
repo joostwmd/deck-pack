@@ -2,7 +2,7 @@ import {
   brandProfileConfigurationSchema,
   brandProfileDetailSchema,
   normalizeBrandProfileConfiguration,
-} from "@deck-pack/presentation-check";
+} from "@deck-pack/brand-compliance";
 
 import { BrandProfileNotFoundError } from "../domain/errors";
 import type { BrandProfilesRepository } from "../repositories/brand-profiles-repository";

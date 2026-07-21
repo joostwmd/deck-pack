@@ -6,7 +6,10 @@ import {
   subscribeToSelectionChanges,
 } from "@deck-pack/office-js";
 
-import { createCanvasStrategy, officeInsertionStrategyWithTracker } from "@/lib/insertion-strategy";
+import {
+  createCanvasStrategy,
+  officeInsertionStrategyWithTracker,
+} from "@/utils/insertion-strategy";
 import { createAddinSignOutStrategy } from "@/auth/create-addin-sign-out-strategy";
 import { getAuthClient } from "@/utils/auth";
 import { getTrpcClient } from "@/utils/trpc";

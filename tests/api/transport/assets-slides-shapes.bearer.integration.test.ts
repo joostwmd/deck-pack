@@ -8,7 +8,7 @@ import { tx } from "@deck-pack/db/transaction";
 import { sql } from "drizzle-orm";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { createMemoryObjectStorage } from "@deck-pack/storage";
+import { InMemoryObjectStorage } from "@deck-pack/storage";
 
 import { createSignedSessionFixture } from "../test-utils/create-signed-session-fixture";
 import { seedReadyShape, seedReadySlide } from "../test-utils/seed-ready-gallery-fixture";
@@ -17,7 +17,7 @@ import { trpcQuery } from "../test-utils/trpc-request";
 describe("assets slides and shapes bearer transport", () => {
   const db = createDb();
   const createdUserIds: string[] = [];
-  const storage = createMemoryObjectStorage();
+  const storage = new InMemoryObjectStorage();
 
   beforeAll(async () => {
     await ensureMigrationsApplied();

@@ -1,5 +1,9 @@
 import type { AuthClient } from "@deck-pack/auth/client";
+import type { OrganizationProfileStore } from "@deck-pack/hooks/billing";
 import type { GalleryStore } from "@deck-pack/hooks/gallery";
+import type { MembersStore } from "@deck-pack/hooks/members";
+import type { SeatsStore } from "@deck-pack/hooks/seats";
+import type { UsageStore } from "@deck-pack/hooks/usage";
 
 export interface AuthService {
   getSession: AuthClient["getSession"];
@@ -28,4 +32,8 @@ export interface AuthService {
 export interface PortalAppServices {
   auth: AuthService;
   gallery: GalleryStore;
+  members: MembersStore;
+  seats: SeatsStore;
+  billing: OrganizationProfileStore;
+  usage: UsageStore;
 }

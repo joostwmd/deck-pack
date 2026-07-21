@@ -2,7 +2,7 @@ import { SHORTCUT_GROUPS } from "@deck-pack/shortcuts";
 import { toast } from "sonner";
 
 import { ShortcutListView } from "@/components/shortcuts/settings/shortcut-list-view";
-import { getShortcutDefsByGroup, type ShortcutId } from "@/lib/shortcuts";
+import { getShortcutDefsByGroup, type ShortcutId } from "@/utils/shortcuts";
 import { useShortcutBindings } from "@/providers/shortcut-bindings-provider";
 
 interface ShortcutListProps {

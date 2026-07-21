@@ -3,7 +3,7 @@ import { cn } from "@deck-pack/ui/lib/utils";
 import { CircleNotch } from "@phosphor-icons/react";
 
 import { ShortcutHints } from "@/components/shortcuts/shortcut-hint";
-import type { ShortcutDef } from "@/lib/shortcuts";
+import type { ShortcutDef } from "@/utils/shortcuts";
 
 interface InsertSectionProps {
   disabled?: boolean;

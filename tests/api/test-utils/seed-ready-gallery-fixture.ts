@@ -5,7 +5,7 @@ import {
   setGlobalGalleryItemStatus,
 } from "@deck-pack/db/queries/galleryAdmin";
 import type { Transaction } from "@deck-pack/db/transaction";
-import type { MemoryObjectStorage } from "@deck-pack/storage";
+import type { InMemoryObjectStorage } from "@deck-pack/storage";
 
 const PNG_BYTES = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
@@ -13,7 +13,7 @@ const PNG_BYTES = Buffer.from(
 );
 
 function seedBlob(
-  storage: MemoryObjectStorage,
+  storage: InMemoryObjectStorage,
   blobPath: string,
   contentType: string,
   body: Buffer,
@@ -27,7 +27,7 @@ function seedBlob(
 
 export async function seedReadyShape(
   tx: Transaction,
-  storage: MemoryObjectStorage,
+  storage: InMemoryObjectStorage,
   input: {
     displayName: string;
     category: string;
@@ -69,7 +69,7 @@ export async function seedReadyShape(
 
 export async function seedReadySlide(
   tx: Transaction,
-  storage: MemoryObjectStorage,
+  storage: InMemoryObjectStorage,
   input: {
     displayName: string;
     category: string;
@@ -132,7 +132,7 @@ export async function seedReadySlide(
 
 export async function seedReadyFlag(
   tx: Transaction,
-  storage: MemoryObjectStorage,
+  storage: InMemoryObjectStorage,
   input: {
     displayName: string;
     code: string;

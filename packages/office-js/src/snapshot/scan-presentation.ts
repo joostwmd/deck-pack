@@ -3,9 +3,13 @@ import type {
   ShapeSnapshot,
   SlideSnapshot,
   TextRangeSnapshot,
-} from "@deck-pack/presentation-check";
+} from "@deck-pack/brand-compliance";
 
-import { MIN_ACCESSIBILITY_API, MIN_PLACEHOLDER_API, POWERPOINT_API_LEVELS } from "../constants/requirement-sets";
+import {
+  MIN_ACCESSIBILITY_API,
+  MIN_PLACEHOLDER_API,
+  POWERPOINT_API_LEVELS,
+} from "../constants/requirement-sets";
 import { isPowerPointApiAvailable, runPowerPoint } from "../utils";
 
 export type ScanProgress = {
@@ -47,16 +51,9 @@ function normalizeShapeType(type: string): string {
 
 function shapeSupportsTextFrame(type: string): boolean {
   const normalized = normalizeShapeType(type);
-  return ![
-    "image",
-    "line",
-    "group",
-    "table",
-    "chart",
-    "smartart",
-    "media",
-    "unsupported",
-  ].includes(normalized);
+  return !["image", "line", "group", "table", "chart", "smartart", "media", "unsupported"].includes(
+    normalized,
+  );
 }
 
 function shapeSupportsPlaceholderFormat(type: string): boolean {
@@ -137,9 +134,7 @@ async function loadShapeText(
   }
 }
 
-async function loadShapeFill(
-  shape: PowerPoint.Shape,
-): Promise<{
+async function loadShapeFill(shape: PowerPoint.Shape): Promise<{
   fillColor: string | null;
   fillType: string | null;
   outlineColor: string | null;

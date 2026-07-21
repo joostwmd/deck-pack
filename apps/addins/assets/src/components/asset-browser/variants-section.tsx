@@ -2,7 +2,7 @@ import { cn } from "@deck-pack/ui/lib/utils";
 import type { ReactNode } from "react";
 
 import { ShortcutHints } from "@/components/shortcuts/shortcut-hint";
-import type { ShortcutDef } from "@/lib/shortcuts";
+import type { ShortcutDef } from "@/utils/shortcuts";
 
 interface VariantsSectionProps {
   shortcutDefs: ShortcutDef[];

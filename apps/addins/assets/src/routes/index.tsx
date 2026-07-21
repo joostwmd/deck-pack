@@ -1,6 +1,6 @@
 import { Navigate, createFileRoute } from "@tanstack/react-router";
 
-import { useOfficeDetection } from "@/hooks/use-office-detection";
+import { useOfficeDetection } from "@/hooks/shared/use-office-detection";
 import {
   DEFAULT_NAVIGATION_PAGE_ID,
   getPageRouteParams,

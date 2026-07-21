@@ -3,7 +3,7 @@ import {
   brandProfileDetailSchema,
   brandProfileSummarySchema,
   normalizeBrandProfileConfiguration,
-} from "@deck-pack/presentation-check";
+} from "@deck-pack/brand-compliance";
 
 import type { BrandProfileListRow, BrandProfileWithVersion } from "./domain/brand-profile";
 

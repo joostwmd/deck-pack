@@ -6,9 +6,17 @@ import {
   type ShortcutId,
   type ShortcutOverride,
 } from "@deck-pack/shortcuts";
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 
-import { getUserFacingApiErrorMessage } from "@/lib/user-facing-api-error";
+import { getUserFacingApiErrorMessage } from "@/utils/user-facing-api-error";
 import { useServices } from "@/services/services-context";
 
 interface ShortcutBindingsContextValue {

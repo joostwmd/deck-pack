@@ -1,4 +1,4 @@
-import type { FindingLocation } from "@deck-pack/presentation-check";
+import type { FindingLocation } from "@deck-pack/brand-compliance";
 
 import { runPowerPoint } from "../utils";
 

@@ -11,8 +11,8 @@ import {
 } from "@deck-pack/ui/components/system/select";
 import { Slider } from "@deck-pack/ui/components/system/slider";
 import { captureSelectedTextStyle } from "@deck-pack/office-js";
-import type { BrandProfileConfiguration } from "@deck-pack/presentation-check";
-import { RULE_PRESETS, applyRulePreset } from "@deck-pack/presentation-check";
+import type { BrandProfileConfiguration } from "@deck-pack/brand-compliance";
+import { RULE_PRESETS, applyRulePreset } from "@deck-pack/brand-compliance";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -26,10 +26,7 @@ interface BrandProfileEditorProps {
 export function BrandProfileEditor({ configuration, onChange }: BrandProfileEditorProps) {
   const [capturing, setCapturing] = useState(false);
 
-  const updateRoleFont = (
-    role: "title" | "body",
-    font: string,
-  ) => {
+  const updateRoleFont = (role: "title" | "body", font: string) => {
     onChange({
       ...configuration,
       typography: {
@@ -250,9 +247,7 @@ export function BrandProfileEditor({ configuration, onChange }: BrandProfileEdit
         </div>
         <Select
           onValueChange={(value) =>
-            onChange(
-              applyRulePreset(value as keyof typeof RULE_PRESETS, configuration),
-            )
+            onChange(applyRulePreset(value as keyof typeof RULE_PRESETS, configuration))
           }
         >
           <SelectTrigger>
@@ -265,7 +260,10 @@ export function BrandProfileEditor({ configuration, onChange }: BrandProfileEdit
           </SelectContent>
         </Select>
         {Object.entries(configuration.rules).map(([ruleId, rule]) => (
-          <div key={ruleId} className="flex items-center justify-between rounded-md border px-3 py-2">
+          <div
+            key={ruleId}
+            className="flex items-center justify-between rounded-md border px-3 py-2"
+          >
             <div>
               <p className="text-sm font-medium">{ruleId}</p>
               <p className="text-xs text-muted-foreground capitalize">{rule.severity}</p>

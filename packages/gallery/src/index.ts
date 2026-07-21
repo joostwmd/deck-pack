@@ -72,6 +72,13 @@ export { createDiscoveryDownloadUrl, mapWithSignedUrls } from "./signed-urls";
 export { uploadTargetForClient } from "./upload-target-for-client";
 
 export {
+  assetClientSchema,
+  assetTypeSchema,
+  discoveryAssetListItemSchema,
+  flagDetailsResponseSchema,
+  flagExternalIdSchema,
+  flagSearchQuerySchema,
+  flagSearchResponseSchema,
   shapeSearchInputSchema,
   shapeSearchResponseSchema,
   slideAspectRatioSchema,

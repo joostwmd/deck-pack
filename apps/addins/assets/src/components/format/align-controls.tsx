@@ -1,4 +1,4 @@
-import type { CommandApplicability } from "@/hooks/use-powerpoint-selection";
+import type { CommandApplicability } from "@/hooks/shared/use-powerpoint-selection";
 
 import { FormatActionButton } from "./action-button";
 import { getActionsForSection } from "./action-ui-registry";
@@ -30,7 +30,12 @@ export function MoreControls(props: Omit<SectionControlsProps, "section">) {
   return <SectionControls section="more" {...props} />;
 }
 
-function SectionControls({ section, applicabilityById, busyActionId, onAction }: SectionControlsProps) {
+function SectionControls({
+  section,
+  applicabilityById,
+  busyActionId,
+  onAction,
+}: SectionControlsProps) {
   const actions = getActionsForSection(section);
 
   return (
@@ -41,7 +46,13 @@ function SectionControls({ section, applicabilityById, busyActionId, onAction }:
           id={action.id}
           label={action.label}
           description={action.description}
-          applicability={applicabilityById.get(action.id) ?? { applicable: false, code: "unknown", reason: "Unavailable" }}
+          applicability={
+            applicabilityById.get(action.id) ?? {
+              applicable: false,
+              code: "unknown",
+              reason: "Unavailable",
+            }
+          }
           busy={busyActionId === action.id}
           onClick={onAction}
         />

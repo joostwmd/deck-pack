@@ -12,17 +12,17 @@ vi.mock("@deck-pack/office-js", () => ({
   },
 }));
 
-vi.mock("@/lib/url-to-base64", () => ({
+vi.mock("@/utils/url-to-base64", () => ({
   urlToBase64: vi.fn().mockResolvedValue("base64-image"),
 }));
 
-import { DEFAULT_HARVEY_BALL_CONFIG } from "@/lib/harvey-ball-svg";
-import { HARVEY_BALL_EXTERNAL_ID } from "@/lib/insert-harvey-ball";
+import { DEFAULT_HARVEY_BALL_CONFIG } from "@/utils/harvey-ball-svg";
+import { HARVEY_BALL_EXTERNAL_ID } from "@/utils/insert-harvey-ball";
 import {
   createCanvasStrategy,
   officeInsertionStrategyWithTracker,
   type InsertionItem,
-} from "@/lib/insertion-strategy";
+} from "@/utils/insertion-strategy";
 
 function createHarveyBallItem(percentage = 75): InsertionItem {
   return {

@@ -18,7 +18,7 @@ import {
   HARVEY_BALL_PRESETS,
   normalizeHarveyBallConfig,
   type HarveyBallConfig,
-} from "@/lib/harvey-ball-svg";
+} from "@/utils/harvey-ball-svg";
 
 interface HarveyBallControlsProps {
   config: HarveyBallConfig;
@@ -111,10 +111,7 @@ export function HarveyBallControls({ config, onChange }: HarveyBallControlsProps
         </div>
       </div>
 
-      <div
-        className="flex flex-col gap-2"
-        onPointerDown={(event) => event.stopPropagation()}
-      >
+      <div className="flex flex-col gap-2" onPointerDown={(event) => event.stopPropagation()}>
         <div className="flex items-center justify-between gap-2">
           <Label id="harvey-ball-percentage-label">Percentage</Label>
           <span className="text-sm font-medium tabular-nums">{normalized.percentage}%</span>

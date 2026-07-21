@@ -21,12 +21,16 @@ import { toast } from "sonner";
 import { EmptyState } from "@/components/asset-browser/empty-state";
 import { InsertSection } from "@/components/asset-browser/insert-section";
 import { ScreenHeader } from "@/components/asset-browser/screen-header";
-import { useInsertSectionShortcutDefs } from "@/hooks/use-resolved-shortcut-defs";
-import { queueAgendaCloudEvent, retryPendingAgendaSync, syncAgendaToCloud } from "@/lib/sync-agenda";
+import { useInsertSectionShortcutDefs } from "@/hooks/shortcuts/use-resolved-shortcut-defs";
+import {
+  queueAgendaCloudEvent,
+  retryPendingAgendaSync,
+  syncAgendaToCloud,
+} from "@/utils/sync-agenda";
 import {
   AUTHENTICATION_REQUIRED_MESSAGE,
   isAuthenticationError,
-} from "@/lib/user-facing-api-error";
+} from "@/utils/user-facing-api-error";
 import { useServices } from "@/services/services-context";
 
 import type { AgendaChangePreview, AgendaDraftSection, AgendaEditorStatus } from "../types";
@@ -44,15 +48,21 @@ function deriveStatus(
   if (issues.some((issue) => issue.code === "template_missing")) {
     return "template_invalid";
   }
-  if (issues.some((issue) => issue.code === "missing_divider" || issue.code === "missing_opening_toc")) {
+  if (
+    issues.some((issue) => issue.code === "missing_divider" || issue.code === "missing_opening_toc")
+  ) {
     return "repair_required";
   }
   if (issues.length > 0) {
     return "presentation_changed";
   }
 
-  const draftIds = draftSections.map((section) => `${section.sectionId}:${section.title}`).join("|");
-  const configIds = config.sections.map((section) => `${section.sectionId}:${section.title}`).join("|");
+  const draftIds = draftSections
+    .map((section) => `${section.sectionId}:${section.title}`)
+    .join("|");
+  const configIds = config.sections
+    .map((section) => `${section.sectionId}:${section.title}`)
+    .join("|");
   if (draftIds !== configIds) {
     return "changes_pending";
   }
@@ -83,7 +93,10 @@ export function AgendaEditor({ initialConfig, onConfigChange }: AgendaEditorProp
           pageNumber: getSectionPageNumber(section, deck),
         })),
       );
-      if (reconciled.config.revision !== config.revision || JSON.stringify(reconciled.config.sections) !== JSON.stringify(config.sections)) {
+      if (
+        reconciled.config.revision !== config.revision ||
+        JSON.stringify(reconciled.config.sections) !== JSON.stringify(config.sections)
+      ) {
         setConfig(reconciled.config);
         onConfigChange(reconciled.config);
         await persistAgendaConfig(reconciled.config);
@@ -214,10 +227,7 @@ export function AgendaEditor({ initialConfig, onConfigChange }: AgendaEditorProp
 
   return (
     <div className="flex flex-1 flex-col gap-4">
-      <ScreenHeader
-        title="Agenda"
-        text={`${draftSections.length} sections · ${statusLabel}`}
-      />
+      <ScreenHeader title="Agenda" text={`${draftSections.length} sections · ${statusLabel}`} />
 
       {loading ? (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">

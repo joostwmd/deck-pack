@@ -4,12 +4,16 @@ import { getLogger } from "@logtape/logtape";
 import { Hono } from "hono";
 
 import { auth } from "@deck-pack/auth/server";
+import {
+  NoopErrorReporter,
+  NoopRequestMonitoring,
+  type ErrorReporter,
+  type RequestMonitoring,
+} from "@deck-pack/observability/server";
 
 import { createContext } from "./trpc/context";
 import type { Context } from "./trpc/context";
 import type { AppRouter } from "./trpc/router";
-import { initializeApitally } from "./lib/observability/apitally";
-import { captureRequestError } from "./lib/observability/sentry";
 import { apitallySessionConsumerMiddleware } from "./transport/apitally-consumer";
 import { sessionMiddleware } from "./transport/auth-session";
 import { registerErrorHandlers } from "./transport/http-error-handler";
@@ -28,6 +32,8 @@ export class ApiAppBuilder {
   private router?: AppRouter;
   private corsEnabled = false;
   private monitoringEnabled = false;
+  private errorReporter: ErrorReporter = new NoopErrorReporter();
+  private monitoring: RequestMonitoring = new NoopRequestMonitoring();
 
   withCors(): this {
     this.app.use("*", corsMiddleware);
@@ -35,8 +41,14 @@ export class ApiAppBuilder {
     return this;
   }
 
-  withMonitoring(): this {
-    initializeApitally(this.app);
+  withErrorReporter(reporter: ErrorReporter): this {
+    this.errorReporter = reporter;
+    return this;
+  }
+
+  withMonitoring(monitoring: RequestMonitoring): this {
+    this.monitoring = monitoring;
+    this.monitoring.register(this.app as unknown as Hono);
     this.monitoringEnabled = true;
     return this;
   }
@@ -72,6 +84,7 @@ export class ApiAppBuilder {
 
   withTrpc(router: AppRouter): this {
     this.router = router;
+    const errorReporter = this.errorReporter;
     this.app.use(
       "/trpc/*",
       trpcServer({
@@ -92,7 +105,7 @@ export class ApiAppBuilder {
             error instanceof TRPCError &&
             (error.code === "INTERNAL_SERVER_ERROR" || error.code === "TIMEOUT")
           ) {
-            captureRequestError(error.cause ?? error, {
+            errorReporter.captureException(error.cause ?? error, {
               requestId: cctx?.requestId,
               userId: cctx?.user?.id,
               tags: {
@@ -114,7 +127,7 @@ export class ApiAppBuilder {
   }
 
   withErrorHandlers(): this {
-    registerErrorHandlers(this.app);
+    registerErrorHandlers(this.app, this.errorReporter);
     return this;
   }
 

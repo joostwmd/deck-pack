@@ -2,7 +2,7 @@ import { useDraggable } from "@dnd-kit/core";
 import { memo } from "react";
 
 import type { PlacedCanvasItem } from "@/contexts/web-canvas-context";
-import { getCanvasItemPreviewSrc } from "@/lib/canvas-item-src";
+import { getCanvasItemPreviewSrc } from "@/utils/canvas-item-src";
 
 interface CanvasItemProps {
   item: PlacedCanvasItem;

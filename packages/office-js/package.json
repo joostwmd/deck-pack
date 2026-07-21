@@ -16,8 +16,8 @@
   },
   "dependencies": {
     "@deck-pack/agenda": "workspace:*",
-    "@deck-pack/presentation-check": "workspace:*",
-    "@deck-pack/presentation-formatting": "workspace:*"
+    "@deck-pack/brand-compliance": "workspace:*",
+    "@deck-pack/shape-commands": "workspace:*"
   },
   "devDependencies": {
     "@deck-pack/config": "workspace:*",

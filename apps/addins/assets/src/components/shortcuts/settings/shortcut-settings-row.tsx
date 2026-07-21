@@ -3,7 +3,7 @@ import { Badge } from "@deck-pack/ui/components/system/badge";
 import { cn } from "@deck-pack/ui/lib/utils";
 
 import { ShortcutKeys } from "@/components/shortcuts/shortcut-hint";
-import type { ShortcutDef } from "@/lib/shortcuts";
+import type { ShortcutDef } from "@/utils/shortcuts";
 
 interface ShortcutSettingsRowProps {
   def: ShortcutDef;

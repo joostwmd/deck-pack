@@ -1,8 +1,8 @@
 import { Button } from "@deck-pack/ui/components/system/button";
 import { Input } from "@deck-pack/ui/components/system/input";
 import { Label } from "@deck-pack/ui/components/system/label";
-import { DEFAULT_BRAND_PROFILE_CONFIGURATION } from "@deck-pack/presentation-check";
-import type { BrandProfileConfiguration } from "@deck-pack/presentation-check";
+import { DEFAULT_BRAND_PROFILE_CONFIGURATION } from "@deck-pack/brand-compliance";
+import type { BrandProfileConfiguration } from "@deck-pack/brand-compliance";
 import { Palette } from "@phosphor-icons/react";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
@@ -11,7 +11,7 @@ import { EmptyState } from "@/components/asset-browser/empty-state";
 import { ErrorState } from "@/components/asset-browser/error-state";
 import { InsertSection } from "@/components/asset-browser/insert-section";
 import { ScreenHeader } from "@/components/asset-browser/screen-header";
-import { useInsertSectionShortcutDefs } from "@/hooks/use-resolved-shortcut-defs";
+import { useInsertSectionShortcutDefs } from "@/hooks/shortcuts/use-resolved-shortcut-defs";
 import { BrandProfileEditor } from "@/components/themes/brand-profile-editor";
 import { ThemeCreateDialog, ThemeImportReview } from "@/components/themes/theme-create-dialog";
 import {
@@ -20,8 +20,8 @@ import {
   saveBrandProfile,
   setDefaultBrandProfile,
   useBrandProfiles,
-} from "@/hooks/use-brand-profiles";
-import { getUserFacingApiErrorMessage } from "@/lib/user-facing-api-error";
+} from "@/hooks/shared/use-brand-profiles";
+import { getUserFacingApiErrorMessage } from "@/utils/user-facing-api-error";
 import { useServices } from "@/services/services-context";
 
 type ThemesView = "list" | "create" | "edit" | "import-review";
@@ -40,12 +40,15 @@ export function ThemesPage() {
     DEFAULT_BRAND_PROFILE_CONFIGURATION,
   );
 
-  const resetEditor = useCallback((next?: Partial<{ name: string; configuration: BrandProfileConfiguration }>) => {
-    setName(next?.name ?? "New theme");
-    setDescription("");
-    setConfiguration(next?.configuration ?? DEFAULT_BRAND_PROFILE_CONFIGURATION);
-    setEditingId(null);
-  }, []);
+  const resetEditor = useCallback(
+    (next?: Partial<{ name: string; configuration: BrandProfileConfiguration }>) => {
+      setName(next?.name ?? "New theme");
+      setDescription("");
+      setConfiguration(next?.configuration ?? DEFAULT_BRAND_PROFILE_CONFIGURATION);
+      setEditingId(null);
+    },
+    [],
+  );
 
   const handleSave = useCallback(async () => {
     setSaving(true);
@@ -71,17 +74,19 @@ export function ThemesPage() {
     return (
       <div className="flex flex-1 flex-col">
         <ScreenHeader
-          title={view === "import-review" ? "Review extracted theme" : editingId ? "Edit theme" : "New theme"}
+          title={
+            view === "import-review"
+              ? "Review extracted theme"
+              : editingId
+                ? "Edit theme"
+                : "New theme"
+          }
           text="Configure fonts, colors and enabled presentation-check rules."
         />
         <div className="flex flex-col gap-6 px-4 py-4">
           <div className="flex flex-col gap-2">
             <Label htmlFor="theme-name">Theme name</Label>
-            <Input
-              id="theme-name"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-            />
+            <Input id="theme-name" value={name} onChange={(event) => setName(event.target.value)} />
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="theme-description">Description</Label>
@@ -108,7 +113,10 @@ export function ThemesPage() {
                       ...current.typography.roles,
                       title: {
                         ...current.typography.roles.title,
-                        allowedFonts: value.split(",").map((font) => font.trim()).filter(Boolean),
+                        allowedFonts: value
+                          .split(",")
+                          .map((font) => font.trim())
+                          .filter(Boolean),
                       },
                     },
                   },
@@ -123,7 +131,10 @@ export function ThemesPage() {
                       ...current.typography.roles,
                       body: {
                         ...current.typography.roles.body,
-                        allowedFonts: value.split(",").map((font) => font.trim()).filter(Boolean),
+                        allowedFonts: value
+                          .split(",")
+                          .map((font) => font.trim())
+                          .filter(Boolean),
                       },
                     },
                   },
@@ -235,7 +246,9 @@ export function ThemesPage() {
                     type="button"
                     size="sm"
                     variant="ghost"
-                    onClick={() => void setDefaultBrandProfile(brandProfiles, profile.id).then(refresh)}
+                    onClick={() =>
+                      void setDefaultBrandProfile(brandProfiles, profile.id).then(refresh)
+                    }
                   >
                     Make default
                   </Button>

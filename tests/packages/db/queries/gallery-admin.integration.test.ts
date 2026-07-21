@@ -22,7 +22,7 @@ import {
   PublishGalleryItem,
   PutAndFinalizeGalleryUpload,
 } from "@deck-pack/gallery";
-import { createMemoryObjectStorage } from "@deck-pack/storage";
+import { InMemoryObjectStorage } from "@deck-pack/storage";
 
 const GLOBAL = { kind: "global" as const };
 
@@ -40,7 +40,7 @@ describe("library admin (integration)", () => {
   });
 
   it("creates a shape draft, attaches svg via use-case, and publishes", async () => {
-    const storage = createMemoryObjectStorage();
+    const storage = new InMemoryObjectStorage();
     const repo = new DrizzleGalleryRepository(new UnitOfWork(db));
 
     const created = await new CreateGalleryItem(repo).execute(GLOBAL, {

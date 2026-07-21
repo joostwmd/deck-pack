@@ -21,9 +21,9 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
+    "@deck-pack/brand-compliance": "workspace:*",
     "@deck-pack/db": "workspace:*",
     "@deck-pack/errors": "workspace:*",
-    "@deck-pack/presentation-check": "workspace:*",
     "drizzle-orm": "^0.45.1",
     "zod": "catalog:"
   },

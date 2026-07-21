@@ -11,7 +11,7 @@ import {
   SearchReadyShapes,
   SearchReadySlides,
 } from "@deck-pack/gallery";
-import { createMemoryObjectStorage } from "@deck-pack/storage";
+import { InMemoryObjectStorage } from "@deck-pack/storage";
 
 import {
   seedPendingShape,
@@ -34,7 +34,7 @@ describe("assets discovery use-cases (integration)", () => {
   });
 
   it("shape search returns signed svg urls for ready items only", async () => {
-    const storage = createMemoryObjectStorage();
+    const storage = new InMemoryObjectStorage();
     const repo = new DrizzleGalleryRepository(unitOfWork);
 
     await seedReadyShape(tx, storage, {
@@ -53,7 +53,7 @@ describe("assets discovery use-cases (integration)", () => {
   });
 
   it("slide search maps aliases to tags and applies filters", async () => {
-    const storage = createMemoryObjectStorage();
+    const storage = new InMemoryObjectStorage();
     const repo = new DrizzleGalleryRepository(unitOfWork);
 
     await seedReadySlide(tx, storage, {
@@ -83,7 +83,7 @@ describe("assets discovery use-cases (integration)", () => {
   });
 
   it("flag search and getDetails return signed variant urls", async () => {
-    const storage = createMemoryObjectStorage();
+    const storage = new InMemoryObjectStorage();
     const repo = new DrizzleGalleryRepository(unitOfWork);
 
     const seeded = await seedReadyFlag(tx, storage, {

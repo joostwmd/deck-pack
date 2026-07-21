@@ -1,14 +1,15 @@
 import { z } from "zod";
 
-import { GetReadyFlagDetails, SearchReadyFlags } from "@deck-pack/gallery";
+import {
+  flagDetailsResponseSchema,
+  flagExternalIdSchema,
+  flagSearchQuerySchema,
+  flagSearchResponseSchema,
+  GetReadyFlagDetails,
+  SearchReadyFlags,
+} from "@deck-pack/gallery";
 
 import type { AppContainer } from "../container";
-import {
-  assetDetailsResponseSchema,
-  assetExternalIdSchema,
-  assetSearchQuerySchema,
-  assetSearchResponseSchema,
-} from "../domains/assets/schemas";
 import { activeOrganizationIdFromSession } from "../trpc/context";
 import { protectedProcedure } from "../trpc/procedures";
 import { router } from "../trpc/init";
@@ -18,11 +19,11 @@ export function flagsRouter(container: AppContainer) {
     search: protectedProcedure
       .input(
         z.object({
-          query: assetSearchQuerySchema,
+          query: flagSearchQuerySchema,
           internalOnly: z.boolean().optional(),
         }),
       )
-      .output(assetSearchResponseSchema)
+      .output(flagSearchResponseSchema)
       .query(({ ctx, input }) => {
         return new SearchReadyFlags(container.galleryRepository, container.objectStorage).execute({
           query: input.query,
@@ -32,8 +33,8 @@ export function flagsRouter(container: AppContainer) {
       }),
 
     getDetails: protectedProcedure
-      .input(z.object({ externalId: assetExternalIdSchema }))
-      .output(assetDetailsResponseSchema)
+      .input(z.object({ externalId: flagExternalIdSchema }))
+      .output(flagDetailsResponseSchema)
       .query(({ ctx, input }) => {
         return new GetReadyFlagDetails(
           container.galleryRepository,

@@ -1,5 +1,5 @@
-import type { BrandProfileConfiguration } from "@deck-pack/presentation-check";
-import { DEFAULT_BRAND_PROFILE_CONFIGURATION } from "@deck-pack/presentation-check";
+import type { BrandProfileConfiguration } from "@deck-pack/brand-compliance";
+import { DEFAULT_BRAND_PROFILE_CONFIGURATION } from "@deck-pack/brand-compliance";
 
 import { scanPresentation } from "../snapshot/scan-presentation";
 
@@ -42,7 +42,7 @@ export async function extractThemeDraftFromPresentation(): Promise<ExtractedThem
     snapshot.slides.flatMap((slide) => slide.shapes),
     (shape) =>
       shape.placeholderType?.toLowerCase().includes("title")
-        ? shape.textRanges[0]?.fontName ?? null
+        ? (shape.textRanges[0]?.fontName ?? null)
         : null,
   ).map(({ value, count }) => ({ font: value, count }));
 

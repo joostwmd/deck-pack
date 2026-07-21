@@ -27,7 +27,7 @@ import {
   PutAndFinalizeGalleryUpload,
 } from "@deck-pack/gallery";
 import { InvalidStateError, NotFoundError } from "@deck-pack/errors";
-import { createMemoryObjectStorage } from "@deck-pack/storage";
+import { InMemoryObjectStorage } from "@deck-pack/storage";
 
 const globalScope = { kind: "global" as const };
 
@@ -126,7 +126,7 @@ describe("gallery use-cases", () => {
 
   it("putAndFinalize attaches svg for shape", async () => {
     const repo = new InMemoryGalleryRepository();
-    const storage = createMemoryObjectStorage();
+    const storage = new InMemoryObjectStorage();
     const id = seedShape(repo);
     const key = "global/shape/shape-1/svg.svg";
     const dataBase64 = Buffer.from("<svg></svg>", "utf8").toString("base64");
@@ -144,7 +144,7 @@ describe("gallery use-cases", () => {
 
   it("putAndFinalize deletes the blob when attach fails", async () => {
     const repo = new InMemoryGalleryRepository();
-    const storage = createMemoryObjectStorage();
+    const storage = new InMemoryObjectStorage();
     const id = seedShape(repo);
     const key = "global/shape/shape-1/svg.svg";
     const dataBase64 = Buffer.from("<svg></svg>", "utf8").toString("base64");

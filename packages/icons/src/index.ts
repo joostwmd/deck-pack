@@ -16,3 +16,10 @@ export { SearchIcons } from "./use-cases/search-icons";
 export type { SearchIconsInput } from "./use-cases/search-icons";
 export { GetIconDetails } from "./use-cases/get-icon-details";
 export type { GetIconDetailsInput } from "./use-cases/get-icon-details";
+
+export {
+  iconDetailsResponseSchema,
+  iconExternalIdSchema,
+  iconSearchQuerySchema,
+  iconSearchResponseSchema,
+} from "./schemas";

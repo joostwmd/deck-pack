@@ -9,7 +9,7 @@ import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
-import { resolvePortalPostAuthDestination } from "@/features/join/resolve-portal-post-auth";
+import { resolvePortalPostAuthDestination } from "@/pages/join/resolve-portal-post-auth";
 import { useServices } from "@/services/services-context";
 import { getAuthClient } from "@/utils/auth";
 

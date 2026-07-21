@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { OrganizationDetailPanel } from "@/features/organizations/organization-detail-panel";
+import { OrganizationDetailPanel } from "@/domains/organization/organization-detail-panel";
 
 export const Route = createFileRoute("/_protected/organizations/$orgId")({
   component: OrganizationDetailPage,

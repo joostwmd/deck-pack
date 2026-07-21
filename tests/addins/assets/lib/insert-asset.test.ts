@@ -5,11 +5,11 @@ const { insertImageWithMetadata, mutate } = vi.hoisted(() => ({
   mutate: vi.fn(),
 }));
 
-vi.mock("@/lib/url-to-base64", () => ({
+vi.mock("@/utils/url-to-base64", () => ({
   urlToBase64: vi.fn().mockResolvedValue("base64-image"),
 }));
 
-import { insertDirectImage } from "@/lib/insert-asset";
+import { insertDirectImage } from "@/utils/insert-asset";
 
 describe("insertDirectImage", () => {
   beforeEach(() => {

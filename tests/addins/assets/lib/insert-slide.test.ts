@@ -6,11 +6,11 @@ const { insertSlidesFromBase64, fetchFileAsBase64, track } = vi.hoisted(() => ({
   track: vi.fn(),
 }));
 
-vi.mock("@/lib/fetch-file-as-base64", () => ({
+vi.mock("@/utils/fetch-file-as-base64", () => ({
   fetchFileAsBase64,
 }));
 
-import { insertSlide } from "@/lib/insert-slide";
+import { insertSlide } from "@/utils/insert-slide";
 
 const slide = {
   id: "slide-title-hero",

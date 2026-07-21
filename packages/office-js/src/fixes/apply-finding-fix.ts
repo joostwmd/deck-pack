@@ -1,4 +1,4 @@
-import type { CheckFinding } from "@deck-pack/presentation-check";
+import type { CheckFinding } from "@deck-pack/brand-compliance";
 
 import { runPowerPoint } from "../utils";
 
