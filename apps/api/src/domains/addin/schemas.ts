@@ -28,6 +28,9 @@ export {
   photoSizeSchema,
 } from "@deck-pack/photos/schemas";
 
-export { slideAspectRatioSchema, slideSearchInputSchema, slideSortSchema } from "../slides/schemas";
-
-export { shapeSearchInputSchema } from "../shapes/schemas";
+export {
+  shapeSearchInputSchema,
+  slideAspectRatioSchema,
+  slideSearchInputSchema,
+  slideSortSchema,
+} from "@deck-pack/gallery/schemas";

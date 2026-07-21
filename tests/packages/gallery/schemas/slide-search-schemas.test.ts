@@ -4,7 +4,7 @@ import {
   slideAspectRatioSchema,
   slideSearchInputSchema,
   slideSortSchema,
-} from "@deck-pack/api/domains/slides/schemas";
+} from "@deck-pack/gallery/schemas";
 
 describe("slide schemas", () => {
   it("accepts slide search filters and defaults", () => {

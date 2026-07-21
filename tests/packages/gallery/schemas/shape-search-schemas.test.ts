@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { shapeSearchInputSchema } from "@deck-pack/api/domains/shapes/schemas";
+import { shapeSearchInputSchema } from "@deck-pack/gallery/schemas";
 
 describe("shape schemas", () => {
   it("accepts shape search filters", () => {

@@ -1,4 +1,14 @@
 import type {
+  GetReadyFlagDetailsInput,
+  ReadyFlagDetailsRow,
+  ReadyFlagSearchRow,
+  ReadyShapeRow,
+  ReadySlideRow,
+  SearchReadyFlagsInput,
+  SearchReadyShapesInput,
+  SearchReadySlidesInput,
+} from "../domain/discovery";
+import type {
   CreateGalleryItemInput,
   GalleryAssetClass,
   GalleryItemDetail,
@@ -23,17 +33,47 @@ export type InMemoryGallerySeed = {
   items?: SeedItem[];
 };
 
+export type InMemoryDiscoverySeed = {
+  flags?: ReadyFlagSearchRow[];
+  flagDetails?: ReadyFlagDetailsRow[];
+  shapes?: ReadyShapeRow[];
+  slides?: ReadySlideRow[];
+};
+
 export class InMemoryGalleryRepository implements GalleryRepository {
   private items = new Map<string, SeedItem>();
   private files = new Map<
     string,
     { id: string; blobPath: string; contentType: string; byteSize: number }
   >();
+  private readyFlags: ReadyFlagSearchRow[] = [];
+  private readyFlagDetails = new Map<string, ReadyFlagDetailsRow>();
+  private readyShapes: ReadyShapeRow[] = [];
+  private readySlides: ReadySlideRow[] = [];
 
   seed(data: InMemoryGallerySeed): void {
     for (const item of data.items ?? []) {
       this.items.set(item.id, structuredClone(item));
     }
+  }
+
+  seedDiscovery(data: InMemoryDiscoverySeed): void {
+    if (data.flags) this.readyFlags.push(...structuredClone(data.flags));
+    for (const details of data.flagDetails ?? []) {
+      this.readyFlagDetails.set(details.id, structuredClone(details));
+    }
+    if (data.shapes) this.readyShapes.push(...structuredClone(data.shapes));
+    if (data.slides) this.readySlides.push(...structuredClone(data.slides));
+  }
+
+  private inDiscoveryScope(
+    row: { scope: "global" | "org" },
+    input: { organizationId?: string | null; internalOnly?: boolean },
+  ): boolean {
+    if (input.internalOnly) return row.scope === "global";
+    if (row.scope === "global") return true;
+    // Org-scoped rows are visible when an organization context is present.
+    return input.organizationId != null && input.organizationId !== "";
   }
 
   private matchesScope(item: SeedItem, scope: GalleryScope): boolean {
@@ -208,5 +248,61 @@ export class InMemoryGalleryRepository implements GalleryRepository {
     }
     item.updatedAt = new Date();
     return "ok";
+  }
+
+  async searchReadyFlags(input: SearchReadyFlagsInput): Promise<ReadyFlagSearchRow[]> {
+    const normalized = input.query.trim().toLowerCase();
+    return this.readyFlags.filter((row) => {
+      if (!this.inDiscoveryScope(row, input)) return false;
+      if (!normalized) return true;
+      return (
+        row.displayName.toLowerCase().includes(normalized) ||
+        row.code.toLowerCase().includes(normalized)
+      );
+    });
+  }
+
+  async getReadyFlagDetails(input: GetReadyFlagDetailsInput): Promise<ReadyFlagDetailsRow | null> {
+    return this.readyFlagDetails.get(input.id) ?? null;
+  }
+
+  async searchReadyShapes(input: SearchReadyShapesInput): Promise<ReadyShapeRow[]> {
+    return this.readyShapes.filter((row) => {
+      if (!this.inDiscoveryScope(row, input)) return false;
+      if (input.category && row.category !== input.category) return false;
+      return true;
+    });
+  }
+
+  async searchReadySlides(input: SearchReadySlidesInput): Promise<ReadySlideRow[]> {
+    let rows = this.readySlides.filter((row) => {
+      if (!this.inDiscoveryScope(row, input)) return false;
+      if (input.category && row.category !== input.category) return false;
+      if (input.aspectRatio && row.aspectRatio !== input.aspectRatio) return false;
+      if (input.tags?.length) {
+        const tags = input.tags.map((t) => t.toLowerCase());
+        if (!tags.every((tag) => row.aliases.some((a) => a.toLowerCase() === tag))) {
+          return false;
+        }
+      }
+      if (input.query?.trim()) {
+        const q = input.query.trim().toLowerCase();
+        const haystack = [row.displayName, row.category, ...row.aliases].join(" ").toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
+      return true;
+    });
+
+    const sort = input.sort ?? "relevance";
+    if (sort === "newest") {
+      rows = [...rows].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    } else if (sort === "name") {
+      rows = [...rows].sort((a, b) => a.displayName.localeCompare(b.displayName));
+    }
+    return rows;
+  }
+
+  async listAllReadySlides(input: { organizationId?: string | null }): Promise<ReadySlideRow[]> {
+    return this.searchReadySlides({ organizationId: input.organizationId });
   }
 }

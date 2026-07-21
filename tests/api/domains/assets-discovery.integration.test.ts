@@ -1,11 +1,16 @@
 import { sql } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import { createFlagService } from "@deck-pack/api/domains/flags/service";
-import { createShapeService } from "@deck-pack/api/domains/shapes/service";
-import { createSlideService } from "@deck-pack/api/domains/slides/service";
+import { unitOfWork } from "@deck-pack/db";
 import { ensureMigrationsApplied } from "@deck-pack/db/test-utils/ensure-migrations";
 import { tx } from "@deck-pack/db/transaction";
+import {
+  DrizzleGalleryRepository,
+  GetReadyFlagDetails,
+  SearchReadyFlags,
+  SearchReadyShapes,
+  SearchReadySlides,
+} from "@deck-pack/gallery";
 import { createMemoryObjectStorage } from "@deck-pack/storage";
 
 import {
@@ -15,10 +20,10 @@ import {
   seedReadySlide,
 } from "../test-utils/seed-ready-library-fixture";
 
-describe("assets discovery services (integration)", () => {
+describe("assets discovery use-cases (integration)", () => {
   beforeAll(async () => {
     await ensureMigrationsApplied();
-  });
+  }, 60_000);
 
   beforeEach(async () => {
     await tx.execute(
@@ -30,7 +35,7 @@ describe("assets discovery services (integration)", () => {
 
   it("shape search returns signed svg urls for ready items only", async () => {
     const storage = createMemoryObjectStorage();
-    const service = createShapeService({ storage });
+    const repo = new DrizzleGalleryRepository(unitOfWork);
 
     await seedReadyShape(tx, storage, {
       displayName: "Chevron",
@@ -38,7 +43,7 @@ describe("assets discovery services (integration)", () => {
     });
     await seedPendingShape(tx, { displayName: "Draft", category: "Arrows" });
 
-    const response = await service.search(tx, {});
+    const response = await new SearchReadyShapes(repo, storage).execute({});
 
     expect(response.total).toBe(1);
     expect(response.results[0]?.name).toBe("Chevron");
@@ -49,7 +54,7 @@ describe("assets discovery services (integration)", () => {
 
   it("slide search maps aliases to tags and applies filters", async () => {
     const storage = createMemoryObjectStorage();
-    const service = createSlideService({ storage });
+    const repo = new DrizzleGalleryRepository(unitOfWork);
 
     await seedReadySlide(tx, storage, {
       displayName: "Title Hero",
@@ -64,11 +69,14 @@ describe("assets discovery services (integration)", () => {
       aliases: ["closing"],
     });
 
-    const all = await service.search(tx, { sort: "relevance" });
+    const all = await new SearchReadySlides(repo, storage).execute({ sort: "relevance" });
     expect(all.total).toBe(2);
     expect(all.facets.tags).toEqual(["closing", "hero", "title"]);
 
-    const filtered = await service.search(tx, { query: "hero", sort: "relevance" });
+    const filtered = await new SearchReadySlides(repo, storage).execute({
+      query: "hero",
+      sort: "relevance",
+    });
     expect(filtered.total).toBe(1);
     expect(filtered.results[0]?.tags).toEqual(expect.arrayContaining(["title", "hero"]));
     expect(filtered.results[0]?.thumbnailUrl.startsWith("data:image/png;base64,")).toBe(true);
@@ -76,7 +84,7 @@ describe("assets discovery services (integration)", () => {
 
   it("flag search and getDetails return signed variant urls", async () => {
     const storage = createMemoryObjectStorage();
-    const service = createFlagService({ storage });
+    const repo = new DrizzleGalleryRepository(unitOfWork);
 
     const seeded = await seedReadyFlag(tx, storage, {
       displayName: "United States",
@@ -84,14 +92,14 @@ describe("assets discovery services (integration)", () => {
       aliases: ["USA"],
     });
 
-    const search = await service.search(tx, "usa");
+    const search = await new SearchReadyFlags(repo, storage).execute({ query: "usa" });
     expect(search.results).toHaveLength(1);
     expect(search.results[0]?.imageUrl.startsWith("data:image/png;base64,")).toBe(true);
 
-    const details = await service.getDetails(tx, seeded.id);
-    expect(details?.variants).toHaveLength(3);
-    expect(details?.metadata.FLAG_CODE).toBe("US");
-    expect(details?.variants.every((v) => v.imageUrl.startsWith("data:image/png;base64,"))).toBe(
+    const details = await new GetReadyFlagDetails(repo, storage).execute({ id: seeded.id });
+    expect(details.variants).toHaveLength(3);
+    expect(details.metadata.FLAG_CODE).toBe("US");
+    expect(details.variants.every((v) => v.imageUrl.startsWith("data:image/png;base64,"))).toBe(
       true,
     );
   });
