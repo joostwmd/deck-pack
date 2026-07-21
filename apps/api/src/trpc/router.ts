@@ -9,7 +9,6 @@ import { createOrganizationSubscription } from "@deck-pack/db/queries/createOrga
 import { createPlan } from "@deck-pack/db/queries/createPlan";
 import { deleteAllShortcutOverrides } from "@deck-pack/db/queries/deleteAllShortcutOverrides";
 import { deleteShortcutOverride } from "@deck-pack/db/queries/deleteShortcutOverride";
-import { deleteUser } from "@deck-pack/db/queries/deleteUser";
 import { assignOrganizationSeat } from "@deck-pack/db/queries/assignOrganizationSeat";
 import { countAssignedSeats } from "@deck-pack/db/queries/countAssignedSeats";
 import { addOrganizationMember } from "@deck-pack/db/queries/addOrganizationMember";
@@ -48,7 +47,6 @@ import { listBrandProfilesByUser } from "@deck-pack/db/queries/listBrandProfiles
 import { listOrganizationMembers } from "@deck-pack/db/queries/listOrganizationMembers";
 import { listOrganizationSubscriptions } from "@deck-pack/db/queries/listOrganizationSubscriptions";
 import { listPlans } from "@deck-pack/db/queries/listPlans";
-import { listUsersWithMembership } from "@deck-pack/db/queries/listUsersWithMembership";
 import { setDefaultBrandProfile } from "@deck-pack/db/queries/setDefaultBrandProfile";
 import { syncAgenda } from "@deck-pack/db/queries/syncAgenda";
 import { updateBrandProfileMetadata } from "@deck-pack/db/queries/updateBrandProfileMetadata";
@@ -76,6 +74,7 @@ import { createMembersRoutes } from "../domains/members/routes";
 import { createMembersService } from "../domains/members/service";
 import { createSeatsRoutes } from "../domains/seats/routes";
 import { organizationRouter } from "../routers/organization-router";
+import { usersRouter } from "../routers/users-router";
 import { AppContainer } from "../container";
 import { createSeatsService } from "../domains/seats/service";
 import { createPhotoRoutes } from "../domains/photos/routes";
@@ -88,8 +87,6 @@ import { createSlideRoutes } from "../domains/slides/routes";
 import { createSlideService } from "../domains/slides/service";
 import { createUsageRoutes } from "../domains/usage/routes";
 import { createUsageService } from "../domains/usage/service";
-import { createUsersRoutes } from "../domains/users/routes";
-import { createUsersService } from "../domains/users/service";
 import { createLibraryRoutes } from "../domains/library/routes";
 import { createOrgLibraryRoutes } from "../domains/library/org-routes";
 import { createLibraryService } from "../domains/library/service";
@@ -186,11 +183,6 @@ export function createAppRouter(deps: AddinRouterDeps, container: AppContainer) 
     deleteAllShortcutOverrides,
   });
 
-  const usersService = createUsersService({
-    listUsersWithMembership,
-    deleteUser,
-  });
-
   const billingService = createBillingService({
     listPlans,
     getPlan,
@@ -242,7 +234,7 @@ export function createAppRouter(deps: AddinRouterDeps, container: AppContainer) 
     members: router(createMembersRoutes(membersService)),
     seats: router(createSeatsRoutes(seatsService)),
     usage: router(createUsageRoutes(usageService)),
-    users: router(createUsersRoutes(usersService)),
+    users: usersRouter(container),
     billing: router(createBillingRoutes(billingService)),
     library: router({
       ...createLibraryRoutes(libraryService),

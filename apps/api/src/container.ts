@@ -6,12 +6,16 @@ import { PexelsClient } from "@deck-pack/integrations/pexels";
 import type { OrganizationRepository } from "@deck-pack/organization";
 import { InMemoryOrganizationRepository } from "@deck-pack/organization/repositories/in-memory-organization-repository";
 import { DrizzleOrganizationRepository } from "@deck-pack/organization/repositories/organization-repository";
+import type { UsersRepository } from "@deck-pack/users";
+import { InMemoryUsersRepository } from "@deck-pack/users/repositories/in-memory-users-repository";
+import { DrizzleUsersRepository } from "@deck-pack/users/repositories/users-repository";
 
 import type { AddinRouterDeps } from "./trpc/router";
 
 export type AppContainerOverrides = Partial<{
   unitOfWork: UnitOfWork;
   organizationRepository: OrganizationRepository;
+  usersRepository: UsersRepository;
   brandfetchClient: BrandfetchClient;
   nounProjectClient: NounProjectClient;
   pexelsClient: PexelsClient;
@@ -53,6 +57,7 @@ export class AppContainer {
   constructor(
     public readonly unitOfWork: UnitOfWork,
     public readonly organizationRepository: OrganizationRepository,
+    public readonly usersRepository: UsersRepository,
     public readonly brandfetchClient: BrandfetchClient,
     public readonly nounProjectClient: NounProjectClient,
     public readonly pexelsClient: PexelsClient,
@@ -62,6 +67,7 @@ export class AppContainer {
     return new AppContainer(
       unitOfWork,
       new DrizzleOrganizationRepository(unitOfWork),
+      new DrizzleUsersRepository(unitOfWork),
       new BrandfetchClient({
         apiKey: env.BRANDFETCH_API_KEY,
         clientId: env.BRANDFETCH_CLIENT_ID,
@@ -79,6 +85,7 @@ export class AppContainer {
     return new AppContainer(
       uow,
       new DrizzleOrganizationRepository(uow),
+      new DrizzleUsersRepository(uow),
       emptyBrandfetchClient,
       emptyNounProjectClient,
       emptyPexelsClient,
@@ -90,6 +97,7 @@ export class AppContainer {
     return new AppContainer(
       uow,
       overrides.organizationRepository ?? new InMemoryOrganizationRepository(),
+      overrides.usersRepository ?? new InMemoryUsersRepository(),
       overrides.brandfetchClient ?? emptyBrandfetchClient,
       overrides.nounProjectClient ?? emptyNounProjectClient,
       overrides.pexelsClient ?? emptyPexelsClient,
