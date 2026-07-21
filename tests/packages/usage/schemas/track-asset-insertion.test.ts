@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { trackAssetInsertionInputSchema } from "@deck-pack/api/domains/addin/schemas";
+import { trackAssetInsertionInputSchema } from "@deck-pack/usage/schemas";
 
-describe("addin schemas", () => {
+describe("trackAssetInsertionInputSchema", () => {
   it("accepts flexible metadata for tracking", () => {
     const parsed = trackAssetInsertionInputSchema.parse({
       assetType: "icon",

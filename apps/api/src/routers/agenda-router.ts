@@ -1,38 +1,35 @@
-import { protectedProcedure } from "../../trpc/procedures";
-import { unwrapServiceResult } from "../../trpc/service-result";
-
+import { GetAgendaForUser, SyncAgendaForUser } from "@deck-pack/agenda-service";
 import {
   getAgendaInputSchema,
   getAgendaOutputSchema,
   syncAgendaInputSchema,
   syncAgendaOutputSchema,
-} from "./schemas";
-import type { AgendaService } from "./service";
+} from "@deck-pack/agenda-service/schemas";
 
-export function createAgendaRoutes(service: AgendaService) {
-  return {
+import type { AppContainer } from "../container";
+import { protectedProcedure } from "../trpc/procedures";
+import { router } from "../trpc/init";
+
+export function agendaRouter(container: AppContainer) {
+  return router({
     sync: protectedProcedure
       .input(syncAgendaInputSchema)
       .output(syncAgendaOutputSchema)
-      .mutation(async ({ ctx, input }) => {
-        return unwrapServiceResult(
-          await service.syncForUser(ctx.tx, {
-            userId: ctx.session!.user.id,
-            ...input,
-          }),
-        );
+      .mutation(({ ctx, input }) => {
+        return new SyncAgendaForUser(container.agendaServiceRepository).execute({
+          userId: ctx.session!.user.id,
+          ...input,
+        });
       }),
 
     get: protectedProcedure
       .input(getAgendaInputSchema)
       .output(getAgendaOutputSchema)
       .query(async ({ ctx, input }) => {
-        const instance = unwrapServiceResult(
-          await service.getForUser(ctx.tx, {
-            userId: ctx.session!.user.id,
-            documentAgendaId: input.documentAgendaId,
-          }),
-        );
+        const instance = await new GetAgendaForUser(container.agendaServiceRepository).execute({
+          userId: ctx.session!.user.id,
+          documentAgendaId: input.documentAgendaId,
+        });
         return getAgendaOutputSchema.parse({
           id: instance.id,
           documentAgendaId: instance.documentAgendaId,
@@ -46,5 +43,5 @@ export function createAgendaRoutes(service: AgendaService) {
           lastSyncedAt: instance.lastSyncedAt,
         });
       }),
-  };
+  });
 }

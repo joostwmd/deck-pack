@@ -78,3 +78,14 @@ export const usageMemberOutputSchema = z.object({
   ),
   points: z.array(usageSeriesPointSchema),
 });
+
+export const trackAssetInsertionInputSchema = z.object({
+  assetType: z.enum(PLAN_LIMIT_ASSET_TYPES),
+  externalId: z.string().trim().min(1),
+  client: z.enum(["office", "web"]),
+  metadata: z.record(z.string(), z.unknown()).default({}),
+});
+
+export const trackAssetInsertionOutputSchema = z.object({
+  id: z.string(),
+});

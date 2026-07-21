@@ -28,9 +28,15 @@ import { DrizzleOrganizationRepository } from "@deck-pack/organization/repositor
 import type { PhotoIntegrationPort } from "@deck-pack/photos";
 import { InMemoryPhotoIntegration } from "@deck-pack/photos/integrations/in-memory-photo-integration";
 import { PexelsPhotoIntegration } from "@deck-pack/photos/integrations/pexels-photo-integration";
+import type { AgendaServiceRepository } from "@deck-pack/agenda-service";
+import { InMemoryAgendaServiceRepository } from "@deck-pack/agenda-service/repositories/in-memory-agenda-service-repository";
+import { DrizzleAgendaServiceRepository } from "@deck-pack/agenda-service/repositories/agenda-service-repository";
 import type { SeatsRepository } from "@deck-pack/seats";
 import { InMemorySeatsRepository } from "@deck-pack/seats/repositories/in-memory-seats-repository";
 import { DrizzleSeatsRepository } from "@deck-pack/seats/repositories/seats-repository";
+import type { ShortcutOverridesRepository } from "@deck-pack/shortcut-overrides";
+import { InMemoryShortcutOverridesRepository } from "@deck-pack/shortcut-overrides/repositories/in-memory-shortcut-overrides-repository";
+import { DrizzleShortcutOverridesRepository } from "@deck-pack/shortcut-overrides/repositories/shortcut-overrides-repository";
 import {
   createAzureObjectStorage,
   createMemoryObjectStorage,
@@ -57,6 +63,8 @@ export type AppContainerOverrides = Partial<{
   usageRepository: UsageRepository;
   galleryRepository: GalleryRepository;
   brandProfilesRepository: BrandProfilesRepository;
+  agendaServiceRepository: AgendaServiceRepository;
+  shortcutOverridesRepository: ShortcutOverridesRepository;
   objectStorage: ObjectStorage;
   brandfetchClient: BrandfetchClient;
   logoIntegration: LogoIntegrationPort;
@@ -121,6 +129,8 @@ export class AppContainer {
     public readonly usageRepository: UsageRepository,
     public readonly galleryRepository: GalleryRepository,
     public readonly brandProfilesRepository: BrandProfilesRepository,
+    public readonly agendaServiceRepository: AgendaServiceRepository,
+    public readonly shortcutOverridesRepository: ShortcutOverridesRepository,
     public readonly objectStorage: ObjectStorage,
     public readonly brandfetchClient: BrandfetchClient,
     public readonly logoIntegration: LogoIntegrationPort,
@@ -152,6 +162,8 @@ export class AppContainer {
       new DrizzleUsageRepository(unitOfWork),
       new DrizzleGalleryRepository(unitOfWork),
       new DrizzleBrandProfilesRepository(unitOfWork),
+      new DrizzleAgendaServiceRepository(unitOfWork),
+      new DrizzleShortcutOverridesRepository(unitOfWork),
       storage,
       brandfetchClient,
       new BrandfetchLogoIntegration(brandfetchClient),
@@ -175,6 +187,8 @@ export class AppContainer {
       new DrizzleUsageRepository(uow),
       new DrizzleGalleryRepository(uow),
       new DrizzleBrandProfilesRepository(uow),
+      new DrizzleAgendaServiceRepository(uow),
+      new DrizzleShortcutOverridesRepository(uow),
       createMemoryObjectStorage(),
       emptyBrandfetchClient,
       new BrandfetchLogoIntegration(emptyBrandfetchClient),
@@ -198,6 +212,8 @@ export class AppContainer {
       overrides.usageRepository ?? new InMemoryUsageRepository(),
       overrides.galleryRepository ?? new InMemoryGalleryRepository(),
       overrides.brandProfilesRepository ?? new InMemoryBrandProfilesRepository(),
+      overrides.agendaServiceRepository ?? new InMemoryAgendaServiceRepository(),
+      overrides.shortcutOverridesRepository ?? new InMemoryShortcutOverridesRepository(),
       overrides.objectStorage ?? createMemoryObjectStorage(),
       overrides.brandfetchClient ?? emptyBrandfetchClient,
       overrides.logoIntegration ?? new InMemoryLogoIntegration(),

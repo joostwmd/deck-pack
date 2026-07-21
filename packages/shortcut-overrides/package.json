@@ -1,0 +1,30 @@
+{
+  "name": "@deck-pack/shortcut-overrides",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./repositories/*": {
+      "default": "./src/repositories/*.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@deck-pack/db": "workspace:*",
+    "@deck-pack/errors": "workspace:*",
+    "@deck-pack/shortcuts": "workspace:*"
+  },
+  "devDependencies": {
+    "@deck-pack/config": "workspace:*",
+    "@types/node": "catalog:",
+    "typescript": "catalog:"
+  }
+}

@@ -36,6 +36,8 @@ describe("AppContainer", () => {
     expect(container.usageRepository).toBeDefined();
     expect(container.galleryRepository).toBeDefined();
     expect(container.brandProfilesRepository).toBeDefined();
+    expect(container.agendaServiceRepository).toBeDefined();
+    expect(container.shortcutOverridesRepository).toBeDefined();
     expect(container.objectStorage).toBeDefined();
     expect(container.brandfetchClient).toBeDefined();
     expect(container.logoIntegration).toBeDefined();

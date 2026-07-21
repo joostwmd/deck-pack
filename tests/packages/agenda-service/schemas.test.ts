@@ -1,11 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  getAgendaInputSchema,
-  syncAgendaInputSchema,
-} from "@deck-pack/api/domains/agenda/schemas";
+import { getAgendaInputSchema, syncAgendaInputSchema } from "@deck-pack/agenda-service/schemas";
 
-describe("agenda schemas", () => {
+describe("agenda-service schemas", () => {
   it("rejects malformed sync payloads", () => {
     const result = syncAgendaInputSchema.safeParse({
       configuration: { schemaVersion: 2 },

@@ -1,3 +1,5 @@
+import type { AssertInsertAllowedResult } from "@deck-pack/db/queries/usage-entitlements";
+
 import type {
   ActiveSubscription,
   AssetTypeCount,
@@ -11,7 +13,11 @@ import type {
   SeatUsageRow,
   UsagePeriodContext,
 } from "../domain/usage";
-import type { UsageRepository } from "./usage-repository";
+import type {
+  InsertAssetInsertionRepoInput,
+  InsertAssetInsertionResult,
+  UsageRepository,
+} from "./usage-repository";
 
 type SeedInsertion = {
   organizationId: string;
@@ -151,6 +157,57 @@ export class InMemoryUsageRepository implements UsageRepository {
           };
         }),
     );
+  }
+
+  async assertInsertAllowed(input: {
+    organizationId: string;
+    assetType: string;
+  }): Promise<AssertInsertAllowedResult> {
+    const subscription = this.subscriptions.get(input.organizationId);
+    if (!subscription) {
+      return { ok: false, reason: "no_subscription", assetType: input.assetType };
+    }
+
+    const plan = this.plans.get(subscription.planId);
+    if (!plan) {
+      return { ok: false, reason: "no_subscription", assetType: input.assetType };
+    }
+
+    const limitRow = plan.limits.find((limit) => limit.assetType === input.assetType);
+    const limit = limitRow?.insertsPerMonth ?? null;
+    if (limit === null) {
+      return { ok: true };
+    }
+
+    const window = await this.getEntitlementWindow(input.organizationId);
+    const used = this.insertions.filter(
+      (row) =>
+        row.organizationId === input.organizationId &&
+        row.assetType === input.assetType &&
+        row.createdAt >= window.start &&
+        row.createdAt < window.end,
+    ).length;
+
+    if (used >= limit) {
+      return { ok: false, reason: "quota_exceeded", assetType: input.assetType };
+    }
+
+    return { ok: true };
+  }
+
+  async insertAssetInsertion(
+    input: InsertAssetInsertionRepoInput,
+  ): Promise<InsertAssetInsertionResult | null> {
+    if (input.externalId === "__fail__") {
+      return null;
+    }
+    this.insertions.push({
+      organizationId: input.organizationId,
+      userId: input.userId,
+      assetType: input.assetType,
+      createdAt: new Date(),
+    });
+    return { id: `insertion-${this.insertions.length}` };
   }
 }
 

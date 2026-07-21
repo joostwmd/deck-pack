@@ -1,8 +1,8 @@
 import { z } from "zod";
 
-import { protectedProcedure, publicProcedure } from "../../trpc/procedures";
+import { protectedProcedure, publicProcedure } from "../trpc/procedures";
 
-export const systemRoutes = {
+export const systemRouter = {
   healthCheck: publicProcedure.output(z.literal("OK")).query(() => "OK" as const),
 
   privateData: protectedProcedure

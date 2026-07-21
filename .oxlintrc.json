@@ -52,7 +52,7 @@
             "paths": [
               {
                 "name": "@trpc/server",
-                "message": "Services must not know tRPC. Throw AppError / return ServiceResult; routes unwrap."
+                "message": "Services must not know tRPC. Throw AppError; routes stay thin."
               },
               {
                 "name": "hono",
@@ -114,8 +114,7 @@
         "apps/api/src/trpc/init.ts",
         "apps/api/src/trpc/context.ts",
         "apps/api/src/trpc/error-mapping.ts",
-        "apps/api/src/trpc/procedures.ts",
-        "apps/api/src/trpc/service-result.ts"
+        "apps/api/src/trpc/procedures.ts"
       ],
       "rules": {
         "no-restricted-imports": [

@@ -2,9 +2,12 @@ import { and, eq, gte, lt, sql } from "drizzle-orm";
 
 import { getActiveOrganizationSubscriptionByOrgId } from "@deck-pack/db/queries/getActiveOrganizationSubscriptionByOrgId";
 import { getPlan } from "@deck-pack/db/queries/getPlan";
+import { insertAssetInsertion } from "@deck-pack/db/queries/insertAssetInsertion";
 import {
+  assertInsertAllowed,
   getEntitlementWindow,
   getUsagePeriodContext,
+  type AssertInsertAllowedResult,
 } from "@deck-pack/db/queries/usage-entitlements";
 import { assetInsertions } from "@deck-pack/db/schema/asset-insertions";
 import { user } from "@deck-pack/db/schema/auth";
@@ -34,6 +37,19 @@ function asPlanLimitAssetType(value: string): PlanLimitAssetType | null {
     : null;
 }
 
+export type InsertAssetInsertionRepoInput = {
+  organizationId: string;
+  userId: string;
+  assetType: string;
+  externalId: string;
+  client: string;
+  metadata?: Record<string, unknown>;
+};
+
+export type InsertAssetInsertionResult = {
+  id: string;
+};
+
 export interface UsageRepository {
   getActiveSubscription(organizationId: string): Promise<ActiveSubscription | null>;
   getPlan(planId: string): Promise<PlanSummary | null>;
@@ -42,6 +58,13 @@ export interface UsageRepository {
   countByAssetType(input: CountByAssetTypeInput): Promise<AssetTypeCount[]>;
   listSeries(input: ListSeriesInput): Promise<InsertionSeriesPoint[]>;
   listSeatUsage(input: ListSeatUsageInput): Promise<SeatUsageRow[]>;
+  assertInsertAllowed(input: {
+    organizationId: string;
+    assetType: string;
+  }): Promise<AssertInsertAllowedResult>;
+  insertAssetInsertion(
+    input: InsertAssetInsertionRepoInput,
+  ): Promise<InsertAssetInsertionResult | null>;
 }
 
 export class DrizzleUsageRepository implements UsageRepository {
@@ -205,5 +228,23 @@ export class DrizzleUsageRepository implements UsageRepository {
     }
 
     return results;
+  }
+
+  async assertInsertAllowed(input: {
+    organizationId: string;
+    assetType: string;
+  }): Promise<AssertInsertAllowedResult> {
+    return assertInsertAllowed({
+      tx: this.tx(),
+      organizationId: input.organizationId,
+      assetType: input.assetType,
+    });
+  }
+
+  async insertAssetInsertion(
+    input: InsertAssetInsertionRepoInput,
+  ): Promise<InsertAssetInsertionResult | null> {
+    const row = await insertAssetInsertion({ tx: this.tx(), input });
+    return row ? { id: row.id } : null;
   }
 }

@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@deck-pack/agenda": "workspace:*",
+    "@deck-pack/agenda-service": "workspace:*",
     "@deck-pack/auth": "workspace:*",
     "@deck-pack/billing": "workspace:*",
     "@deck-pack/brand-profiles": "workspace:*",
@@ -34,6 +35,7 @@
     "@deck-pack/photos": "workspace:*",
     "@deck-pack/presentation-check": "workspace:*",
     "@deck-pack/seats": "workspace:*",
+    "@deck-pack/shortcut-overrides": "workspace:*",
     "@deck-pack/shortcuts": "workspace:*",
     "@deck-pack/storage": "workspace:*",
     "@deck-pack/usage": "workspace:*",

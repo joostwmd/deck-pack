@@ -232,6 +232,9 @@ importers:
       '@deck-pack/agenda':
         specifier: workspace:*
         version: link:../../packages/agenda
+      '@deck-pack/agenda-service':
+        specifier: workspace:*
+        version: link:../../packages/agenda-service
       '@deck-pack/auth':
         specifier: workspace:*
         version: link:../../packages/auth
@@ -277,6 +280,9 @@ importers:
       '@deck-pack/seats':
         specifier: workspace:*
         version: link:../../packages/seats
+      '@deck-pack/shortcut-overrides':
+        specifier: workspace:*
+        version: link:../../packages/shortcut-overrides
       '@deck-pack/shortcuts':
         specifier: workspace:*
         version: link:../../packages/shortcuts
@@ -605,6 +611,31 @@ importers:
       vitest:
         specifier: 'catalog:'
         version: 3.2.4(@types/node@25.6.0)(jiti@2.6.1)(jsdom@26.1.0)(lightningcss@1.32.0)(msw@2.13.4(@types/node@25.6.0)(typescript@6.0.3))(terser@5.49.0)(tsx@4.21.0)(yaml@2.9.0)
+
+  packages/agenda-service:
+    dependencies:
+      '@deck-pack/agenda':
+        specifier: workspace:*
+        version: link:../agenda
+      '@deck-pack/db':
+        specifier: workspace:*
+        version: link:../db
+      '@deck-pack/errors':
+        specifier: workspace:*
+        version: link:../errors
+      zod:
+        specifier: 'catalog:'
+        version: 4.3.6
+    devDependencies:
+      '@deck-pack/config':
+        specifier: workspace:*
+        version: link:../config
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.19.17
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
 
   packages/auth:
     dependencies:
@@ -1073,6 +1104,28 @@ importers:
       zod:
         specifier: 'catalog:'
         version: 4.3.6
+    devDependencies:
+      '@deck-pack/config':
+        specifier: workspace:*
+        version: link:../config
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.19.17
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+
+  packages/shortcut-overrides:
+    dependencies:
+      '@deck-pack/db':
+        specifier: workspace:*
+        version: link:../db
+      '@deck-pack/errors':
+        specifier: workspace:*
+        version: link:../errors
+      '@deck-pack/shortcuts':
+        specifier: workspace:*
+        version: link:../shortcuts
     devDependencies:
       '@deck-pack/config':
         specifier: workspace:*
