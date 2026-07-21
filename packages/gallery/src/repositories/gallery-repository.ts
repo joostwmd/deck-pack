@@ -1,24 +1,24 @@
 import {
-  attachFileToLibraryItem,
-  createGlobalLibraryItem,
-  createOrgLibraryItem,
-  getGlobalLibraryItem,
-  getOrgLibraryItem,
-  insertLibraryFile,
-  listGlobalLibraryItems,
-  listOrgLibraryItems,
-  setGlobalLibraryItemStatus,
-  setOrgLibraryItemStatus,
-  updateGlobalLibraryItemMetadata,
-  updateOrgLibraryItemMetadata,
-} from "@deck-pack/db/queries/libraryAdmin";
+  attachFileToGalleryItem,
+  createGlobalGalleryItem,
+  createOrgGalleryItem,
+  getGlobalGalleryItem,
+  getOrgGalleryItem,
+  insertGalleryFile,
+  listGlobalGalleryItems,
+  listOrgGalleryItems,
+  setGlobalGalleryItemStatus,
+  setOrgGalleryItemStatus,
+  updateGlobalGalleryItemMetadata,
+  updateOrgGalleryItemMetadata,
+} from "@deck-pack/db/queries/galleryAdmin";
 import {
   getReadyFlagDetails,
   listAllReadySlides,
   searchReadyFlags,
   searchReadyShapes,
   searchReadySlides,
-} from "@deck-pack/db/queries/libraryDiscovery";
+} from "@deck-pack/db/queries/galleryDiscovery";
 import type { UnitOfWork } from "@deck-pack/db";
 import type { Transaction } from "@deck-pack/db/transaction";
 
@@ -62,7 +62,7 @@ export interface GalleryRepository {
     checksum?: string;
   }): Promise<{ id: string }>;
   attachFile(input: {
-    libraryItemId: string;
+    galleryItemId: string;
     role: GalleryUploadRole;
     fileId: string;
   }): Promise<"ok" | "not_found" | "invalid_role">;
@@ -87,13 +87,13 @@ export class DrizzleGalleryRepository implements GalleryRepository {
   ): Promise<GalleryListItem[]> {
     const tx = this.tx();
     if (scope.kind === "global") {
-      return listGlobalLibraryItems({
+      return listGlobalGalleryItems({
         tx,
         assetClass: input.assetClass,
         includeArchived: input.includeArchived,
       });
     }
-    return listOrgLibraryItems({
+    return listOrgGalleryItems({
       tx,
       organizationId: scope.organizationId,
       assetClass: input.assetClass,
@@ -104,17 +104,17 @@ export class DrizzleGalleryRepository implements GalleryRepository {
   async get(scope: GalleryScope, id: string): Promise<GalleryItemDetail | null> {
     const tx = this.tx();
     if (scope.kind === "global") {
-      return getGlobalLibraryItem({ tx, id });
+      return getGlobalGalleryItem({ tx, id });
     }
-    return getOrgLibraryItem({ tx, id, organizationId: scope.organizationId });
+    return getOrgGalleryItem({ tx, id, organizationId: scope.organizationId });
   }
 
   async create(scope: GalleryScope, input: CreateGalleryItemInput): Promise<{ id: string }> {
     const tx = this.tx();
     if (scope.kind === "global") {
-      return createGlobalLibraryItem({ tx, input });
+      return createGlobalGalleryItem({ tx, input });
     }
-    return createOrgLibraryItem({
+    return createOrgGalleryItem({
       tx,
       input: { ...input, organizationId: scope.organizationId },
     });
@@ -126,9 +126,9 @@ export class DrizzleGalleryRepository implements GalleryRepository {
   ): Promise<"ok" | "not_found" | "archived"> {
     const tx = this.tx();
     if (scope.kind === "global") {
-      return updateGlobalLibraryItemMetadata({ tx, ...input });
+      return updateGlobalGalleryItemMetadata({ tx, ...input });
     }
-    return updateOrgLibraryItemMetadata({
+    return updateOrgGalleryItemMetadata({
       tx,
       organizationId: scope.organizationId,
       ...input,
@@ -138,10 +138,10 @@ export class DrizzleGalleryRepository implements GalleryRepository {
   async setStatus(scope: GalleryScope, id: string, status: GalleryItemStatus): Promise<void> {
     const tx = this.tx();
     if (scope.kind === "global") {
-      await setGlobalLibraryItemStatus({ tx, id, status });
+      await setGlobalGalleryItemStatus({ tx, id, status });
       return;
     }
-    await setOrgLibraryItemStatus({
+    await setOrgGalleryItemStatus({
       tx,
       id,
       organizationId: scope.organizationId,
@@ -155,17 +155,17 @@ export class DrizzleGalleryRepository implements GalleryRepository {
     byteSize: number;
     checksum?: string;
   }): Promise<{ id: string }> {
-    return insertLibraryFile({ tx: this.tx(), ...input });
+    return insertGalleryFile({ tx: this.tx(), ...input });
   }
 
   async attachFile(input: {
-    libraryItemId: string;
+    galleryItemId: string;
     role: GalleryUploadRole;
     fileId: string;
   }): Promise<"ok" | "not_found" | "invalid_role"> {
-    return attachFileToLibraryItem({
+    return attachFileToGalleryItem({
       tx: this.tx(),
-      libraryItemId: input.libraryItemId,
+      galleryItemId: input.galleryItemId,
       role: input.role,
       fileId: input.fileId,
     });

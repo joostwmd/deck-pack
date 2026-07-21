@@ -10,7 +10,7 @@ import { eq, sql } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { createSignedSessionFixture } from "../test-utils/create-signed-session-fixture";
-import { seedReadyFlag } from "../test-utils/seed-ready-library-fixture";
+import { seedReadyFlag } from "../test-utils/seed-ready-gallery-fixture";
 import { trpcQuery } from "../test-utils/trpc-request";
 
 describe("assets flags bearer transport", () => {
@@ -26,7 +26,7 @@ describe("assets flags bearer transport", () => {
   beforeEach(async () => {
     await tx.execute(
       sql.raw(
-        `TRUNCATE TABLE flag_variants, flag_items, shape_items, slide_items, library_item_names, library_items, files RESTART IDENTITY CASCADE`,
+        `TRUNCATE TABLE flag_variants, flag_items, shape_items, slide_items, gallery_item_names, gallery_items, files RESTART IDENTITY CASCADE`,
       ),
     );
     const seeded = await seedReadyFlag(tx, storage, {

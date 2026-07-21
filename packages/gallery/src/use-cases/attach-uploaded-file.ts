@@ -23,7 +23,7 @@ export async function attachUploadedFile(
   });
 
   const attached = await repo.attachFile({
-    libraryItemId: input.id,
+    galleryItemId: input.id,
     role: input.role,
     fileId: file.id,
   });

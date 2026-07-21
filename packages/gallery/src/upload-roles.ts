@@ -1,4 +1,4 @@
-import type { LibraryBlobRole } from "@deck-pack/storage";
+import type { GalleryBlobRole } from "@deck-pack/storage";
 
 import type { GalleryUploadRole } from "./domain/gallery-item";
 
@@ -11,7 +11,7 @@ export function extensionFor(role: GalleryUploadRole, contentType: string): stri
   return "bin";
 }
 
-export function toBlobRole(role: GalleryUploadRole): LibraryBlobRole {
+export function toBlobRole(role: GalleryUploadRole): GalleryBlobRole {
   if (role === "rectangle" || role === "square" || role === "circle") {
     return `variant_${role}`;
   }

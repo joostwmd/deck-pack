@@ -2,11 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
-import type {
-  ShapeCategory,
-  SlideAspectRatio,
-  SlideCategory,
-} from "@deck-pack/db/library-catalog";
+import type { ShapeCategory, SlideAspectRatio, SlideCategory } from "@deck-pack/db/gallery-catalog";
 import { useFileSlotController } from "@deck-pack/ui/hooks/use-file-slot-controller";
 import type { FileSlotController } from "@deck-pack/ui/hooks/use-file-slot-controller";
 import type { FileSlotCurrent } from "@deck-pack/ui/lib/file-slot-machine";
@@ -18,9 +14,9 @@ import { defaultAspectRatio } from "@/features/gallery/gallery-catalog-fields";
 import { GalleryDetailView } from "@/features/gallery/gallery-detail-view";
 import { uploadLibraryFile } from "@/features/gallery/upload-library-file";
 import { useServices } from "@/services/services-context";
-import type { LibraryFileRef, LibraryItemDetail, LibraryUploadRole } from "@/services/types";
+import type { GalleryFileRef, GalleryItemDetail, LibraryUploadRole } from "@/services/types";
 
-function toSlotCurrent(file: LibraryFileRef | null | undefined): FileSlotCurrent | null {
+function toSlotCurrent(file: GalleryFileRef | null | undefined): FileSlotCurrent | null {
   if (!file) return null;
   const base = file.blobPath.split("/").pop();
   return {
@@ -68,7 +64,7 @@ function GalleryDetailForm({
   item,
 }: {
   assetClass: GalleryAssetClass;
-  item: LibraryItemDetail;
+  item: GalleryItemDetail;
 }) {
   const config = GALLERY_CLASS_CONFIG[assetClass];
   const { library } = useServices();
@@ -104,7 +100,7 @@ function GalleryDetailForm({
     void queryClient.invalidateQueries({ queryKey: ["library", assetClass] });
   };
 
-  const applyServerDetail = (detail: LibraryItemDetail) => {
+  const applyServerDetail = (detail: GalleryItemDetail) => {
     setDisplayName(detail.displayName);
     setAliases([...detail.aliases]);
     setFlagCode(detail.flag?.code ?? "");
@@ -178,8 +174,7 @@ function GalleryDetailForm({
     itemId,
     role: "presentation",
     label: "Presentation (PPTX)",
-    accept:
-      ".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    accept: ".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation",
     current: toSlotCurrent(item.slide?.presentationFile),
     disabled: archived,
     onUploaded: invalidate,
@@ -198,9 +193,7 @@ function GalleryDetailForm({
     role: "rectangle",
     label: "Rectangle variant",
     accept: "image/png,image/jpeg,image/webp,image/svg+xml",
-    current: toSlotCurrent(
-      item.flag?.variants.find((v) => v.role === "rectangle")?.file,
-    ),
+    current: toSlotCurrent(item.flag?.variants.find((v) => v.role === "rectangle")?.file),
     disabled: archived,
     onUploaded: invalidate,
   });
@@ -227,15 +220,7 @@ function GalleryDetailForm({
     if (assetClass === "shape") return [svgSlot];
     if (assetClass === "slide") return [presentationSlot, thumbnailSlot];
     return [rectSlot, squareSlot, circleSlot];
-  }, [
-    assetClass,
-    svgSlot,
-    presentationSlot,
-    thumbnailSlot,
-    rectSlot,
-    squareSlot,
-    circleSlot,
-  ]);
+  }, [assetClass, svgSlot, presentationSlot, thumbnailSlot, rectSlot, squareSlot, circleSlot]);
 
   const actionPending =
     publishMutation.isPending || unpublishMutation.isPending || archiveMutation.isPending;

@@ -3,11 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import type {
-  ShapeCategory,
-  SlideAspectRatio,
-  SlideCategory,
-} from "@deck-pack/db/library-catalog";
+import type { ShapeCategory, SlideAspectRatio, SlideCategory } from "@deck-pack/db/gallery-catalog";
 import { useTagsInputController } from "@deck-pack/ui/hooks/use-tags-input-controller";
 
 import type { GalleryAssetClass } from "@/features/library-gallery/class-config";

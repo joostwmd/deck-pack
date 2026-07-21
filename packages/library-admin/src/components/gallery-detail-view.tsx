@@ -15,18 +15,18 @@ import { TagsInputView } from "@deck-pack/ui/components/composite/tags-input-vie
 import type { TagsInputViewProps } from "@deck-pack/ui/components/composite/tags-input-view";
 import type { FormEvent } from "react";
 
-import type { ShapeCategory, SlideAspectRatio, SlideCategory } from "@deck-pack/db/library-catalog";
+import type { ShapeCategory, SlideAspectRatio, SlideCategory } from "@deck-pack/db/gallery-catalog";
 
 import type { GalleryClassConfig } from "../gallery-config";
 import { GalleryAspectRatioSelect, GalleryCategorySelect } from "./gallery-catalog-fields";
 import { LibraryStatusBadge } from "./status-badge";
-import type { LibraryItemDetail } from "../types";
+import type { GalleryItemDetail } from "../types";
 
 export type GalleryDetailViewProps = {
   config: GalleryClassConfig;
   loading: boolean;
   errorMessage?: string;
-  item: LibraryItemDetail | null;
+  item: GalleryItemDetail | null;
   displayName: string;
   onDisplayNameChange: (value: string) => void;
   /** False until server metadata is applied — avoids empty Select/TagsInput first paint. */

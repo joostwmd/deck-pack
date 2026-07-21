@@ -170,8 +170,8 @@ export interface BillingStore {
   }>;
 }
 
-export type LibraryAssetClass = "flag" | "shape" | "slide";
-export type LibraryItemStatus = "pending" | "ready" | "archived";
+export type GalleryAssetClass = "flag" | "shape" | "slide";
+export type GalleryItemStatus = "pending" | "ready" | "archived";
 export type LibraryUploadRole =
   | "svg"
   | "presentation"
@@ -189,17 +189,17 @@ export type LibraryShapeCategory =
 export type LibrarySlideCategory = "Intro" | "Agenda" | "Content" | "Data" | "People" | "Closing";
 export type LibrarySlideAspectRatio = "16:9" | "4:3";
 
-export type LibraryFileRef = {
+export type GalleryFileRef = {
   id: string;
   blobPath: string;
   contentType: string;
   byteSize: number;
 };
 
-export type LibraryListItem = {
+export type GalleryListItem = {
   id: string;
-  assetClass: LibraryAssetClass;
-  status: LibraryItemStatus;
+  assetClass: GalleryAssetClass;
+  status: GalleryItemStatus;
   displayName: string;
   updatedAt: Date;
   createdAt: Date;
@@ -210,53 +210,53 @@ export type LibraryListItem = {
   previewContentType: string | null;
 };
 
-export type LibraryItemDetail = {
+export type GalleryItemDetail = {
   id: string;
-  assetClass: LibraryAssetClass;
+  assetClass: GalleryAssetClass;
   scope: "global" | "org";
-  status: LibraryItemStatus;
+  status: GalleryItemStatus;
   displayName: string;
   aliases: string[];
   createdAt: Date;
   updatedAt: Date;
   flag: {
     code: string;
-    variants: Array<{ role: "rectangle" | "square" | "circle"; file: LibraryFileRef }>;
+    variants: Array<{ role: "rectangle" | "square" | "circle"; file: GalleryFileRef }>;
   } | null;
-  shape: { category: LibraryShapeCategory; svgFile: LibraryFileRef | null } | null;
+  shape: { category: LibraryShapeCategory; svgFile: GalleryFileRef | null } | null;
   slide: {
     category: LibrarySlideCategory;
     aspectRatio: LibrarySlideAspectRatio;
-    presentationFile: LibraryFileRef | null;
-    thumbnailFile: LibraryFileRef | null;
+    presentationFile: GalleryFileRef | null;
+    thumbnailFile: GalleryFileRef | null;
   } | null;
 };
 
 export interface LibraryStore {
   list: (input: {
-    assetClass: LibraryAssetClass;
+    assetClass: GalleryAssetClass;
     includeArchived?: boolean;
-  }) => Promise<LibraryListItem[]>;
-  get: (input: { id: string }) => Promise<LibraryItemDetail>;
+  }) => Promise<GalleryListItem[]>;
+  get: (input: { id: string }) => Promise<GalleryItemDetail>;
   create: (input: {
-    assetClass: LibraryAssetClass;
+    assetClass: GalleryAssetClass;
     displayName: string;
     aliases?: string[];
     flagCode?: string;
-    category?: LibraryShapeCategory | LibrarySlideCategory;
-    aspectRatio?: LibrarySlideAspectRatio;
+    category?: string;
+    aspectRatio?: string;
   }) => Promise<{ id: string }>;
   update: (input: {
     id: string;
     displayName: string;
     aliases: string[];
     flagCode?: string;
-    category?: LibraryShapeCategory | LibrarySlideCategory;
-    aspectRatio?: LibrarySlideAspectRatio;
-  }) => Promise<LibraryItemDetail>;
-  publish: (input: { id: string }) => Promise<LibraryItemDetail>;
-  unpublish: (input: { id: string }) => Promise<LibraryItemDetail>;
-  archive: (input: { id: string }) => Promise<LibraryItemDetail>;
+    category?: string;
+    aspectRatio?: string;
+  }) => Promise<GalleryItemDetail>;
+  publish: (input: { id: string }) => Promise<GalleryItemDetail>;
+  unpublish: (input: { id: string }) => Promise<GalleryItemDetail>;
+  archive: (input: { id: string }) => Promise<GalleryItemDetail>;
   createUploadTarget: (input: {
     id: string;
     role: LibraryUploadRole;
@@ -275,14 +275,14 @@ export interface LibraryStore {
     role: LibraryUploadRole;
     key: string;
     contentType: string;
-  }) => Promise<LibraryItemDetail>;
+  }) => Promise<GalleryItemDetail>;
   putAndFinalize: (input: {
     id: string;
     role: LibraryUploadRole;
     key: string;
     contentType: string;
     dataBase64: string;
-  }) => Promise<LibraryItemDetail>;
+  }) => Promise<GalleryItemDetail>;
 }
 
 export interface OpsAppServices {

@@ -1,5 +1,5 @@
 import { InvalidStateError, NotFoundError } from "@deck-pack/errors";
-import { buildLibraryObjectKey, type ObjectStorage } from "@deck-pack/storage";
+import { buildGalleryObjectKey, type ObjectStorage } from "@deck-pack/storage";
 
 import type { GalleryScope, GalleryUploadRole } from "../domain/gallery-item";
 import type { GalleryRepository } from "../repositories/gallery-repository";
@@ -27,12 +27,12 @@ export class CreateGalleryUploadTarget {
       throw new InvalidStateError("Archived assets cannot accept uploads");
     }
 
-    const key = buildLibraryObjectKey(
+    const key = buildGalleryObjectKey(
       scope.kind === "global"
         ? {
             scope: "global",
             assetClass: detail.assetClass,
-            libraryItemId: detail.id,
+            galleryItemId: detail.id,
             role: toBlobRole(input.role),
             extension: extensionFor(input.role, input.contentType),
           }
@@ -40,7 +40,7 @@ export class CreateGalleryUploadTarget {
             scope: "org",
             organizationId: scope.organizationId,
             assetClass: detail.assetClass,
-            libraryItemId: detail.id,
+            galleryItemId: detail.id,
             role: toBlobRole(input.role),
             extension: extensionFor(input.role, input.contentType),
           },

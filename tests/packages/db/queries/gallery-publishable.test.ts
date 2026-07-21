@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { isLibraryItemPublishable } from "@deck-pack/db/queries/libraryAdmin";
-import type { LibraryItemDetail } from "@deck-pack/db/queries/libraryAdmin";
+import { isGalleryItemPublishable } from "@deck-pack/db/queries/galleryAdmin";
+import type { GalleryItemDetail } from "@deck-pack/db/queries/galleryAdmin";
 
 function baseDetail(
-  overrides: Partial<LibraryItemDetail> & Pick<LibraryItemDetail, "assetClass">,
-): LibraryItemDetail {
+  overrides: Partial<GalleryItemDetail> & Pick<GalleryItemDetail, "assetClass">,
+): GalleryItemDetail {
   return {
     id: "item_1",
     scope: "global",
@@ -21,9 +21,9 @@ function baseDetail(
   };
 }
 
-describe("isLibraryItemPublishable", () => {
+describe("isGalleryItemPublishable", () => {
   it("requires all flag variants", () => {
-    const result = isLibraryItemPublishable(
+    const result = isGalleryItemPublishable(
       baseDetail({
         assetClass: "flag",
         flag: {
@@ -49,7 +49,7 @@ describe("isLibraryItemPublishable", () => {
   });
 
   it("requires shape svg", () => {
-    const result = isLibraryItemPublishable(
+    const result = isGalleryItemPublishable(
       baseDetail({
         assetClass: "shape",
         shape: { category: "Arrows", svgFile: null },
@@ -67,7 +67,7 @@ describe("isLibraryItemPublishable", () => {
       contentType: "application/octet-stream",
       byteSize: 10,
     };
-    const result = isLibraryItemPublishable(
+    const result = isGalleryItemPublishable(
       baseDetail({
         assetClass: "slide",
         slide: {

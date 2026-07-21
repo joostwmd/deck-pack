@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  buildLibraryObjectKey,
+  buildGalleryObjectKey,
   createMemoryObjectStorage,
   StorageNotFoundError,
 } from "@deck-pack/storage";
@@ -73,24 +73,24 @@ describe("createMemoryObjectStorage", () => {
   });
 });
 
-describe("buildLibraryObjectKey", () => {
+describe("buildGalleryObjectKey", () => {
   it("builds global and org paths", () => {
     expect(
-      buildLibraryObjectKey({
+      buildGalleryObjectKey({
         scope: "global",
         assetClass: "shape",
-        libraryItemId: "shape-1",
+        galleryItemId: "shape-1",
         role: "svg",
         extension: "svg",
       }),
     ).toBe("global/shape/shape-1/svg.svg");
 
     expect(
-      buildLibraryObjectKey({
+      buildGalleryObjectKey({
         scope: "org",
         organizationId: "org-1",
         assetClass: "slide",
-        libraryItemId: "slide-1",
+        galleryItemId: "slide-1",
         role: "thumbnail",
         extension: ".png",
       }),
@@ -99,10 +99,10 @@ describe("buildLibraryObjectKey", () => {
 
   it("requires organizationId for org scope", () => {
     expect(() =>
-      buildLibraryObjectKey({
+      buildGalleryObjectKey({
         scope: "org",
         assetClass: "flag",
-        libraryItemId: "flag-1",
+        galleryItemId: "flag-1",
         role: "variant_rectangle",
         extension: "png",
       }),

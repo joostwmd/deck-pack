@@ -12,7 +12,7 @@ export const DECKPACK_STATEMENTS = {
   seat: ["view", "assign"],
   usage: ["view", "export"],
   asset: ["view", "insert"],
-  library: ["create", "update", "delete"],
+  gallery: ["create", "update", "delete"],
 } as const;
 
 const statement = {
@@ -30,8 +30,7 @@ export const ORGANIZATION_ROLES = {
   libraryManager: "organizationLibraryManager",
 } as const;
 
-export type OrganizationRoleName =
-  (typeof ORGANIZATION_ROLES)[keyof typeof ORGANIZATION_ROLES];
+export type OrganizationRoleName = (typeof ORGANIZATION_ROLES)[keyof typeof ORGANIZATION_ROLES];
 
 /** Permission map passed to Better Auth hasPermission / checkRolePermission. */
 export type Permissions = Partial<{
@@ -46,7 +45,7 @@ export const organizationOwner = ac.newRole({
   seat: ["view", "assign"],
   usage: ["view", "export"],
   asset: ["view", "insert"],
-  library: ["create", "update", "delete"],
+  gallery: ["create", "update", "delete"],
 });
 
 export const organizationAdmin = ac.newRole({
@@ -57,7 +56,7 @@ export const organizationAdmin = ac.newRole({
   seat: ["view", "assign"],
   usage: ["view"],
   asset: ["view", "insert"],
-  library: ["create", "update", "delete"],
+  gallery: ["create", "update", "delete"],
 });
 
 export const organizationMember = ac.newRole({
@@ -71,7 +70,7 @@ export const organizationAddinUser = ac.newRole({
 
 export const organizationLibraryManager = ac.newRole({
   asset: ["view", "insert"],
-  library: ["create", "update", "delete"],
+  gallery: ["create", "update", "delete"],
 });
 
 export const organizationRoles = {

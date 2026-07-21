@@ -14,7 +14,7 @@ import {
   type ShapeCategory,
   type SlideAspectRatio,
   type SlideCategory,
-} from "@deck-pack/db/library-catalog";
+} from "@deck-pack/db/gallery-catalog";
 
 import type { GalleryAssetClass } from "../gallery-config";
 

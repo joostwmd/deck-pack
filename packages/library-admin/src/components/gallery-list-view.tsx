@@ -7,13 +7,13 @@ import { useState } from "react";
 
 import type { GalleryClassConfig } from "../gallery-config";
 import { LibraryStatusBadge } from "./status-badge";
-import type { LibraryListItem } from "../types";
+import type { GalleryListItem } from "../types";
 
 export type GalleryListViewProps = {
   config: GalleryClassConfig;
   loading: boolean;
   errorMessage?: string;
-  items: LibraryListItem[];
+  items: GalleryListItem[];
   includeArchived: boolean;
   onIncludeArchivedChange: (next: boolean) => void;
 };
@@ -26,7 +26,7 @@ function formatDate(date: Date): string {
   });
 }
 
-function GalleryPreview({ item }: { item: LibraryListItem }) {
+function GalleryPreview({ item }: { item: GalleryListItem }) {
   const [failed, setFailed] = useState(false);
   const showImage = Boolean(item.previewUrl) && !failed;
 
@@ -51,7 +51,7 @@ function GalleryPreview({ item }: { item: LibraryListItem }) {
   );
 }
 
-function metaLine(config: GalleryClassConfig, item: LibraryListItem): string | null {
+function metaLine(config: GalleryClassConfig, item: GalleryListItem): string | null {
   if (config.assetClass === "flag") {
     return item.code ? item.code.toUpperCase() : null;
   }

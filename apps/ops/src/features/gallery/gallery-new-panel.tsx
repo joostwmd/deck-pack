@@ -3,19 +3,12 @@ import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import type {
-  ShapeCategory,
-  SlideAspectRatio,
-  SlideCategory,
-} from "@deck-pack/db/library-catalog";
+import type { ShapeCategory, SlideAspectRatio, SlideCategory } from "@deck-pack/db/gallery-catalog";
 import { useTagsInputController } from "@deck-pack/ui/hooks/use-tags-input-controller";
 
 import type { GalleryAssetClass } from "@/features/gallery/class-config";
 import { GALLERY_CLASS_CONFIG } from "@/features/gallery/class-config";
-import {
-  defaultAspectRatio,
-  defaultCategoryFor,
-} from "@/features/gallery/gallery-catalog-fields";
+import { defaultAspectRatio, defaultCategoryFor } from "@/features/gallery/gallery-catalog-fields";
 import { GalleryNewView } from "@/features/gallery/gallery-new-view";
 import { useServices } from "@/services/services-context";
 

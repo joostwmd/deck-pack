@@ -32,8 +32,7 @@ function createOrganizationStore(): OrganizationStore {
   return {
     lookupUser: (email) => api.organization.lookupUser.query({ email }),
     listOrganizations: () => api.organization.listOrganizations.query(),
-    getOrganization: (organizationId) =>
-      api.organization.getOrganization.query({ organizationId }),
+    getOrganization: (organizationId) => api.organization.getOrganization.query({ organizationId }),
     listMembers: (organizationId) => api.organization.listMembers.query({ organizationId }),
     createOrganization: (input) => api.organization.createOrganization.mutate(input),
     updateOrganization: (input) => api.organization.updateOrganization.mutate(input),
@@ -55,8 +54,7 @@ function createBillingStore(): BillingStore {
     getPlan: (planId) => trpcClient.billing.getPlan.query({ planId }),
     createPlan: (input) => trpcClient.billing.createPlan.mutate(input),
     updatePlan: (input) => trpcClient.billing.updatePlan.mutate(input),
-    listOrganizationSubscriptions: () =>
-      trpcClient.billing.listOrganizationSubscriptions.query(),
+    listOrganizationSubscriptions: () => trpcClient.billing.listOrganizationSubscriptions.query(),
     getOrganizationSubscription: (subscriptionId) =>
       trpcClient.billing.getOrganizationSubscription.query({ subscriptionId }),
     createOrganizationSubscription: (input) =>
@@ -66,13 +64,13 @@ function createBillingStore(): BillingStore {
   };
 }
 
-function createLibraryStore(): LibraryStore {
-  const api = trpcClient.library;
+function createGalleryStore(): LibraryStore {
+  const api = trpcClient.gallery;
   return {
     list: (input) => api.list.query(input),
     get: (input) => api.get.query(input),
-    create: (input) => api.create.mutate(input),
-    update: (input) => api.update.mutate(input),
+    create: (input) => api.create.mutate(input as Parameters<typeof api.create.mutate>[0]),
+    update: (input) => api.update.mutate(input as Parameters<typeof api.update.mutate>[0]),
     publish: (input) => api.publish.mutate(input),
     unpublish: (input) => api.unpublish.mutate(input),
     archive: (input) => api.archive.mutate(input),
@@ -88,6 +86,6 @@ export function createAppServices(): OpsAppServices {
     organization: createOrganizationStore(),
     users: createUsersStore(),
     billing: createBillingStore(),
-    library: createLibraryStore(),
+    library: createGalleryStore(),
   };
 }

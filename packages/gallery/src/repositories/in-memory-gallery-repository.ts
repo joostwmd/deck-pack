@@ -202,11 +202,11 @@ export class InMemoryGalleryRepository implements GalleryRepository {
   }
 
   async attachFile(input: {
-    libraryItemId: string;
+    galleryItemId: string;
     role: GalleryUploadRole;
     fileId: string;
   }): Promise<"ok" | "not_found" | "invalid_role"> {
-    const item = this.items.get(input.libraryItemId);
+    const item = this.items.get(input.galleryItemId);
     const file = this.files.get(input.fileId);
     if (!item || !file) return "not_found";
 

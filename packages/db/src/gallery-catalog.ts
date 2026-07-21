@@ -1,20 +1,20 @@
 /**
- * Shared library catalog vocabulary for Ops, API, and the add-in.
+ * Shared gallery catalog vocabulary for Ops, API, and the add-in.
  * Kept free of Drizzle so browser apps can import it safely.
  */
 
-/** Uploadable library classes (owned blobs). External types stay out of this catalog. */
-export const LIBRARY_ASSET_CLASSES = ["flag", "shape", "slide"] as const;
-export type LibraryAssetClass = (typeof LIBRARY_ASSET_CLASSES)[number];
+/** Uploadable gallery classes (owned blobs). External types stay out of this catalog. */
+export const GALLERY_ASSET_CLASSES = ["flag", "shape", "slide"] as const;
+export type GalleryAssetClass = (typeof GALLERY_ASSET_CLASSES)[number];
 
-export const LIBRARY_ITEM_SCOPES = ["global", "org"] as const;
-export type LibraryItemScope = (typeof LIBRARY_ITEM_SCOPES)[number];
+export const GALLERY_ITEM_SCOPES = ["global", "org"] as const;
+export type GalleryItemScope = (typeof GALLERY_ITEM_SCOPES)[number];
 
-export const LIBRARY_ITEM_STATUSES = ["pending", "ready", "archived"] as const;
-export type LibraryItemStatus = (typeof LIBRARY_ITEM_STATUSES)[number];
+export const GALLERY_ITEM_STATUSES = ["pending", "ready", "archived"] as const;
+export type GalleryItemStatus = (typeof GALLERY_ITEM_STATUSES)[number];
 
-export const LIBRARY_ITEM_NAME_KINDS = ["display", "alias", "code"] as const;
-export type LibraryItemNameKind = (typeof LIBRARY_ITEM_NAME_KINDS)[number];
+export const GALLERY_ITEM_NAME_KINDS = ["display", "alias", "code"] as const;
+export type GalleryItemNameKind = (typeof GALLERY_ITEM_NAME_KINDS)[number];
 
 export const FLAG_VARIANT_ROLES = ["rectangle", "square", "circle"] as const;
 export type FlagVariantRole = (typeof FLAG_VARIANT_ROLES)[number];

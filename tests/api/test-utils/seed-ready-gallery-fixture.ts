@@ -1,9 +1,9 @@
 import {
-  attachFileToLibraryItem,
-  createGlobalLibraryItem,
-  insertLibraryFile,
-  setGlobalLibraryItemStatus,
-} from "@deck-pack/db/queries/libraryAdmin";
+  attachFileToGalleryItem,
+  createGlobalGalleryItem,
+  insertGalleryFile,
+  setGlobalGalleryItemStatus,
+} from "@deck-pack/db/queries/galleryAdmin";
 import type { Transaction } from "@deck-pack/db/transaction";
 import type { MemoryObjectStorage } from "@deck-pack/storage";
 
@@ -34,7 +34,7 @@ export async function seedReadyShape(
     aliases?: string[];
   },
 ): Promise<{ id: string; svgBlobPath: string }> {
-  const created = await createGlobalLibraryItem({
+  const created = await createGlobalGalleryItem({
     tx,
     input: {
       assetClass: "shape",
@@ -50,19 +50,19 @@ export async function seedReadyShape(
   const body = Buffer.from(svg, "utf8");
   seedBlob(storage, svgBlobPath, "image/svg+xml", body);
 
-  const file = await insertLibraryFile({
+  const file = await insertGalleryFile({
     tx,
     blobPath: svgBlobPath,
     contentType: "image/svg+xml",
     byteSize: body.byteLength,
   });
-  await attachFileToLibraryItem({
+  await attachFileToGalleryItem({
     tx,
-    libraryItemId: created.id,
+    galleryItemId: created.id,
     role: "svg",
     fileId: file.id,
   });
-  await setGlobalLibraryItemStatus({ tx, id: created.id, status: "ready" });
+  await setGlobalGalleryItemStatus({ tx, id: created.id, status: "ready" });
 
   return { id: created.id, svgBlobPath };
 }
@@ -77,7 +77,7 @@ export async function seedReadySlide(
     aliases?: string[];
   },
 ): Promise<{ id: string }> {
-  const created = await createGlobalLibraryItem({
+  const created = await createGlobalGalleryItem({
     tx,
     input: {
       assetClass: "slide",
@@ -100,32 +100,32 @@ export async function seedReadySlide(
   );
   seedBlob(storage, thumbnailBlobPath, "image/png", PNG_BYTES);
 
-  const presentationFile = await insertLibraryFile({
+  const presentationFile = await insertGalleryFile({
     tx,
     blobPath: presentationBlobPath,
     contentType: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
     byteSize: presentationBody.byteLength,
   });
-  const thumbnailFile = await insertLibraryFile({
+  const thumbnailFile = await insertGalleryFile({
     tx,
     blobPath: thumbnailBlobPath,
     contentType: "image/png",
     byteSize: PNG_BYTES.byteLength,
   });
 
-  await attachFileToLibraryItem({
+  await attachFileToGalleryItem({
     tx,
-    libraryItemId: created.id,
+    galleryItemId: created.id,
     role: "presentation",
     fileId: presentationFile.id,
   });
-  await attachFileToLibraryItem({
+  await attachFileToGalleryItem({
     tx,
-    libraryItemId: created.id,
+    galleryItemId: created.id,
     role: "thumbnail",
     fileId: thumbnailFile.id,
   });
-  await setGlobalLibraryItemStatus({ tx, id: created.id, status: "ready" });
+  await setGlobalGalleryItemStatus({ tx, id: created.id, status: "ready" });
 
   return { id: created.id };
 }
@@ -139,7 +139,7 @@ export async function seedReadyFlag(
     aliases?: string[];
   },
 ): Promise<{ id: string }> {
-  const created = await createGlobalLibraryItem({
+  const created = await createGlobalGalleryItem({
     tx,
     input: {
       assetClass: "flag",
@@ -153,21 +153,21 @@ export async function seedReadyFlag(
   for (const role of ["rectangle", "square", "circle"] as const) {
     const blobPath = `global/flag/${created.id}/${role}.png`;
     seedBlob(storage, blobPath, "image/png", PNG_BYTES);
-    const file = await insertLibraryFile({
+    const file = await insertGalleryFile({
       tx,
       blobPath,
       contentType: "image/png",
       byteSize: PNG_BYTES.byteLength,
     });
-    await attachFileToLibraryItem({
+    await attachFileToGalleryItem({
       tx,
-      libraryItemId: created.id,
+      galleryItemId: created.id,
       role,
       fileId: file.id,
     });
   }
 
-  await setGlobalLibraryItemStatus({ tx, id: created.id, status: "ready" });
+  await setGlobalGalleryItemStatus({ tx, id: created.id, status: "ready" });
 
   return { id: created.id };
 }
@@ -176,7 +176,7 @@ export async function seedPendingShape(
   tx: Transaction,
   input: { displayName: string; category: string },
 ): Promise<{ id: string }> {
-  const created = await createGlobalLibraryItem({
+  const created = await createGlobalGalleryItem({
     tx,
     input: {
       assetClass: "shape",

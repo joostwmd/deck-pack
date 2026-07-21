@@ -2,11 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
-import type {
-  ShapeCategory,
-  SlideAspectRatio,
-  SlideCategory,
-} from "@deck-pack/db/library-catalog";
+import type { ShapeCategory, SlideAspectRatio, SlideCategory } from "@deck-pack/db/gallery-catalog";
 import { useFileSlotController } from "@deck-pack/ui/hooks/use-file-slot-controller";
 import type { FileSlotController } from "@deck-pack/ui/hooks/use-file-slot-controller";
 import type { FileSlotCurrent } from "@deck-pack/ui/lib/file-slot-machine";
@@ -18,9 +14,13 @@ import { defaultAspectRatio } from "@/features/library-gallery/gallery-catalog-f
 import { GalleryDetailView } from "@/features/library-gallery/gallery-detail-view";
 import { uploadLibraryFile } from "@/features/library-gallery/upload-library-file";
 import { useServices } from "@/services/services-context";
-import type { LibraryFileRef, LibraryItemDetail, LibraryUploadRole } from "@/services/types";
+import type {
+  GalleryFileRef,
+  GalleryItemDetail,
+  LibraryUploadRole,
+} from "@deck-pack/library-admin/types";
 
-function toSlotCurrent(file: LibraryFileRef | null | undefined): FileSlotCurrent | null {
+function toSlotCurrent(file: GalleryFileRef | null | undefined): FileSlotCurrent | null {
   if (!file) return null;
   const base = file.blobPath.split("/").pop();
   return {
@@ -68,7 +68,7 @@ function GalleryDetailForm({
   item,
 }: {
   assetClass: GalleryAssetClass;
-  item: LibraryItemDetail;
+  item: GalleryItemDetail;
 }) {
   const config = GALLERY_CLASS_CONFIG[assetClass];
   const { library } = useServices();
@@ -79,10 +79,11 @@ function GalleryDetailForm({
   const [aliases, setAliases] = useState(() => [...item.aliases]);
   const [flagCode, setFlagCode] = useState(() => item.flag?.code ?? "");
   const [category, setCategory] = useState<ShapeCategory | SlideCategory | "">(
-    () => item.shape?.category ?? item.slide?.category ?? "",
+    () =>
+      (item.shape?.category ?? item.slide?.category ?? "") as ShapeCategory | SlideCategory | "",
   );
   const [aspectRatio, setAspectRatio] = useState<SlideAspectRatio>(
-    () => item.slide?.aspectRatio ?? defaultAspectRatio(),
+    () => (item.slide?.aspectRatio as SlideAspectRatio | undefined) ?? defaultAspectRatio(),
   );
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [aliasesEpoch, setAliasesEpoch] = useState(0);
@@ -104,12 +105,19 @@ function GalleryDetailForm({
     void queryClient.invalidateQueries({ queryKey: ["library", assetClass] });
   };
 
-  const applyServerDetail = (detail: LibraryItemDetail) => {
+  const applyServerDetail = (detail: GalleryItemDetail) => {
     setDisplayName(detail.displayName);
     setAliases([...detail.aliases]);
     setFlagCode(detail.flag?.code ?? "");
-    setCategory(detail.shape?.category ?? detail.slide?.category ?? "");
-    setAspectRatio(detail.slide?.aspectRatio ?? defaultAspectRatio());
+    setCategory(
+      (detail.shape?.category ?? detail.slide?.category ?? "") as
+        | ShapeCategory
+        | SlideCategory
+        | "",
+    );
+    setAspectRatio(
+      (detail.slide?.aspectRatio as SlideAspectRatio | undefined) ?? defaultAspectRatio(),
+    );
     setAliasesEpoch((epoch) => epoch + 1);
     void queryClient.setQueryData(["library", "item", itemId], detail);
   };
@@ -178,8 +186,7 @@ function GalleryDetailForm({
     itemId,
     role: "presentation",
     label: "Presentation (PPTX)",
-    accept:
-      ".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    accept: ".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation",
     current: toSlotCurrent(item.slide?.presentationFile),
     disabled: archived,
     onUploaded: invalidate,
@@ -198,9 +205,7 @@ function GalleryDetailForm({
     role: "rectangle",
     label: "Rectangle variant",
     accept: "image/png,image/jpeg,image/webp,image/svg+xml",
-    current: toSlotCurrent(
-      item.flag?.variants.find((v) => v.role === "rectangle")?.file,
-    ),
+    current: toSlotCurrent(item.flag?.variants.find((v) => v.role === "rectangle")?.file),
     disabled: archived,
     onUploaded: invalidate,
   });
@@ -227,15 +232,7 @@ function GalleryDetailForm({
     if (assetClass === "shape") return [svgSlot];
     if (assetClass === "slide") return [presentationSlot, thumbnailSlot];
     return [rectSlot, squareSlot, circleSlot];
-  }, [
-    assetClass,
-    svgSlot,
-    presentationSlot,
-    thumbnailSlot,
-    rectSlot,
-    squareSlot,
-    circleSlot,
-  ]);
+  }, [assetClass, svgSlot, presentationSlot, thumbnailSlot, rectSlot, squareSlot, circleSlot]);
 
   const actionPending =
     publishMutation.isPending || unpublishMutation.isPending || archiveMutation.isPending;

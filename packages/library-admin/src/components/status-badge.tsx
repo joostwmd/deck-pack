@@ -1,15 +1,14 @@
 import { Badge } from "@deck-pack/ui/components/system/badge";
 
-import type { LibraryItemStatus } from "@deck-pack/db/library-catalog";
+import type { GalleryItemStatus } from "@deck-pack/db/gallery-catalog";
 
-const LABELS: Record<LibraryItemStatus, string> = {
+const LABELS: Record<GalleryItemStatus, string> = {
   pending: "Draft",
   ready: "Published",
   archived: "Archived",
 };
 
-export function LibraryStatusBadge({ status }: { status: LibraryItemStatus }) {
-  const variant =
-    status === "ready" ? "default" : status === "archived" ? "outline" : "secondary";
+export function LibraryStatusBadge({ status }: { status: GalleryItemStatus }) {
+  const variant = status === "ready" ? "default" : status === "archived" ? "outline" : "secondary";
   return <Badge variant={variant}>{LABELS[status]}</Badge>;
 }

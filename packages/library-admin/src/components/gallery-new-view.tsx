@@ -6,7 +6,7 @@ import type { TagsInputViewProps } from "@deck-pack/ui/components/composite/tags
 import { Link } from "@tanstack/react-router";
 import type { FormEvent } from "react";
 
-import type { ShapeCategory, SlideAspectRatio, SlideCategory } from "@deck-pack/db/library-catalog";
+import type { ShapeCategory, SlideAspectRatio, SlideCategory } from "@deck-pack/db/gallery-catalog";
 
 import type { GalleryClassConfig } from "../gallery-config";
 import { GalleryAspectRatioSelect, GalleryCategorySelect } from "./gallery-catalog-fields";

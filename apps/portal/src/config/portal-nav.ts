@@ -38,17 +38,17 @@ export const ORG_NAV_ITEMS: OrgNavItem[] = [
   {
     title: "Shapes",
     to: "/org/library/shapes",
-    permissions: { library: ["create"] },
+    permissions: { gallery: ["create"] },
   },
   {
     title: "Flags",
     to: "/org/library/flags",
-    permissions: { library: ["create"] },
+    permissions: { gallery: ["create"] },
   },
   {
     title: "Slides",
     to: "/org/library/slides",
-    permissions: { library: ["create"] },
+    permissions: { gallery: ["create"] },
   },
   {
     title: "Members",
@@ -69,11 +69,11 @@ export const ORG_NAV_GROUPS: OrgNavGroup[] = [
   },
   {
     title: "Library",
-    permissions: { library: ["create"] },
+    permissions: { gallery: ["create"] },
     items: [
-      { title: "Shapes", to: "/org/library/shapes", permissions: { library: ["create"] } },
-      { title: "Flags", to: "/org/library/flags", permissions: { library: ["create"] } },
-      { title: "Slides", to: "/org/library/slides", permissions: { library: ["create"] } },
+      { title: "Shapes", to: "/org/library/shapes", permissions: { gallery: ["create"] } },
+      { title: "Flags", to: "/org/library/flags", permissions: { gallery: ["create"] } },
+      { title: "Slides", to: "/org/library/slides", permissions: { gallery: ["create"] } },
     ],
   },
   {

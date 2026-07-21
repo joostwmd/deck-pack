@@ -141,4 +141,26 @@ describe("gallery use-cases", () => {
 
     expect(detail.shape?.svgFile?.blobPath).toBe(key);
   });
+
+  it("putAndFinalize deletes the blob when attach fails", async () => {
+    const repo = new InMemoryGalleryRepository();
+    const storage = createMemoryObjectStorage();
+    const id = seedShape(repo);
+    const key = "global/shape/shape-1/svg.svg";
+    const dataBase64 = Buffer.from("<svg></svg>", "utf8").toString("base64");
+
+    vi.spyOn(repo, "insertFile").mockRejectedValueOnce(new Error("db attach failed"));
+
+    await expect(
+      new PutAndFinalizeGalleryUpload(repo, storage).execute(globalScope, {
+        id,
+        role: "svg",
+        key,
+        contentType: "image/svg+xml",
+        dataBase64,
+      }),
+    ).rejects.toThrow("db attach failed");
+
+    expect(await storage.head(key)).toBeNull();
+  });
 });

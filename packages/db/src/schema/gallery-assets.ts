@@ -1,44 +1,37 @@
 import { relations, sql } from "drizzle-orm";
-import {
-  index,
-  integer,
-  pgTable,
-  text,
-  timestamp,
-  uniqueIndex,
-} from "drizzle-orm/pg-core";
+import { index, integer, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 
 import { organization, user } from "./auth";
 
 export {
   FLAG_VARIANT_ROLES,
-  LIBRARY_ASSET_CLASSES,
-  LIBRARY_ITEM_NAME_KINDS,
-  LIBRARY_ITEM_SCOPES,
-  LIBRARY_ITEM_STATUSES,
+  GALLERY_ASSET_CLASSES,
+  GALLERY_ITEM_NAME_KINDS,
+  GALLERY_ITEM_SCOPES,
+  GALLERY_ITEM_STATUSES,
   SHAPE_CATEGORIES,
   SLIDE_ASPECT_RATIOS,
   SLIDE_CATEGORIES,
   type FlagVariantRole,
-  type LibraryAssetClass,
-  type LibraryItemNameKind,
-  type LibraryItemScope,
-  type LibraryItemStatus,
+  type GalleryAssetClass,
+  type GalleryItemNameKind,
+  type GalleryItemScope,
+  type GalleryItemStatus,
   type ShapeCategory,
   type SlideAspectRatio,
   type SlideCategory,
-} from "../library-catalog";
+} from "../gallery-catalog";
 
 import type {
   FlagVariantRole,
-  LibraryAssetClass,
-  LibraryItemNameKind,
-  LibraryItemScope,
-  LibraryItemStatus,
+  GalleryAssetClass,
+  GalleryItemNameKind,
+  GalleryItemScope,
+  GalleryItemStatus,
   ShapeCategory,
   SlideAspectRatio,
   SlideCategory,
-} from "../library-catalog";
+} from "../gallery-catalog";
 
 /** Pure blob metadata — relative path in the Azure container, type, size. */
 export const files = pgTable(
@@ -60,18 +53,18 @@ export const files = pgTable(
  * Catalog identity + visibility. Class-specific fields live on *_items tables.
  * Merged feed: scope = global OR (scope = org AND organization_id = :orgId).
  */
-export const libraryItems = pgTable(
-  "library_items",
+export const galleryItems = pgTable(
+  "gallery_items",
   {
     id: text("id")
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    assetClass: text("asset_class").notNull().$type<LibraryAssetClass>(),
-    scope: text("scope").notNull().$type<LibraryItemScope>(),
+    assetClass: text("asset_class").notNull().$type<GalleryAssetClass>(),
+    scope: text("scope").notNull().$type<GalleryItemScope>(),
     organizationId: text("organization_id").references(() => organization.id, {
       onDelete: "cascade",
     }),
-    status: text("status").notNull().$type<LibraryItemStatus>().default("pending"),
+    status: text("status").notNull().$type<GalleryItemStatus>().default("pending"),
     displayName: text("display_name").notNull(),
     createdByUserId: text("created_by_user_id").references(() => user.id, {
       onDelete: "set null",
@@ -83,40 +76,40 @@ export const libraryItems = pgTable(
       .$onUpdate(() => new Date()),
   },
   (table) => [
-    index("library_items_feed_idx").on(
+    index("gallery_items_feed_idx").on(
       table.assetClass,
       table.status,
       table.scope,
       table.organizationId,
     ),
-    index("library_items_organizationId_idx").on(table.organizationId),
-    index("library_items_createdByUserId_idx").on(table.createdByUserId),
-    index("library_items_ready_feed_idx")
+    index("gallery_items_organizationId_idx").on(table.organizationId),
+    index("gallery_items_createdByUserId_idx").on(table.createdByUserId),
+    index("gallery_items_ready_feed_idx")
       .on(table.assetClass, table.scope, table.organizationId)
       .where(sql`${table.status} = 'ready'`),
   ],
 );
 
 /** Searchable labels (display name, aliases, codes). Not arrays — one row per name. */
-export const libraryItemNames = pgTable(
-  "library_item_names",
+export const galleryItemNames = pgTable(
+  "gallery_item_names",
   {
     id: text("id")
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    libraryItemId: text("library_item_id")
+    galleryItemId: text("gallery_item_id")
       .notNull()
-      .references(() => libraryItems.id, { onDelete: "cascade" }),
+      .references(() => galleryItems.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
     normalizedName: text("normalized_name").notNull(),
-    kind: text("kind").notNull().$type<LibraryItemNameKind>().default("alias"),
+    kind: text("kind").notNull().$type<GalleryItemNameKind>().default("alias"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
-    index("library_item_names_normalized_name_idx").on(table.normalizedName),
-    index("library_item_names_library_item_id_idx").on(table.libraryItemId),
-    uniqueIndex("library_item_names_item_normalized_uidx").on(
-      table.libraryItemId,
+    index("gallery_item_names_normalized_name_idx").on(table.normalizedName),
+    index("gallery_item_names_gallery_item_id_idx").on(table.galleryItemId),
+    uniqueIndex("gallery_item_names_item_normalized_uidx").on(
+      table.galleryItemId,
       table.normalizedName,
     ),
   ],
@@ -125,9 +118,9 @@ export const libraryItemNames = pgTable(
 export const shapeItems = pgTable(
   "shape_items",
   {
-    libraryItemId: text("library_item_id")
+    galleryItemId: text("gallery_item_id")
       .primaryKey()
-      .references(() => libraryItems.id, { onDelete: "cascade" }),
+      .references(() => galleryItems.id, { onDelete: "cascade" }),
     category: text("category").notNull().$type<ShapeCategory>(),
     /** Null while draft — required before publish. */
     svgFileId: text("svg_file_id").references(() => files.id, { onDelete: "restrict" }),
@@ -141,9 +134,9 @@ export const shapeItems = pgTable(
 export const slideItems = pgTable(
   "slide_items",
   {
-    libraryItemId: text("library_item_id")
+    galleryItemId: text("gallery_item_id")
       .primaryKey()
-      .references(() => libraryItems.id, { onDelete: "cascade" }),
+      .references(() => galleryItems.id, { onDelete: "cascade" }),
     category: text("category").notNull().$type<SlideCategory>(),
     aspectRatio: text("aspect_ratio").notNull().$type<SlideAspectRatio>(),
     /** Null while draft — required before publish. */
@@ -170,9 +163,9 @@ export const slideItems = pgTable(
 export const flagItems = pgTable(
   "flag_items",
   {
-    libraryItemId: text("library_item_id")
+    galleryItemId: text("gallery_item_id")
       .primaryKey()
-      .references(() => libraryItems.id, { onDelete: "cascade" }),
+      .references(() => galleryItems.id, { onDelete: "cascade" }),
     code: text("code").notNull(),
   },
   (table) => [index("flag_items_code_idx").on(table.code)],
@@ -186,7 +179,7 @@ export const flagVariants = pgTable(
       .$defaultFn(() => crypto.randomUUID()),
     flagItemId: text("flag_item_id")
       .notNull()
-      .references(() => flagItems.libraryItemId, { onDelete: "cascade" }),
+      .references(() => flagItems.galleryItemId, { onDelete: "cascade" }),
     role: text("role").notNull().$type<FlagVariantRole>(),
     fileId: text("file_id")
       .notNull()
@@ -205,41 +198,41 @@ export const filesRelations = relations(files, ({ many }) => ({
   flagVariants: many(flagVariants),
 }));
 
-export const libraryItemsRelations = relations(libraryItems, ({ one, many }) => ({
+export const galleryItemsRelations = relations(galleryItems, ({ one, many }) => ({
   organization: one(organization, {
-    fields: [libraryItems.organizationId],
+    fields: [galleryItems.organizationId],
     references: [organization.id],
   }),
   createdBy: one(user, {
-    fields: [libraryItems.createdByUserId],
+    fields: [galleryItems.createdByUserId],
     references: [user.id],
   }),
-  names: many(libraryItemNames),
+  names: many(galleryItemNames),
   shapeItem: one(shapeItems, {
-    fields: [libraryItems.id],
-    references: [shapeItems.libraryItemId],
+    fields: [galleryItems.id],
+    references: [shapeItems.galleryItemId],
   }),
   slideItem: one(slideItems, {
-    fields: [libraryItems.id],
-    references: [slideItems.libraryItemId],
+    fields: [galleryItems.id],
+    references: [slideItems.galleryItemId],
   }),
   flagItem: one(flagItems, {
-    fields: [libraryItems.id],
-    references: [flagItems.libraryItemId],
+    fields: [galleryItems.id],
+    references: [flagItems.galleryItemId],
   }),
 }));
 
-export const libraryItemNamesRelations = relations(libraryItemNames, ({ one }) => ({
-  libraryItem: one(libraryItems, {
-    fields: [libraryItemNames.libraryItemId],
-    references: [libraryItems.id],
+export const galleryItemNamesRelations = relations(galleryItemNames, ({ one }) => ({
+  galleryItem: one(galleryItems, {
+    fields: [galleryItemNames.galleryItemId],
+    references: [galleryItems.id],
   }),
 }));
 
 export const shapeItemsRelations = relations(shapeItems, ({ one }) => ({
-  libraryItem: one(libraryItems, {
-    fields: [shapeItems.libraryItemId],
-    references: [libraryItems.id],
+  galleryItem: one(galleryItems, {
+    fields: [shapeItems.galleryItemId],
+    references: [galleryItems.id],
   }),
   svgFile: one(files, {
     fields: [shapeItems.svgFileId],
@@ -248,9 +241,9 @@ export const shapeItemsRelations = relations(shapeItems, ({ one }) => ({
 }));
 
 export const slideItemsRelations = relations(slideItems, ({ one }) => ({
-  libraryItem: one(libraryItems, {
-    fields: [slideItems.libraryItemId],
-    references: [libraryItems.id],
+  galleryItem: one(galleryItems, {
+    fields: [slideItems.galleryItemId],
+    references: [galleryItems.id],
   }),
   presentationFile: one(files, {
     fields: [slideItems.presentationFileId],
@@ -265,9 +258,9 @@ export const slideItemsRelations = relations(slideItems, ({ one }) => ({
 }));
 
 export const flagItemsRelations = relations(flagItems, ({ one, many }) => ({
-  libraryItem: one(libraryItems, {
-    fields: [flagItems.libraryItemId],
-    references: [libraryItems.id],
+  galleryItem: one(galleryItems, {
+    fields: [flagItems.galleryItemId],
+    references: [galleryItems.id],
   }),
   variants: many(flagVariants),
 }));
@@ -275,7 +268,7 @@ export const flagItemsRelations = relations(flagItems, ({ one, many }) => ({
 export const flagVariantsRelations = relations(flagVariants, ({ one }) => ({
   flagItem: one(flagItems, {
     fields: [flagVariants.flagItemId],
-    references: [flagItems.libraryItemId],
+    references: [flagItems.galleryItemId],
   }),
   file: one(files, {
     fields: [flagVariants.fileId],

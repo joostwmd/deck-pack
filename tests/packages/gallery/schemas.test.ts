@@ -1,21 +1,21 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  libraryAssetClassSchema,
-  libraryItemDetailSchema,
-  libraryUploadRoleSchema,
+  galleryAssetClassSchema,
+  galleryItemDetailSchema,
+  galleryUploadRoleSchema,
   uploadTargetSchema,
 } from "@deck-pack/gallery/schemas";
 
 describe("gallery schemas", () => {
   it("accepts asset classes and upload roles", () => {
-    expect(libraryAssetClassSchema.parse("flag")).toBe("flag");
-    expect(libraryUploadRoleSchema.parse("rectangle")).toBe("rectangle");
-    expect(libraryUploadRoleSchema.parse("svg")).toBe("svg");
+    expect(galleryAssetClassSchema.parse("flag")).toBe("flag");
+    expect(galleryUploadRoleSchema.parse("rectangle")).toBe("rectangle");
+    expect(galleryUploadRoleSchema.parse("svg")).toBe("svg");
   });
 
   it("accepts a shape detail payload", () => {
-    const parsed = libraryItemDetailSchema.parse({
+    const parsed = galleryItemDetailSchema.parse({
       id: "item_1",
       assetClass: "shape",
       scope: "global",

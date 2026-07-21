@@ -5,8 +5,8 @@ import type { Transaction } from "../transaction";
 import {
   FLAG_VARIANT_ROLES,
   type FlagVariantRole,
-  type LibraryAssetClass,
-  type LibraryItemStatus,
+  type GalleryAssetClass,
+  type GalleryItemStatus,
   SHAPE_CATEGORIES,
   SLIDE_ASPECT_RATIOS,
   SLIDE_CATEGORIES,
@@ -16,20 +16,20 @@ import {
   files,
   flagItems,
   flagVariants,
-  libraryItemNames,
-  libraryItems,
+  galleryItemNames,
+  galleryItems,
   shapeItems,
   slideItems,
-} from "../schema/library-assets";
+} from "../schema/gallery-assets";
 
 const shapeSvgFiles = alias(files, "shape_svg_files");
 const slideThumbFiles = alias(files, "slide_thumb_files");
 const flagPreviewFiles = alias(files, "flag_preview_files");
 
-export type LibraryListItem = {
+export type GalleryListItem = {
   id: string;
-  assetClass: LibraryAssetClass;
-  status: LibraryItemStatus;
+  assetClass: GalleryAssetClass;
+  status: GalleryItemStatus;
   displayName: string;
   updatedAt: Date;
   createdAt: Date;
@@ -41,29 +41,29 @@ export type LibraryListItem = {
   previewContentType: string | null;
 };
 
-export type LibraryFileRef = {
+export type GalleryFileRef = {
   id: string;
   blobPath: string;
   contentType: string;
   byteSize: number;
 };
 
-export type LibraryItemDetail = {
+export type GalleryItemDetail = {
   id: string;
-  assetClass: LibraryAssetClass;
+  assetClass: GalleryAssetClass;
   scope: "global" | "org";
-  status: LibraryItemStatus;
+  status: GalleryItemStatus;
   displayName: string;
   aliases: string[];
   createdAt: Date;
   updatedAt: Date;
-  flag: { code: string; variants: Array<{ role: FlagVariantRole; file: LibraryFileRef }> } | null;
-  shape: { category: ShapeCategory; svgFile: LibraryFileRef | null } | null;
+  flag: { code: string; variants: Array<{ role: FlagVariantRole; file: GalleryFileRef }> } | null;
+  shape: { category: ShapeCategory; svgFile: GalleryFileRef | null } | null;
   slide: {
     category: SlideCategory;
     aspectRatio: SlideAspectRatio;
-    presentationFile: LibraryFileRef | null;
-    thumbnailFile: LibraryFileRef | null;
+    presentationFile: GalleryFileRef | null;
+    thumbnailFile: GalleryFileRef | null;
   } | null;
 };
 
@@ -71,10 +71,7 @@ function normalizeName(value: string): string {
   return value.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
-async function loadFile(
-  tx: Transaction,
-  fileId: string | null,
-): Promise<LibraryFileRef | null> {
+async function loadFile(tx: Transaction, fileId: string | null): Promise<GalleryFileRef | null> {
   if (!fileId) return null;
   const [row] = await tx
     .select({
@@ -89,31 +86,28 @@ async function loadFile(
   return row ?? null;
 }
 
-export async function listGlobalLibraryItems({
+export async function listGlobalGalleryItems({
   tx,
   assetClass,
   includeArchived = false,
 }: {
   tx: Transaction;
-  assetClass: LibraryAssetClass;
+  assetClass: GalleryAssetClass;
   includeArchived?: boolean;
-}): Promise<LibraryListItem[]> {
-  const filters = [
-    eq(libraryItems.assetClass, assetClass),
-    eq(libraryItems.scope, "global"),
-  ];
+}): Promise<GalleryListItem[]> {
+  const filters = [eq(galleryItems.assetClass, assetClass), eq(galleryItems.scope, "global")];
   if (!includeArchived) {
-    filters.push(ne(libraryItems.status, "archived"));
+    filters.push(ne(galleryItems.status, "archived"));
   }
 
   const rows = await tx
     .select({
-      id: libraryItems.id,
-      assetClass: libraryItems.assetClass,
-      status: libraryItems.status,
-      displayName: libraryItems.displayName,
-      updatedAt: libraryItems.updatedAt,
-      createdAt: libraryItems.createdAt,
+      id: galleryItems.id,
+      assetClass: galleryItems.assetClass,
+      status: galleryItems.status,
+      displayName: galleryItems.displayName,
+      updatedAt: galleryItems.updatedAt,
+      createdAt: galleryItems.createdAt,
       shapeCategory: shapeItems.category,
       slideCategory: slideItems.category,
       aspectRatio: slideItems.aspectRatio,
@@ -125,31 +119,25 @@ export async function listGlobalLibraryItems({
       flagPreviewBlobPath: flagPreviewFiles.blobPath,
       flagPreviewContentType: flagPreviewFiles.contentType,
     })
-    .from(libraryItems)
-    .leftJoin(shapeItems, eq(shapeItems.libraryItemId, libraryItems.id))
+    .from(galleryItems)
+    .leftJoin(shapeItems, eq(shapeItems.galleryItemId, galleryItems.id))
     .leftJoin(shapeSvgFiles, eq(shapeSvgFiles.id, shapeItems.svgFileId))
-    .leftJoin(slideItems, eq(slideItems.libraryItemId, libraryItems.id))
+    .leftJoin(slideItems, eq(slideItems.galleryItemId, galleryItems.id))
     .leftJoin(slideThumbFiles, eq(slideThumbFiles.id, slideItems.thumbnailFileId))
-    .leftJoin(flagItems, eq(flagItems.libraryItemId, libraryItems.id))
+    .leftJoin(flagItems, eq(flagItems.galleryItemId, galleryItems.id))
     .leftJoin(
       flagVariants,
-      and(
-        eq(flagVariants.flagItemId, flagItems.libraryItemId),
-        eq(flagVariants.role, "rectangle"),
-      ),
+      and(eq(flagVariants.flagItemId, flagItems.galleryItemId), eq(flagVariants.role, "rectangle")),
     )
     .leftJoin(flagPreviewFiles, eq(flagPreviewFiles.id, flagVariants.fileId))
     .where(and(...filters))
-    .orderBy(desc(libraryItems.updatedAt), asc(libraryItems.displayName));
+    .orderBy(desc(galleryItems.updatedAt), asc(galleryItems.displayName));
 
   return rows.map((row) => {
     const previewBlobPath =
       row.shapeSvgBlobPath ?? row.slideThumbBlobPath ?? row.flagPreviewBlobPath ?? null;
     const previewContentType =
-      row.shapeSvgContentType ??
-      row.slideThumbContentType ??
-      row.flagPreviewContentType ??
-      null;
+      row.shapeSvgContentType ?? row.slideThumbContentType ?? row.flagPreviewContentType ?? null;
 
     return {
       id: row.id,
@@ -167,7 +155,7 @@ export async function listGlobalLibraryItems({
   });
 }
 
-async function getLibraryItemDetail({
+async function getGalleryItemDetail({
   tx,
   id,
   scopeFilter,
@@ -175,19 +163,19 @@ async function getLibraryItemDetail({
   tx: Transaction;
   id: string;
   scopeFilter?: { scope: "global" } | { scope: "org"; organizationId: string };
-}): Promise<LibraryItemDetail | null> {
-  const conditions = [eq(libraryItems.id, id)];
+}): Promise<GalleryItemDetail | null> {
+  const conditions = [eq(galleryItems.id, id)];
   if (scopeFilter?.scope === "global") {
-    conditions.push(eq(libraryItems.scope, "global"));
+    conditions.push(eq(galleryItems.scope, "global"));
   }
   if (scopeFilter?.scope === "org") {
-    conditions.push(eq(libraryItems.scope, "org"));
-    conditions.push(eq(libraryItems.organizationId, scopeFilter.organizationId));
+    conditions.push(eq(galleryItems.scope, "org"));
+    conditions.push(eq(galleryItems.organizationId, scopeFilter.organizationId));
   }
 
   const [item] = await tx
     .select()
-    .from(libraryItems)
+    .from(galleryItems)
     .where(and(...conditions))
     .limit(1);
 
@@ -195,25 +183,23 @@ async function getLibraryItemDetail({
 
   const nameRows = await tx
     .select({
-      name: libraryItemNames.name,
-      kind: libraryItemNames.kind,
+      name: galleryItemNames.name,
+      kind: galleryItemNames.kind,
     })
-    .from(libraryItemNames)
-    .where(eq(libraryItemNames.libraryItemId, id));
+    .from(galleryItemNames)
+    .where(eq(galleryItemNames.galleryItemId, id));
 
-  const aliases = nameRows
-    .filter((row) => row.kind === "alias")
-    .map((row) => row.name);
+  const aliases = nameRows.filter((row) => row.kind === "alias").map((row) => row.name);
 
-  let flag: LibraryItemDetail["flag"] = null;
-  let shape: LibraryItemDetail["shape"] = null;
-  let slide: LibraryItemDetail["slide"] = null;
+  let flag: GalleryItemDetail["flag"] = null;
+  let shape: GalleryItemDetail["shape"] = null;
+  let slide: GalleryItemDetail["slide"] = null;
 
   if (item.assetClass === "flag") {
     const [flagRow] = await tx
       .select()
       .from(flagItems)
-      .where(eq(flagItems.libraryItemId, id))
+      .where(eq(flagItems.galleryItemId, id))
       .limit(1);
     if (flagRow) {
       const variantRows = await tx
@@ -223,7 +209,7 @@ async function getLibraryItemDetail({
         })
         .from(flagVariants)
         .where(eq(flagVariants.flagItemId, id));
-      const variants: Array<{ role: FlagVariantRole; file: LibraryFileRef }> = [];
+      const variants: Array<{ role: FlagVariantRole; file: GalleryFileRef }> = [];
       for (const variant of variantRows) {
         const file = await loadFile(tx, variant.fileId);
         if (file) {
@@ -238,7 +224,7 @@ async function getLibraryItemDetail({
     const [shapeRow] = await tx
       .select()
       .from(shapeItems)
-      .where(eq(shapeItems.libraryItemId, id))
+      .where(eq(shapeItems.galleryItemId, id))
       .limit(1);
     if (shapeRow) {
       shape = {
@@ -252,7 +238,7 @@ async function getLibraryItemDetail({
     const [slideRow] = await tx
       .select()
       .from(slideItems)
-      .where(eq(slideItems.libraryItemId, id))
+      .where(eq(slideItems.galleryItemId, id))
       .limit(1);
     if (slideRow) {
       slide = {
@@ -279,17 +265,17 @@ async function getLibraryItemDetail({
   };
 }
 
-export async function getGlobalLibraryItem({
+export async function getGlobalGalleryItem({
   tx,
   id,
 }: {
   tx: Transaction;
   id: string;
-}): Promise<LibraryItemDetail | null> {
-  return getLibraryItemDetail({ tx, id, scopeFilter: { scope: "global" } });
+}): Promise<GalleryItemDetail | null> {
+  return getGalleryItemDetail({ tx, id, scopeFilter: { scope: "global" } });
 }
 
-export async function getOrgLibraryItem({
+export async function getOrgGalleryItem({
   tx,
   id,
   organizationId,
@@ -297,37 +283,40 @@ export async function getOrgLibraryItem({
   tx: Transaction;
   id: string;
   organizationId: string;
-}): Promise<LibraryItemDetail | null> {
-  return getLibraryItemDetail({ tx, id, scopeFilter: { scope: "org", organizationId } });
+}): Promise<GalleryItemDetail | null> {
+  return getGalleryItemDetail({ tx, id, scopeFilter: { scope: "org", organizationId } });
 }
 
-async function listLibraryItemsByScope({
+async function listGalleryItemsByScope({
   tx,
   assetClass,
   includeArchived = false,
   scopeFilter,
 }: {
   tx: Transaction;
-  assetClass: LibraryAssetClass;
+  assetClass: GalleryAssetClass;
   includeArchived?: boolean;
   scopeFilter: { scope: "global" } | { scope: "org"; organizationId: string };
-}): Promise<LibraryListItem[]> {
-  const filters = [eq(libraryItems.assetClass, assetClass), eq(libraryItems.scope, scopeFilter.scope)];
+}): Promise<GalleryListItem[]> {
+  const filters = [
+    eq(galleryItems.assetClass, assetClass),
+    eq(galleryItems.scope, scopeFilter.scope),
+  ];
   if (scopeFilter.scope === "org") {
-    filters.push(eq(libraryItems.organizationId, scopeFilter.organizationId));
+    filters.push(eq(galleryItems.organizationId, scopeFilter.organizationId));
   }
   if (!includeArchived) {
-    filters.push(ne(libraryItems.status, "archived"));
+    filters.push(ne(galleryItems.status, "archived"));
   }
 
   const rows = await tx
     .select({
-      id: libraryItems.id,
-      assetClass: libraryItems.assetClass,
-      status: libraryItems.status,
-      displayName: libraryItems.displayName,
-      updatedAt: libraryItems.updatedAt,
-      createdAt: libraryItems.createdAt,
+      id: galleryItems.id,
+      assetClass: galleryItems.assetClass,
+      status: galleryItems.status,
+      displayName: galleryItems.displayName,
+      updatedAt: galleryItems.updatedAt,
+      createdAt: galleryItems.createdAt,
       shapeCategory: shapeItems.category,
       slideCategory: slideItems.category,
       aspectRatio: slideItems.aspectRatio,
@@ -339,31 +328,25 @@ async function listLibraryItemsByScope({
       flagPreviewBlobPath: flagPreviewFiles.blobPath,
       flagPreviewContentType: flagPreviewFiles.contentType,
     })
-    .from(libraryItems)
-    .leftJoin(shapeItems, eq(shapeItems.libraryItemId, libraryItems.id))
+    .from(galleryItems)
+    .leftJoin(shapeItems, eq(shapeItems.galleryItemId, galleryItems.id))
     .leftJoin(shapeSvgFiles, eq(shapeSvgFiles.id, shapeItems.svgFileId))
-    .leftJoin(slideItems, eq(slideItems.libraryItemId, libraryItems.id))
+    .leftJoin(slideItems, eq(slideItems.galleryItemId, galleryItems.id))
     .leftJoin(slideThumbFiles, eq(slideThumbFiles.id, slideItems.thumbnailFileId))
-    .leftJoin(flagItems, eq(flagItems.libraryItemId, libraryItems.id))
+    .leftJoin(flagItems, eq(flagItems.galleryItemId, galleryItems.id))
     .leftJoin(
       flagVariants,
-      and(
-        eq(flagVariants.flagItemId, flagItems.libraryItemId),
-        eq(flagVariants.role, "rectangle"),
-      ),
+      and(eq(flagVariants.flagItemId, flagItems.galleryItemId), eq(flagVariants.role, "rectangle")),
     )
     .leftJoin(flagPreviewFiles, eq(flagPreviewFiles.id, flagVariants.fileId))
     .where(and(...filters))
-    .orderBy(desc(libraryItems.updatedAt), asc(libraryItems.displayName));
+    .orderBy(desc(galleryItems.updatedAt), asc(galleryItems.displayName));
 
   return rows.map((row) => {
     const previewBlobPath =
       row.shapeSvgBlobPath ?? row.slideThumbBlobPath ?? row.flagPreviewBlobPath ?? null;
     const previewContentType =
-      row.shapeSvgContentType ??
-      row.slideThumbContentType ??
-      row.flagPreviewContentType ??
-      null;
+      row.shapeSvgContentType ?? row.slideThumbContentType ?? row.flagPreviewContentType ?? null;
 
     return {
       id: row.id,
@@ -381,7 +364,7 @@ async function listLibraryItemsByScope({
   });
 }
 
-export async function listOrgLibraryItems({
+export async function listOrgGalleryItems({
   tx,
   organizationId,
   assetClass,
@@ -389,10 +372,10 @@ export async function listOrgLibraryItems({
 }: {
   tx: Transaction;
   organizationId: string;
-  assetClass: LibraryAssetClass;
+  assetClass: GalleryAssetClass;
   includeArchived?: boolean;
-}): Promise<LibraryListItem[]> {
-  return listLibraryItemsByScope({
+}): Promise<GalleryListItem[]> {
+  return listGalleryItemsByScope({
     tx,
     assetClass,
     includeArchived,
@@ -400,8 +383,8 @@ export async function listOrgLibraryItems({
   });
 }
 
-export type CreateGlobalLibraryItemInput = {
-  assetClass: LibraryAssetClass;
+export type CreateGlobalGalleryItemInput = {
+  assetClass: GalleryAssetClass;
   displayName: string;
   aliases?: string[];
   createdByUserId: string | null;
@@ -410,17 +393,17 @@ export type CreateGlobalLibraryItemInput = {
   aspectRatio?: SlideAspectRatio;
 };
 
-export async function createGlobalLibraryItem({
+export async function createGlobalGalleryItem({
   tx,
   input,
 }: {
   tx: Transaction;
-  input: CreateGlobalLibraryItemInput;
+  input: CreateGlobalGalleryItemInput;
 }): Promise<{ id: string }> {
   const id = crypto.randomUUID();
   const displayName = input.displayName.trim();
 
-  await tx.insert(libraryItems).values({
+  await tx.insert(galleryItems).values({
     id,
     assetClass: input.assetClass,
     scope: "global",
@@ -430,8 +413,8 @@ export async function createGlobalLibraryItem({
     createdByUserId: input.createdByUserId,
   });
 
-  await tx.insert(libraryItemNames).values({
-    libraryItemId: id,
+  await tx.insert(galleryItemNames).values({
+    galleryItemId: id,
     name: displayName,
     normalizedName: normalizeName(displayName),
     kind: "display",
@@ -440,8 +423,8 @@ export async function createGlobalLibraryItem({
   for (const alias of input.aliases ?? []) {
     const trimmed = alias.trim();
     if (!trimmed || normalizeName(trimmed) === normalizeName(displayName)) continue;
-    await tx.insert(libraryItemNames).values({
-      libraryItemId: id,
+    await tx.insert(galleryItemNames).values({
+      galleryItemId: id,
       name: trimmed,
       normalizedName: normalizeName(trimmed),
       kind: "alias",
@@ -450,10 +433,10 @@ export async function createGlobalLibraryItem({
 
   if (input.assetClass === "flag") {
     const code = (input.flagCode ?? "").trim().toUpperCase();
-    await tx.insert(flagItems).values({ libraryItemId: id, code });
+    await tx.insert(flagItems).values({ galleryItemId: id, code });
     if (code) {
-      await tx.insert(libraryItemNames).values({
-        libraryItemId: id,
+      await tx.insert(galleryItemNames).values({
+        galleryItemId: id,
         name: code,
         normalizedName: normalizeName(code),
         kind: "code",
@@ -466,7 +449,7 @@ export async function createGlobalLibraryItem({
       ? (input.category as ShapeCategory)
       : SHAPE_CATEGORIES[0];
     await tx.insert(shapeItems).values({
-      libraryItemId: id,
+      galleryItemId: id,
       category,
       svgFileId: null,
     });
@@ -476,13 +459,11 @@ export async function createGlobalLibraryItem({
     const category = (SLIDE_CATEGORIES as readonly string[]).includes(input.category ?? "")
       ? (input.category as SlideCategory)
       : SLIDE_CATEGORIES[0];
-    const aspectRatio = (SLIDE_ASPECT_RATIOS as readonly string[]).includes(
-      input.aspectRatio ?? "",
-    )
+    const aspectRatio = (SLIDE_ASPECT_RATIOS as readonly string[]).includes(input.aspectRatio ?? "")
       ? (input.aspectRatio as SlideAspectRatio)
       : SLIDE_ASPECT_RATIOS[0];
     await tx.insert(slideItems).values({
-      libraryItemId: id,
+      galleryItemId: id,
       category,
       aspectRatio,
       presentationFileId: null,
@@ -493,7 +474,7 @@ export async function createGlobalLibraryItem({
   return { id };
 }
 
-export async function updateGlobalLibraryItemMetadata({
+export async function updateGlobalGalleryItemMetadata({
   tx,
   id,
   displayName,
@@ -510,19 +491,19 @@ export async function updateGlobalLibraryItemMetadata({
   category?: ShapeCategory | SlideCategory;
   aspectRatio?: SlideAspectRatio;
 }): Promise<"ok" | "not_found" | "archived"> {
-  const detail = await getLibraryItemDetail({ tx, id });
+  const detail = await getGalleryItemDetail({ tx, id });
   if (!detail) return "not_found";
   if (detail.status === "archived") return "archived";
 
   const trimmedName = displayName.trim();
   await tx
-    .update(libraryItems)
+    .update(galleryItems)
     .set({ displayName: trimmedName, updatedAt: new Date() })
-    .where(eq(libraryItems.id, id));
+    .where(eq(galleryItems.id, id));
 
-  await tx.delete(libraryItemNames).where(eq(libraryItemNames.libraryItemId, id));
-  await tx.insert(libraryItemNames).values({
-    libraryItemId: id,
+  await tx.delete(galleryItemNames).where(eq(galleryItemNames.galleryItemId, id));
+  await tx.insert(galleryItemNames).values({
+    galleryItemId: id,
     name: trimmedName,
     normalizedName: normalizeName(trimmedName),
     kind: "display",
@@ -530,8 +511,8 @@ export async function updateGlobalLibraryItemMetadata({
   for (const alias of aliases) {
     const trimmed = alias.trim();
     if (!trimmed || normalizeName(trimmed) === normalizeName(trimmedName)) continue;
-    await tx.insert(libraryItemNames).values({
-      libraryItemId: id,
+    await tx.insert(galleryItemNames).values({
+      galleryItemId: id,
       name: trimmed,
       normalizedName: normalizeName(trimmed),
       kind: "alias",
@@ -540,10 +521,10 @@ export async function updateGlobalLibraryItemMetadata({
 
   if (detail.assetClass === "flag" && flagCode !== undefined) {
     const code = flagCode.trim().toUpperCase();
-    await tx.update(flagItems).set({ code }).where(eq(flagItems.libraryItemId, id));
+    await tx.update(flagItems).set({ code }).where(eq(flagItems.galleryItemId, id));
     if (code) {
-      await tx.insert(libraryItemNames).values({
-        libraryItemId: id,
+      await tx.insert(galleryItemNames).values({
+        galleryItemId: id,
         name: code,
         normalizedName: normalizeName(code),
         kind: "code",
@@ -555,7 +536,7 @@ export async function updateGlobalLibraryItemMetadata({
     await tx
       .update(shapeItems)
       .set({ category: category as ShapeCategory })
-      .where(eq(shapeItems.libraryItemId, id));
+      .where(eq(shapeItems.galleryItemId, id));
   }
 
   if (detail.assetClass === "slide") {
@@ -563,40 +544,38 @@ export async function updateGlobalLibraryItemMetadata({
       .update(slideItems)
       .set({
         ...(category !== undefined ? { category: category as SlideCategory } : {}),
-        ...(aspectRatio !== undefined
-          ? { aspectRatio: aspectRatio as SlideAspectRatio }
-          : {}),
+        ...(aspectRatio !== undefined ? { aspectRatio: aspectRatio as SlideAspectRatio } : {}),
       })
-      .where(eq(slideItems.libraryItemId, id));
+      .where(eq(slideItems.galleryItemId, id));
   }
 
   return "ok";
 }
 
-export async function setGlobalLibraryItemStatus({
+export async function setGlobalGalleryItemStatus({
   tx,
   id,
   status,
 }: {
   tx: Transaction;
   id: string;
-  status: LibraryItemStatus;
+  status: GalleryItemStatus;
 }): Promise<"ok" | "not_found"> {
   const [item] = await tx
-    .select({ id: libraryItems.id })
-    .from(libraryItems)
-    .where(and(eq(libraryItems.id, id), eq(libraryItems.scope, "global")))
+    .select({ id: galleryItems.id })
+    .from(galleryItems)
+    .where(and(eq(galleryItems.id, id), eq(galleryItems.scope, "global")))
     .limit(1);
   if (!item) return "not_found";
 
   await tx
-    .update(libraryItems)
+    .update(galleryItems)
     .set({ status, updatedAt: new Date() })
-    .where(eq(libraryItems.id, id));
+    .where(eq(galleryItems.id, id));
   return "ok";
 }
 
-export async function insertLibraryFile({
+export async function insertGalleryFile({
   tx,
   blobPath,
   contentType,
@@ -620,18 +599,18 @@ export async function insertLibraryFile({
   return { id };
 }
 
-export async function attachFileToLibraryItem({
+export async function attachFileToGalleryItem({
   tx,
-  libraryItemId,
+  galleryItemId,
   role,
   fileId,
 }: {
   tx: Transaction;
-  libraryItemId: string;
+  galleryItemId: string;
   role: "svg" | "presentation" | "thumbnail" | FlagVariantRole;
   fileId: string;
 }): Promise<"ok" | "not_found" | "invalid_role"> {
-  const item = await getLibraryItemDetail({ tx, id: libraryItemId });
+  const item = await getGalleryItemDetail({ tx, id: galleryItemId });
   if (!item) return "not_found";
 
   if (item.assetClass === "shape") {
@@ -639,11 +618,11 @@ export async function attachFileToLibraryItem({
     await tx
       .update(shapeItems)
       .set({ svgFileId: fileId })
-      .where(eq(shapeItems.libraryItemId, libraryItemId));
+      .where(eq(shapeItems.galleryItemId, galleryItemId));
     await tx
-      .update(libraryItems)
+      .update(galleryItems)
       .set({ updatedAt: new Date() })
-      .where(eq(libraryItems.id, libraryItemId));
+      .where(eq(galleryItems.id, galleryItemId));
     return "ok";
   }
 
@@ -652,11 +631,11 @@ export async function attachFileToLibraryItem({
     await tx
       .update(slideItems)
       .set(role === "presentation" ? { presentationFileId: fileId } : { thumbnailFileId: fileId })
-      .where(eq(slideItems.libraryItemId, libraryItemId));
+      .where(eq(slideItems.galleryItemId, galleryItemId));
     await tx
-      .update(libraryItems)
+      .update(galleryItems)
       .set({ updatedAt: new Date() })
-      .where(eq(libraryItems.id, libraryItemId));
+      .where(eq(galleryItems.id, galleryItemId));
     return "ok";
   }
 
@@ -668,34 +647,29 @@ export async function attachFileToLibraryItem({
     const [existing] = await tx
       .select({ id: flagVariants.id })
       .from(flagVariants)
-      .where(
-        and(eq(flagVariants.flagItemId, libraryItemId), eq(flagVariants.role, variantRole)),
-      )
+      .where(and(eq(flagVariants.flagItemId, galleryItemId), eq(flagVariants.role, variantRole)))
       .limit(1);
 
     if (existing) {
-      await tx
-        .update(flagVariants)
-        .set({ fileId })
-        .where(eq(flagVariants.id, existing.id));
+      await tx.update(flagVariants).set({ fileId }).where(eq(flagVariants.id, existing.id));
     } else {
       await tx.insert(flagVariants).values({
-        flagItemId: libraryItemId,
+        flagItemId: galleryItemId,
         role: variantRole,
         fileId,
       });
     }
     await tx
-      .update(libraryItems)
+      .update(galleryItems)
       .set({ updatedAt: new Date() })
-      .where(eq(libraryItems.id, libraryItemId));
+      .where(eq(galleryItems.id, galleryItemId));
     return "ok";
   }
 
   return "invalid_role";
 }
 
-export function isLibraryItemPublishable(detail: LibraryItemDetail): {
+export function isGalleryItemPublishable(detail: GalleryItemDetail): {
   ok: boolean;
   missing: string[];
 } {
@@ -717,21 +691,21 @@ export function isLibraryItemPublishable(detail: LibraryItemDetail): {
   return { ok: missing.length === 0, missing };
 }
 
-export type CreateOrgLibraryItemInput = CreateGlobalLibraryItemInput & {
+export type CreateOrgGalleryItemInput = CreateGlobalGalleryItemInput & {
   organizationId: string;
 };
 
-export async function createOrgLibraryItem({
+export async function createOrgGalleryItem({
   tx,
   input,
 }: {
   tx: Transaction;
-  input: CreateOrgLibraryItemInput;
+  input: CreateOrgGalleryItemInput;
 }): Promise<{ id: string }> {
   const id = crypto.randomUUID();
   const displayName = input.displayName.trim();
 
-  await tx.insert(libraryItems).values({
+  await tx.insert(galleryItems).values({
     id,
     assetClass: input.assetClass,
     scope: "org",
@@ -741,8 +715,8 @@ export async function createOrgLibraryItem({
     createdByUserId: input.createdByUserId,
   });
 
-  await tx.insert(libraryItemNames).values({
-    libraryItemId: id,
+  await tx.insert(galleryItemNames).values({
+    galleryItemId: id,
     name: displayName,
     normalizedName: normalizeName(displayName),
     kind: "display",
@@ -751,8 +725,8 @@ export async function createOrgLibraryItem({
   for (const alias of input.aliases ?? []) {
     const trimmed = alias.trim();
     if (!trimmed || normalizeName(trimmed) === normalizeName(displayName)) continue;
-    await tx.insert(libraryItemNames).values({
-      libraryItemId: id,
+    await tx.insert(galleryItemNames).values({
+      galleryItemId: id,
       name: trimmed,
       normalizedName: normalizeName(trimmed),
       kind: "alias",
@@ -761,10 +735,10 @@ export async function createOrgLibraryItem({
 
   if (input.assetClass === "flag") {
     const code = (input.flagCode ?? "").trim().toUpperCase();
-    await tx.insert(flagItems).values({ libraryItemId: id, code });
+    await tx.insert(flagItems).values({ galleryItemId: id, code });
     if (code) {
-      await tx.insert(libraryItemNames).values({
-        libraryItemId: id,
+      await tx.insert(galleryItemNames).values({
+        galleryItemId: id,
         name: code,
         normalizedName: normalizeName(code),
         kind: "code",
@@ -777,7 +751,7 @@ export async function createOrgLibraryItem({
       ? (input.category as ShapeCategory)
       : SHAPE_CATEGORIES[0];
     await tx.insert(shapeItems).values({
-      libraryItemId: id,
+      galleryItemId: id,
       category,
       svgFileId: null,
     });
@@ -787,13 +761,11 @@ export async function createOrgLibraryItem({
     const category = (SLIDE_CATEGORIES as readonly string[]).includes(input.category ?? "")
       ? (input.category as SlideCategory)
       : SLIDE_CATEGORIES[0];
-    const aspectRatio = (SLIDE_ASPECT_RATIOS as readonly string[]).includes(
-      input.aspectRatio ?? "",
-    )
+    const aspectRatio = (SLIDE_ASPECT_RATIOS as readonly string[]).includes(input.aspectRatio ?? "")
       ? (input.aspectRatio as SlideAspectRatio)
       : SLIDE_ASPECT_RATIOS[0];
     await tx.insert(slideItems).values({
-      libraryItemId: id,
+      galleryItemId: id,
       category,
       aspectRatio,
       presentationFileId: null,
@@ -804,7 +776,7 @@ export async function createOrgLibraryItem({
   return { id };
 }
 
-export async function updateOrgLibraryItemMetadata({
+export async function updateOrgGalleryItemMetadata({
   tx,
   id,
   organizationId,
@@ -823,11 +795,11 @@ export async function updateOrgLibraryItemMetadata({
   category?: ShapeCategory | SlideCategory;
   aspectRatio?: SlideAspectRatio;
 }): Promise<"ok" | "not_found" | "archived"> {
-  const detail = await getOrgLibraryItem({ tx, id, organizationId });
+  const detail = await getOrgGalleryItem({ tx, id, organizationId });
   if (!detail) return "not_found";
   if (detail.status === "archived") return "archived";
 
-  return updateGlobalLibraryItemMetadata({
+  return updateGlobalGalleryItemMetadata({
     tx,
     id,
     displayName,
@@ -838,7 +810,7 @@ export async function updateOrgLibraryItemMetadata({
   });
 }
 
-export async function setOrgLibraryItemStatus({
+export async function setOrgGalleryItemStatus({
   tx,
   id,
   organizationId,
@@ -847,24 +819,24 @@ export async function setOrgLibraryItemStatus({
   tx: Transaction;
   id: string;
   organizationId: string;
-  status: LibraryItemStatus;
+  status: GalleryItemStatus;
 }): Promise<"ok" | "not_found"> {
   const [item] = await tx
-    .select({ id: libraryItems.id })
-    .from(libraryItems)
+    .select({ id: galleryItems.id })
+    .from(galleryItems)
     .where(
       and(
-        eq(libraryItems.id, id),
-        eq(libraryItems.scope, "org"),
-        eq(libraryItems.organizationId, organizationId),
+        eq(galleryItems.id, id),
+        eq(galleryItems.scope, "org"),
+        eq(galleryItems.organizationId, organizationId),
       ),
     )
     .limit(1);
   if (!item) return "not_found";
 
   await tx
-    .update(libraryItems)
+    .update(galleryItems)
     .set({ status, updatedAt: new Date() })
-    .where(eq(libraryItems.id, id));
+    .where(eq(galleryItems.id, id));
   return "ok";
 }

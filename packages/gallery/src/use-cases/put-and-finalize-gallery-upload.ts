@@ -3,6 +3,7 @@ import type { ObjectStorage } from "@deck-pack/storage";
 
 import type { GalleryItemDetail, GalleryScope, GalleryUploadRole } from "../domain/gallery-item";
 import type { GalleryRepository } from "../repositories/gallery-repository";
+import { Saga } from "../saga";
 import { attachUploadedFile } from "./attach-uploaded-file";
 
 export class PutAndFinalizeGalleryUpload {
@@ -34,13 +35,21 @@ export class PutAndFinalizeGalleryUpload {
       body,
     });
 
-    return attachUploadedFile(this.repo, scope, {
-      id: input.id,
-      role: input.role,
-      key: input.key,
-      contentType: input.contentType,
-      byteSize: putResult.byteSize ?? body.byteLength,
-      checksum: putResult.etag,
-    });
+    const saga = new Saga();
+    saga.onRollback(() => this.storage.delete(input.key));
+
+    try {
+      return await attachUploadedFile(this.repo, scope, {
+        id: input.id,
+        role: input.role,
+        key: input.key,
+        contentType: input.contentType,
+        byteSize: putResult.byteSize ?? body.byteLength,
+        checksum: putResult.etag,
+      });
+    } catch (error) {
+      await saga.rollback();
+      throw error;
+    }
   }
 }

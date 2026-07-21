@@ -1,6 +1,6 @@
-import type { LibraryAssetClass } from "@deck-pack/db/library-catalog";
+import type { GalleryAssetClass } from "@deck-pack/db/gallery-catalog";
 
-export type GalleryAssetClass = Extract<LibraryAssetClass, "flag" | "shape" | "slide">;
+export type { GalleryAssetClass };
 
 /**
  * Route-agnostic gallery class config. Apps supply concrete TanStack paths.

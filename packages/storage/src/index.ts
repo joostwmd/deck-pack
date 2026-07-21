@@ -17,8 +17,8 @@ export {
   StorageProviderError,
 } from "./errors";
 
-export { buildLibraryObjectKey } from "./keys";
-export type { BuildLibraryObjectKeyInput, LibraryBlobRole } from "./keys";
+export { buildGalleryObjectKey } from "./keys";
+export type { BuildGalleryObjectKeyInput, GalleryBlobRole } from "./keys";
 
 export { createAzureObjectStorage } from "./adapters/azure-blob";
 export type { AzureObjectStorageConfig } from "./adapters/azure-blob";

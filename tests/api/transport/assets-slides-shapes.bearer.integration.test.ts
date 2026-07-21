@@ -11,7 +11,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { createMemoryObjectStorage } from "@deck-pack/storage";
 
 import { createSignedSessionFixture } from "../test-utils/create-signed-session-fixture";
-import { seedReadyShape, seedReadySlide } from "../test-utils/seed-ready-library-fixture";
+import { seedReadyShape, seedReadySlide } from "../test-utils/seed-ready-gallery-fixture";
 import { trpcQuery } from "../test-utils/trpc-request";
 
 describe("assets slides and shapes bearer transport", () => {
@@ -26,7 +26,7 @@ describe("assets slides and shapes bearer transport", () => {
   beforeEach(async () => {
     await tx.execute(
       sql.raw(
-        `TRUNCATE TABLE flag_variants, flag_items, shape_items, slide_items, library_item_names, library_items, files RESTART IDENTITY CASCADE`,
+        `TRUNCATE TABLE flag_variants, flag_items, shape_items, slide_items, gallery_item_names, gallery_items, files RESTART IDENTITY CASCADE`,
       ),
     );
     await seedReadySlide(tx, storage, {

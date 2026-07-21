@@ -1,4 +1,4 @@
-import type { LibraryAssetClass, LibraryItemStatus } from "@deck-pack/db/library-catalog";
+import type { GalleryAssetClass, GalleryItemStatus } from "@deck-pack/db/gallery-catalog";
 
 export type LibraryUploadRole =
   | "svg"
@@ -8,10 +8,17 @@ export type LibraryUploadRole =
   | "square"
   | "circle";
 
-export type LibraryListItem = {
+export type GalleryFileRef = {
   id: string;
-  assetClass: LibraryAssetClass;
-  status: LibraryItemStatus;
+  blobPath: string;
+  contentType: string;
+  byteSize: number;
+};
+
+export type GalleryListItem = {
+  id: string;
+  assetClass: GalleryAssetClass;
+  status: GalleryItemStatus;
   displayName: string;
   updatedAt: Date;
   createdAt: Date;
@@ -22,11 +29,11 @@ export type LibraryListItem = {
   previewContentType: string | null;
 };
 
-export type LibraryItemDetail = {
+export type GalleryItemDetail = {
   id: string;
-  assetClass: LibraryAssetClass;
+  assetClass: GalleryAssetClass;
   scope: "global" | "org";
-  status: LibraryItemStatus;
+  status: GalleryItemStatus;
   displayName: string;
   aliases: string[];
   createdAt: Date;
@@ -68,12 +75,12 @@ export type UploadTarget = {
 
 export interface LibraryStore {
   list: (input: {
-    assetClass: LibraryAssetClass;
+    assetClass: GalleryAssetClass;
     includeArchived?: boolean;
-  }) => Promise<LibraryListItem[]>;
-  get: (input: { id: string }) => Promise<LibraryItemDetail>;
+  }) => Promise<GalleryListItem[]>;
+  get: (input: { id: string }) => Promise<GalleryItemDetail>;
   create: (input: {
-    assetClass: LibraryAssetClass;
+    assetClass: GalleryAssetClass;
     displayName: string;
     aliases?: string[];
     flagCode?: string;
@@ -87,10 +94,10 @@ export interface LibraryStore {
     flagCode?: string;
     category?: string;
     aspectRatio?: string;
-  }) => Promise<LibraryItemDetail>;
-  publish: (input: { id: string }) => Promise<LibraryItemDetail>;
-  unpublish: (input: { id: string }) => Promise<LibraryItemDetail>;
-  archive: (input: { id: string }) => Promise<LibraryItemDetail>;
+  }) => Promise<GalleryItemDetail>;
+  publish: (input: { id: string }) => Promise<GalleryItemDetail>;
+  unpublish: (input: { id: string }) => Promise<GalleryItemDetail>;
+  archive: (input: { id: string }) => Promise<GalleryItemDetail>;
   createUploadTarget: (input: {
     id: string;
     role: LibraryUploadRole;
@@ -102,12 +109,12 @@ export interface LibraryStore {
     role: LibraryUploadRole;
     key: string;
     contentType: string;
-  }) => Promise<LibraryItemDetail>;
+  }) => Promise<GalleryItemDetail>;
   putAndFinalize: (input: {
     id: string;
     role: LibraryUploadRole;
     key: string;
     contentType: string;
     dataBase64: string;
-  }) => Promise<LibraryItemDetail>;
+  }) => Promise<GalleryItemDetail>;
 }

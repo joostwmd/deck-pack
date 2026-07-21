@@ -11,11 +11,11 @@ import {
   files,
   flagItems,
   flagVariants,
-  libraryItemNames,
-  libraryItems,
+  galleryItemNames,
+  galleryItems,
   shapeItems,
   slideItems,
-} from "../schema/library-assets";
+} from "../schema/gallery-assets";
 
 const shapeSvgFiles = alias(files, "disc_shape_svg_files");
 const slideThumbFiles = alias(files, "disc_slide_thumb_files");
@@ -34,17 +34,17 @@ function discoveryScopeFilter({
   internalOnly?: boolean;
 }) {
   if (internalOnly && organizationId) {
-    return and(eq(libraryItems.scope, "org"), eq(libraryItems.organizationId, organizationId));
+    return and(eq(galleryItems.scope, "org"), eq(galleryItems.organizationId, organizationId));
   }
 
   if (organizationId) {
     return or(
-      eq(libraryItems.scope, "global"),
-      and(eq(libraryItems.scope, "org"), eq(libraryItems.organizationId, organizationId)),
+      eq(galleryItems.scope, "global"),
+      and(eq(galleryItems.scope, "org"), eq(galleryItems.organizationId, organizationId)),
     );
   }
 
-  return eq(libraryItems.scope, "global");
+  return eq(galleryItems.scope, "global");
 }
 
 async function loadAliasesByItemId(
@@ -55,22 +55,19 @@ async function loadAliasesByItemId(
 
   const rows = await tx
     .select({
-      libraryItemId: libraryItemNames.libraryItemId,
-      name: libraryItemNames.name,
+      galleryItemId: galleryItemNames.galleryItemId,
+      name: galleryItemNames.name,
     })
-    .from(libraryItemNames)
+    .from(galleryItemNames)
     .where(
-      and(
-        inArray(libraryItemNames.libraryItemId, itemIds),
-        eq(libraryItemNames.kind, "alias"),
-      ),
+      and(inArray(galleryItemNames.galleryItemId, itemIds), eq(galleryItemNames.kind, "alias")),
     );
 
   const map = new Map<string, string[]>();
   for (const row of rows) {
-    const existing = map.get(row.libraryItemId) ?? [];
+    const existing = map.get(row.galleryItemId) ?? [];
     existing.push(row.name);
-    map.set(row.libraryItemId, existing);
+    map.set(row.galleryItemId, existing);
   }
   return map;
 }
@@ -83,17 +80,17 @@ async function loadSearchableNamesByItemId(
 
   const rows = await tx
     .select({
-      libraryItemId: libraryItemNames.libraryItemId,
-      name: libraryItemNames.name,
+      galleryItemId: galleryItemNames.galleryItemId,
+      name: galleryItemNames.name,
     })
-    .from(libraryItemNames)
-    .where(inArray(libraryItemNames.libraryItemId, itemIds));
+    .from(galleryItemNames)
+    .where(inArray(galleryItemNames.galleryItemId, itemIds));
 
   const map = new Map<string, string[]>();
   for (const row of rows) {
-    const existing = map.get(row.libraryItemId) ?? [];
+    const existing = map.get(row.galleryItemId) ?? [];
     existing.push(row.name);
-    map.set(row.libraryItemId, existing);
+    map.set(row.galleryItemId, existing);
   }
   return map;
 }
@@ -121,9 +118,9 @@ export async function searchReadyShapes({
   internalOnly?: boolean;
 }): Promise<ReadyShapeRow[]> {
   const filters = [
-    eq(libraryItems.assetClass, "shape"),
+    eq(galleryItems.assetClass, "shape"),
     discoveryScopeFilter({ organizationId, internalOnly }),
-    eq(libraryItems.status, "ready"),
+    eq(galleryItems.status, "ready"),
     sql`${shapeItems.svgFileId} IS NOT NULL`,
   ];
   if (category) {
@@ -132,20 +129,20 @@ export async function searchReadyShapes({
 
   return tx
     .select({
-      id: libraryItems.id,
-      displayName: libraryItems.displayName,
-      scope: libraryItems.scope,
+      id: galleryItems.id,
+      displayName: galleryItems.displayName,
+      scope: galleryItems.scope,
       category: shapeItems.category,
-      createdAt: libraryItems.createdAt,
-      updatedAt: libraryItems.updatedAt,
+      createdAt: galleryItems.createdAt,
+      updatedAt: galleryItems.updatedAt,
       svgBlobPath: shapeSvgFiles.blobPath,
       svgContentType: shapeSvgFiles.contentType,
     })
-    .from(libraryItems)
-    .innerJoin(shapeItems, eq(shapeItems.libraryItemId, libraryItems.id))
+    .from(galleryItems)
+    .innerJoin(shapeItems, eq(shapeItems.galleryItemId, galleryItems.id))
     .innerJoin(shapeSvgFiles, eq(shapeSvgFiles.id, shapeItems.svgFileId))
     .where(and(...filters))
-    .orderBy(desc(libraryItems.updatedAt), asc(libraryItems.displayName));
+    .orderBy(desc(galleryItems.updatedAt), asc(galleryItems.displayName));
 }
 
 export type ReadySlideRow = {
@@ -168,12 +165,7 @@ function slideMatchesQuery(
   query: string,
 ): boolean {
   if (!query) return true;
-  const haystack = [
-    row.displayName,
-    row.category,
-    ...row.aliases,
-    ...row.searchableNames,
-  ]
+  const haystack = [row.displayName, row.category, ...row.aliases, ...row.searchableNames]
     .join(" ")
     .toLowerCase();
   return haystack.includes(query);
@@ -205,9 +197,7 @@ function sortReadySlides(
   const sorted = [...rows];
 
   if (sort === "newest") {
-    sorted.sort(
-      (left, right) => right.updatedAt.getTime() - left.updatedAt.getTime(),
-    );
+    sorted.sort((left, right) => right.updatedAt.getTime() - left.updatedAt.getTime());
     return sorted;
   }
 
@@ -232,9 +222,7 @@ function sortReadySlides(
     return sorted;
   }
 
-  sorted.sort(
-    (left, right) => right.updatedAt.getTime() - left.updatedAt.getTime(),
-  );
+  sorted.sort((left, right) => right.updatedAt.getTime() - left.updatedAt.getTime());
   return sorted;
 }
 
@@ -258,9 +246,9 @@ export async function searchReadySlides({
   internalOnly?: boolean;
 }): Promise<ReadySlideRow[]> {
   const filters = [
-    eq(libraryItems.assetClass, "slide"),
+    eq(galleryItems.assetClass, "slide"),
     discoveryScopeFilter({ organizationId, internalOnly }),
-    eq(libraryItems.status, "ready"),
+    eq(galleryItems.status, "ready"),
     sql`${slideItems.presentationFileId} IS NOT NULL`,
     sql`${slideItems.thumbnailFileId} IS NOT NULL`,
   ];
@@ -269,23 +257,20 @@ export async function searchReadySlides({
 
   const baseRows = await tx
     .select({
-      id: libraryItems.id,
-      displayName: libraryItems.displayName,
-      scope: libraryItems.scope,
+      id: galleryItems.id,
+      displayName: galleryItems.displayName,
+      scope: galleryItems.scope,
       category: slideItems.category,
       aspectRatio: slideItems.aspectRatio,
-      createdAt: libraryItems.createdAt,
-      updatedAt: libraryItems.updatedAt,
+      createdAt: galleryItems.createdAt,
+      updatedAt: galleryItems.updatedAt,
       thumbnailBlobPath: slideThumbFiles.blobPath,
       presentationBlobPath: slidePresentationFiles.blobPath,
     })
-    .from(libraryItems)
-    .innerJoin(slideItems, eq(slideItems.libraryItemId, libraryItems.id))
+    .from(galleryItems)
+    .innerJoin(slideItems, eq(slideItems.galleryItemId, galleryItems.id))
     .innerJoin(slideThumbFiles, eq(slideThumbFiles.id, slideItems.thumbnailFileId))
-    .innerJoin(
-      slidePresentationFiles,
-      eq(slidePresentationFiles.id, slideItems.presentationFileId),
-    )
+    .innerJoin(slidePresentationFiles, eq(slidePresentationFiles.id, slideItems.presentationFileId))
     .where(and(...filters));
 
   const itemIds = baseRows.map((row) => row.id);
@@ -345,30 +330,27 @@ export async function searchReadyFlags({
 }): Promise<ReadyFlagSearchRow[]> {
   const rows = await tx
     .select({
-      id: libraryItems.id,
-      displayName: libraryItems.displayName,
+      id: galleryItems.id,
+      displayName: galleryItems.displayName,
       code: flagItems.code,
-      scope: libraryItems.scope,
+      scope: galleryItems.scope,
       previewBlobPath: flagPreviewFiles.blobPath,
     })
-    .from(libraryItems)
-    .innerJoin(flagItems, eq(flagItems.libraryItemId, libraryItems.id))
+    .from(galleryItems)
+    .innerJoin(flagItems, eq(flagItems.galleryItemId, galleryItems.id))
     .innerJoin(
       flagVariants,
-      and(
-        eq(flagVariants.flagItemId, flagItems.libraryItemId),
-        eq(flagVariants.role, "rectangle"),
-      ),
+      and(eq(flagVariants.flagItemId, flagItems.galleryItemId), eq(flagVariants.role, "rectangle")),
     )
     .innerJoin(flagPreviewFiles, eq(flagPreviewFiles.id, flagVariants.fileId))
     .where(
       and(
-        eq(libraryItems.assetClass, "flag"),
+        eq(galleryItems.assetClass, "flag"),
         discoveryScopeFilter({ organizationId, internalOnly }),
-        eq(libraryItems.status, "ready"),
+        eq(galleryItems.status, "ready"),
       ),
     )
-    .orderBy(asc(libraryItems.displayName));
+    .orderBy(asc(galleryItems.displayName));
 
   const normalizedQuery = normalizeName(query ?? "");
   if (!normalizedQuery) return rows;
@@ -380,9 +362,7 @@ export async function searchReadyFlags({
 
   return rows.filter((row) => {
     const names = searchableByItem.get(row.id) ?? [];
-    const haystack = [row.displayName, row.code, ...names]
-      .map(normalizeName)
-      .join(" ");
+    const haystack = [row.displayName, row.code, ...names].map(normalizeName).join(" ");
     return haystack.includes(normalizedQuery);
   });
 }
@@ -409,20 +389,20 @@ export async function getReadyFlagDetails({
 }): Promise<ReadyFlagDetailsRow | null> {
   const [item] = await tx
     .select({
-      id: libraryItems.id,
-      displayName: libraryItems.displayName,
-      status: libraryItems.status,
-      assetClass: libraryItems.assetClass,
-      scope: libraryItems.scope,
-      organizationId: libraryItems.organizationId,
+      id: galleryItems.id,
+      displayName: galleryItems.displayName,
+      status: galleryItems.status,
+      assetClass: galleryItems.assetClass,
+      scope: galleryItems.scope,
+      organizationId: galleryItems.organizationId,
     })
-    .from(libraryItems)
+    .from(galleryItems)
     .where(
       and(
-        eq(libraryItems.id, id),
+        eq(galleryItems.id, id),
         discoveryScopeFilter({ organizationId }),
-        eq(libraryItems.status, "ready"),
-        eq(libraryItems.assetClass, "flag"),
+        eq(galleryItems.status, "ready"),
+        eq(galleryItems.assetClass, "flag"),
       ),
     )
     .limit(1);
@@ -432,7 +412,7 @@ export async function getReadyFlagDetails({
   const [flagRow] = await tx
     .select({ code: flagItems.code })
     .from(flagItems)
-    .where(eq(flagItems.libraryItemId, id))
+    .where(eq(flagItems.galleryItemId, id))
     .limit(1);
   if (!flagRow) return null;
 

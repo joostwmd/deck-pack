@@ -6,15 +6,15 @@ import {
   searchReadyFlags,
   searchReadyShapes,
   searchReadySlides,
-} from "@deck-pack/db/queries/libraryDiscovery";
+} from "@deck-pack/db/queries/galleryDiscovery";
 import {
-  attachFileToLibraryItem,
-  createGlobalLibraryItem,
-  createOrgLibraryItem,
-  insertLibraryFile,
-  setGlobalLibraryItemStatus,
-  setOrgLibraryItemStatus,
-} from "@deck-pack/db/queries/libraryAdmin";
+  attachFileToGalleryItem,
+  createGlobalGalleryItem,
+  createOrgGalleryItem,
+  insertGalleryFile,
+  setGlobalGalleryItemStatus,
+  setOrgGalleryItemStatus,
+} from "@deck-pack/db/queries/galleryAdmin";
 import { organization } from "@deck-pack/db/schema/auth";
 import { ensureMigrationsApplied } from "@deck-pack/db/test-utils/ensure-migrations";
 import { tx } from "@deck-pack/db/transaction";
@@ -27,13 +27,13 @@ describe("library discovery (integration)", () => {
   beforeEach(async () => {
     await tx.execute(
       sql.raw(
-        `TRUNCATE TABLE flag_variants, flag_items, shape_items, slide_items, library_item_names, library_items, files RESTART IDENTITY CASCADE`,
+        `TRUNCATE TABLE flag_variants, flag_items, shape_items, slide_items, gallery_item_names, gallery_items, files RESTART IDENTITY CASCADE`,
       ),
     );
   });
 
   it("returns only ready shapes with svg attached", async () => {
-    const ready = await createGlobalLibraryItem({
+    const ready = await createGlobalGalleryItem({
       tx,
       input: {
         assetClass: "shape",
@@ -42,21 +42,21 @@ describe("library discovery (integration)", () => {
         createdByUserId: null,
       },
     });
-    const svgFile = await insertLibraryFile({
+    const svgFile = await insertGalleryFile({
       tx,
       blobPath: `global/shape/${ready.id}/shape.svg`,
       contentType: "image/svg+xml",
       byteSize: 10,
     });
-    await attachFileToLibraryItem({
+    await attachFileToGalleryItem({
       tx,
-      libraryItemId: ready.id,
+      galleryItemId: ready.id,
       role: "svg",
       fileId: svgFile.id,
     });
-    await setGlobalLibraryItemStatus({ tx, id: ready.id, status: "ready" });
+    await setGlobalGalleryItemStatus({ tx, id: ready.id, status: "ready" });
 
-    const pending = await createGlobalLibraryItem({
+    const pending = await createGlobalGalleryItem({
       tx,
       input: {
         assetClass: "shape",
@@ -65,7 +65,7 @@ describe("library discovery (integration)", () => {
         createdByUserId: null,
       },
     });
-    await setGlobalLibraryItemStatus({ tx, id: pending.id, status: "pending" });
+    await setGlobalGalleryItemStatus({ tx, id: pending.id, status: "pending" });
 
     const shapes = await searchReadyShapes({ tx });
     expect(shapes).toHaveLength(1);
@@ -78,7 +78,7 @@ describe("library discovery (integration)", () => {
       ["Arrow A", "Arrows"],
       ["Banner A", "Banners & Ribbons"],
     ] as const) {
-      const created = await createGlobalLibraryItem({
+      const created = await createGlobalGalleryItem({
         tx,
         input: {
           assetClass: "shape",
@@ -87,19 +87,19 @@ describe("library discovery (integration)", () => {
           createdByUserId: null,
         },
       });
-      const svgFile = await insertLibraryFile({
+      const svgFile = await insertGalleryFile({
         tx,
         blobPath: `global/shape/${created.id}/shape.svg`,
         contentType: "image/svg+xml",
         byteSize: 10,
       });
-      await attachFileToLibraryItem({
+      await attachFileToGalleryItem({
         tx,
-        libraryItemId: created.id,
+        galleryItemId: created.id,
         role: "svg",
         fileId: svgFile.id,
       });
-      await setGlobalLibraryItemStatus({ tx, id: created.id, status: "ready" });
+      await setGlobalGalleryItemStatus({ tx, id: created.id, status: "ready" });
     }
 
     const arrows = await searchReadyShapes({ tx, category: "Arrows" });
@@ -108,7 +108,7 @@ describe("library discovery (integration)", () => {
   });
 
   it("filters slides by query, tags, and aspect ratio", async () => {
-    const created = await createGlobalLibraryItem({
+    const created = await createGlobalGalleryItem({
       tx,
       input: {
         assetClass: "slide",
@@ -119,31 +119,31 @@ describe("library discovery (integration)", () => {
         createdByUserId: null,
       },
     });
-    const presentation = await insertLibraryFile({
+    const presentation = await insertGalleryFile({
       tx,
       blobPath: `global/slide/${created.id}/presentation.pptx`,
       contentType: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
       byteSize: 10,
     });
-    const thumbnail = await insertLibraryFile({
+    const thumbnail = await insertGalleryFile({
       tx,
       blobPath: `global/slide/${created.id}/thumbnail.png`,
       contentType: "image/png",
       byteSize: 4,
     });
-    await attachFileToLibraryItem({
+    await attachFileToGalleryItem({
       tx,
-      libraryItemId: created.id,
+      galleryItemId: created.id,
       role: "presentation",
       fileId: presentation.id,
     });
-    await attachFileToLibraryItem({
+    await attachFileToGalleryItem({
       tx,
-      libraryItemId: created.id,
+      galleryItemId: created.id,
       role: "thumbnail",
       fileId: thumbnail.id,
     });
-    await setGlobalLibraryItemStatus({ tx, id: created.id, status: "ready" });
+    await setGlobalGalleryItemStatus({ tx, id: created.id, status: "ready" });
 
     const byQuery = await searchReadySlides({ tx, query: "hero", sort: "relevance" });
     expect(byQuery).toHaveLength(1);
@@ -162,7 +162,7 @@ describe("library discovery (integration)", () => {
   });
 
   it("searches flags by display name, code, and alias", async () => {
-    const created = await createGlobalLibraryItem({
+    const created = await createGlobalGalleryItem({
       tx,
       input: {
         assetClass: "flag",
@@ -174,20 +174,20 @@ describe("library discovery (integration)", () => {
     });
 
     for (const role of ["rectangle", "square", "circle"] as const) {
-      const file = await insertLibraryFile({
+      const file = await insertGalleryFile({
         tx,
         blobPath: `global/flag/${created.id}/${role}.png`,
         contentType: "image/png",
         byteSize: 4,
       });
-      await attachFileToLibraryItem({
+      await attachFileToGalleryItem({
         tx,
-        libraryItemId: created.id,
+        galleryItemId: created.id,
         role,
         fileId: file.id,
       });
     }
-    await setGlobalLibraryItemStatus({ tx, id: created.id, status: "ready" });
+    await setGlobalGalleryItemStatus({ tx, id: created.id, status: "ready" });
 
     expect(await searchReadyFlags({ tx, query: "united" })).toHaveLength(1);
     expect(await searchReadyFlags({ tx, query: "us" })).toHaveLength(1);
@@ -215,7 +215,7 @@ describe("library discovery (integration)", () => {
     ): Promise<{ id: string }> {
       const created =
         scope === "global"
-          ? await createGlobalLibraryItem({
+          ? await createGlobalGalleryItem({
               tx,
               input: {
                 assetClass: "shape",
@@ -224,7 +224,7 @@ describe("library discovery (integration)", () => {
                 createdByUserId: null,
               },
             })
-          : await createOrgLibraryItem({
+          : await createOrgGalleryItem({
               tx,
               input: {
                 organizationId: orgId,
@@ -235,23 +235,23 @@ describe("library discovery (integration)", () => {
               },
             });
 
-      const svgFile = await insertLibraryFile({
+      const svgFile = await insertGalleryFile({
         tx,
         blobPath: `${scope}/shape/${created.id}/shape.svg`,
         contentType: "image/svg+xml",
         byteSize: 10,
       });
-      await attachFileToLibraryItem({
+      await attachFileToGalleryItem({
         tx,
-        libraryItemId: created.id,
+        galleryItemId: created.id,
         role: "svg",
         fileId: svgFile.id,
       });
 
       if (scope === "global") {
-        await setGlobalLibraryItemStatus({ tx, id: created.id, status: "ready" });
+        await setGlobalGalleryItemStatus({ tx, id: created.id, status: "ready" });
       } else {
-        await setOrgLibraryItemStatus({
+        await setOrgGalleryItemStatus({
           tx,
           organizationId: orgId,
           id: created.id,

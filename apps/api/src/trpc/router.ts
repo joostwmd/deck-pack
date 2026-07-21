@@ -46,7 +46,7 @@ export function createAppRouter(_deps: AddinRouterDeps, container: AppContainer)
     usage: usageRouter(container),
     users: usersRouter(container),
     billing: billingRouter(container),
-    library: galleryRouter(container),
+    gallery: galleryRouter(container),
     assets: router({
       photos: photosRouter(container),
       slides: slidesRouter(container),

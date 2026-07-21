@@ -2,20 +2,20 @@ import { z } from "zod";
 
 import {
   FLAG_VARIANT_ROLES,
-  LIBRARY_ASSET_CLASSES,
-  LIBRARY_ITEM_STATUSES,
+  GALLERY_ASSET_CLASSES,
+  GALLERY_ITEM_STATUSES,
   SHAPE_CATEGORIES,
   SLIDE_ASPECT_RATIOS,
   SLIDE_CATEGORIES,
-} from "@deck-pack/db/schema/library-assets";
+} from "@deck-pack/db/schema/gallery-assets";
 
-export const libraryAssetClassSchema = z.enum(LIBRARY_ASSET_CLASSES);
-export const libraryItemStatusSchema = z.enum(LIBRARY_ITEM_STATUSES);
+export const galleryAssetClassSchema = z.enum(GALLERY_ASSET_CLASSES);
+export const galleryItemStatusSchema = z.enum(GALLERY_ITEM_STATUSES);
 export const flagVariantRoleSchema = z.enum(FLAG_VARIANT_ROLES);
 export const shapeCategorySchema = z.enum(SHAPE_CATEGORIES);
 export const slideCategorySchema = z.enum(SLIDE_CATEGORIES);
 export const slideAspectRatioSchema = z.enum(SLIDE_ASPECT_RATIOS);
-export const libraryUploadRoleSchema = z.enum([
+export const galleryUploadRoleSchema = z.enum([
   "svg",
   "presentation",
   "thumbnail",
@@ -25,19 +25,19 @@ export const libraryUploadRoleSchema = z.enum([
 ]);
 
 /** Category accepted on create/update — refined by asset class in the service. */
-export const libraryCategorySchema = z.union([shapeCategorySchema, slideCategorySchema]);
+export const galleryCategorySchema = z.union([shapeCategorySchema, slideCategorySchema]);
 
-export const libraryFileRefSchema = z.object({
+export const galleryFileRefSchema = z.object({
   id: z.string(),
   blobPath: z.string(),
   contentType: z.string(),
   byteSize: z.number().int(),
 });
 
-export const libraryListItemSchema = z.object({
+export const galleryListItemSchema = z.object({
   id: z.string(),
-  assetClass: libraryAssetClassSchema,
-  status: libraryItemStatusSchema,
+  assetClass: galleryAssetClassSchema,
+  status: galleryItemStatusSchema,
   displayName: z.string(),
   updatedAt: z.date(),
   createdAt: z.date(),
@@ -49,11 +49,11 @@ export const libraryListItemSchema = z.object({
   previewContentType: z.string().nullable(),
 });
 
-export const libraryItemDetailSchema = z.object({
+export const galleryItemDetailSchema = z.object({
   id: z.string(),
-  assetClass: libraryAssetClassSchema,
+  assetClass: galleryAssetClassSchema,
   scope: z.enum(["global", "org"]),
-  status: libraryItemStatusSchema,
+  status: galleryItemStatusSchema,
   displayName: z.string(),
   aliases: z.array(z.string()),
   createdAt: z.date(),
@@ -64,7 +64,7 @@ export const libraryItemDetailSchema = z.object({
       variants: z.array(
         z.object({
           role: flagVariantRoleSchema,
-          file: libraryFileRefSchema,
+          file: galleryFileRefSchema,
         }),
       ),
     })
@@ -72,15 +72,15 @@ export const libraryItemDetailSchema = z.object({
   shape: z
     .object({
       category: shapeCategorySchema,
-      svgFile: libraryFileRefSchema.nullable(),
+      svgFile: galleryFileRefSchema.nullable(),
     })
     .nullable(),
   slide: z
     .object({
       category: slideCategorySchema,
       aspectRatio: slideAspectRatioSchema,
-      presentationFile: libraryFileRefSchema.nullable(),
-      thumbnailFile: libraryFileRefSchema.nullable(),
+      presentationFile: galleryFileRefSchema.nullable(),
+      thumbnailFile: galleryFileRefSchema.nullable(),
     })
     .nullable(),
 });

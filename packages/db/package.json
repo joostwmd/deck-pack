@@ -5,8 +5,8 @@
     ".": {
       "default": "./src/index.ts"
     },
-    "./library-catalog": {
-      "default": "./src/library-catalog.ts"
+    "./gallery-catalog": {
+      "default": "./src/gallery-catalog.ts"
     },
     "./schema/*": {
       "default": "./src/schema/*.ts"

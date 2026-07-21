@@ -13,11 +13,11 @@ import {
   UpdateGalleryItem,
 } from "@deck-pack/gallery";
 import {
-  libraryAssetClassSchema,
-  libraryCategorySchema,
-  libraryItemDetailSchema,
-  libraryListItemSchema,
-  libraryUploadRoleSchema,
+  galleryAssetClassSchema,
+  galleryCategorySchema,
+  galleryItemDetailSchema,
+  galleryListItemSchema,
+  galleryUploadRoleSchema,
   slideAspectRatioSchema,
   uploadTargetSchema,
 } from "@deck-pack/gallery/schemas";
@@ -31,25 +31,25 @@ import { router } from "../trpc/init";
 const GLOBAL = { kind: "global" as const };
 
 const orgLibraryCreateProcedure = teamWorkspaceProcedure.use(
-  requirePermission({ library: ["create"] }),
+  requirePermission({ gallery: ["create"] }),
 );
 const orgLibraryUpdateProcedure = teamWorkspaceProcedure.use(
-  requirePermission({ library: ["update"] }),
+  requirePermission({ gallery: ["update"] }),
 );
 const orgLibraryDeleteProcedure = teamWorkspaceProcedure.use(
-  requirePermission({ library: ["delete"] }),
+  requirePermission({ gallery: ["delete"] }),
 );
 const orgLibraryReadProcedure = teamWorkspaceProcedure.use(
-  requirePermission({ library: ["create"] }),
+  requirePermission({ gallery: ["create"] }),
 );
 
 function createItemInputSchema() {
   return z.object({
-    assetClass: libraryAssetClassSchema,
+    assetClass: galleryAssetClassSchema,
     displayName: z.string().trim().min(1).max(256),
     aliases: z.array(z.string().trim().min(1).max(256)).max(50).optional(),
     flagCode: z.string().trim().min(1).max(16).optional(),
-    category: libraryCategorySchema.optional(),
+    category: galleryCategorySchema.optional(),
     aspectRatio: slideAspectRatioSchema.optional(),
   });
 }
@@ -60,7 +60,7 @@ function updateItemInputSchema() {
     displayName: z.string().trim().min(1).max(256),
     aliases: z.array(z.string().trim().min(1).max(256)).max(50),
     flagCode: z.string().trim().min(1).max(16).optional(),
-    category: libraryCategorySchema.optional(),
+    category: galleryCategorySchema.optional(),
     aspectRatio: slideAspectRatioSchema.optional(),
   });
 }
@@ -68,7 +68,7 @@ function updateItemInputSchema() {
 function createUploadTargetInputSchema() {
   return z.object({
     id: z.string().trim().min(1),
-    role: libraryUploadRoleSchema,
+    role: galleryUploadRoleSchema,
     contentType: z.string().trim().min(1).max(256),
     byteSize: z
       .number()
@@ -81,7 +81,7 @@ function createUploadTargetInputSchema() {
 function finalizeUploadInputSchema() {
   return z.object({
     id: z.string().trim().min(1),
-    role: libraryUploadRoleSchema,
+    role: galleryUploadRoleSchema,
     key: z.string().trim().min(1),
     contentType: z.string().trim().min(1).max(256),
   });
@@ -90,7 +90,7 @@ function finalizeUploadInputSchema() {
 function putAndFinalizeInputSchema() {
   return z.object({
     id: z.string().trim().min(1),
-    role: libraryUploadRoleSchema,
+    role: galleryUploadRoleSchema,
     key: z.string().trim().min(1),
     contentType: z.string().trim().min(1).max(256),
     dataBase64: z.string().min(1),
@@ -102,11 +102,11 @@ function globalLibraryRoutes(container: AppContainer) {
     list: platformAdminProcedure
       .input(
         z.object({
-          assetClass: libraryAssetClassSchema,
+          assetClass: galleryAssetClassSchema,
           includeArchived: z.boolean().optional(),
         }),
       )
-      .output(z.array(libraryListItemSchema))
+      .output(z.array(galleryListItemSchema))
       .query(({ input }) => {
         return new ListGalleryItems(container.galleryRepository, container.objectStorage).execute(
           GLOBAL,
@@ -116,7 +116,7 @@ function globalLibraryRoutes(container: AppContainer) {
 
     get: platformAdminProcedure
       .input(z.object({ id: z.string().trim().min(1) }))
-      .output(libraryItemDetailSchema)
+      .output(galleryItemDetailSchema)
       .query(({ input }) => {
         return new GetGalleryItem(container.galleryRepository).execute(GLOBAL, input);
       }),
@@ -133,28 +133,28 @@ function globalLibraryRoutes(container: AppContainer) {
 
     update: platformAdminProcedure
       .input(updateItemInputSchema())
-      .output(libraryItemDetailSchema)
+      .output(galleryItemDetailSchema)
       .mutation(({ input }) => {
         return new UpdateGalleryItem(container.galleryRepository).execute(GLOBAL, input);
       }),
 
     publish: platformAdminProcedure
       .input(z.object({ id: z.string().trim().min(1) }))
-      .output(libraryItemDetailSchema)
+      .output(galleryItemDetailSchema)
       .mutation(({ input }) => {
         return new PublishGalleryItem(container.galleryRepository).execute(GLOBAL, input);
       }),
 
     unpublish: platformAdminProcedure
       .input(z.object({ id: z.string().trim().min(1) }))
-      .output(libraryItemDetailSchema)
+      .output(galleryItemDetailSchema)
       .mutation(({ input }) => {
         return new UnpublishGalleryItem(container.galleryRepository).execute(GLOBAL, input);
       }),
 
     archive: platformAdminProcedure
       .input(z.object({ id: z.string().trim().min(1) }))
-      .output(libraryItemDetailSchema)
+      .output(galleryItemDetailSchema)
       .mutation(({ input }) => {
         return new ArchiveGalleryItem(container.galleryRepository).execute(GLOBAL, input);
       }),
@@ -171,7 +171,7 @@ function globalLibraryRoutes(container: AppContainer) {
 
     finalizeUpload: platformAdminProcedure
       .input(finalizeUploadInputSchema())
-      .output(libraryItemDetailSchema)
+      .output(galleryItemDetailSchema)
       .mutation(({ input }) => {
         return new FinalizeGalleryUpload(
           container.galleryRepository,
@@ -181,7 +181,7 @@ function globalLibraryRoutes(container: AppContainer) {
 
     putAndFinalize: platformAdminProcedure
       .input(putAndFinalizeInputSchema())
-      .output(libraryItemDetailSchema)
+      .output(galleryItemDetailSchema)
       .mutation(({ input }) => {
         return new PutAndFinalizeGalleryUpload(
           container.galleryRepository,
@@ -196,11 +196,11 @@ function orgLibraryRoutes(container: AppContainer) {
     list: orgLibraryReadProcedure
       .input(
         z.object({
-          assetClass: libraryAssetClassSchema,
+          assetClass: galleryAssetClassSchema,
           includeArchived: z.boolean().optional(),
         }),
       )
-      .output(z.array(libraryListItemSchema))
+      .output(z.array(galleryListItemSchema))
       .query(({ ctx, input }) => {
         const organizationId = requireActiveOrganizationId(ctx);
         return new ListGalleryItems(container.galleryRepository, container.objectStorage).execute(
@@ -211,7 +211,7 @@ function orgLibraryRoutes(container: AppContainer) {
 
     get: orgLibraryReadProcedure
       .input(z.object({ id: z.string().trim().min(1) }))
-      .output(libraryItemDetailSchema)
+      .output(galleryItemDetailSchema)
       .query(({ ctx, input }) => {
         const organizationId = requireActiveOrganizationId(ctx);
         return new GetGalleryItem(container.galleryRepository).execute(
@@ -236,7 +236,7 @@ function orgLibraryRoutes(container: AppContainer) {
 
     update: orgLibraryUpdateProcedure
       .input(updateItemInputSchema())
-      .output(libraryItemDetailSchema)
+      .output(galleryItemDetailSchema)
       .mutation(({ ctx, input }) => {
         const organizationId = requireActiveOrganizationId(ctx);
         return new UpdateGalleryItem(container.galleryRepository).execute(
@@ -247,7 +247,7 @@ function orgLibraryRoutes(container: AppContainer) {
 
     publish: orgLibraryUpdateProcedure
       .input(z.object({ id: z.string().trim().min(1) }))
-      .output(libraryItemDetailSchema)
+      .output(galleryItemDetailSchema)
       .mutation(({ ctx, input }) => {
         const organizationId = requireActiveOrganizationId(ctx);
         return new PublishGalleryItem(container.galleryRepository).execute(
@@ -258,7 +258,7 @@ function orgLibraryRoutes(container: AppContainer) {
 
     unpublish: orgLibraryUpdateProcedure
       .input(z.object({ id: z.string().trim().min(1) }))
-      .output(libraryItemDetailSchema)
+      .output(galleryItemDetailSchema)
       .mutation(({ ctx, input }) => {
         const organizationId = requireActiveOrganizationId(ctx);
         return new UnpublishGalleryItem(container.galleryRepository).execute(
@@ -269,7 +269,7 @@ function orgLibraryRoutes(container: AppContainer) {
 
     archive: orgLibraryDeleteProcedure
       .input(z.object({ id: z.string().trim().min(1) }))
-      .output(libraryItemDetailSchema)
+      .output(galleryItemDetailSchema)
       .mutation(({ ctx, input }) => {
         const organizationId = requireActiveOrganizationId(ctx);
         return new ArchiveGalleryItem(container.galleryRepository).execute(
@@ -291,7 +291,7 @@ function orgLibraryRoutes(container: AppContainer) {
 
     finalizeUpload: orgLibraryCreateProcedure
       .input(finalizeUploadInputSchema())
-      .output(libraryItemDetailSchema)
+      .output(galleryItemDetailSchema)
       .mutation(({ ctx, input }) => {
         const organizationId = requireActiveOrganizationId(ctx);
         return new FinalizeGalleryUpload(
@@ -302,7 +302,7 @@ function orgLibraryRoutes(container: AppContainer) {
 
     putAndFinalize: orgLibraryCreateProcedure
       .input(putAndFinalizeInputSchema())
-      .output(libraryItemDetailSchema)
+      .output(galleryItemDetailSchema)
       .mutation(({ ctx, input }) => {
         const organizationId = requireActiveOrganizationId(ctx);
         return new PutAndFinalizeGalleryUpload(
@@ -313,7 +313,6 @@ function orgLibraryRoutes(container: AppContainer) {
   };
 }
 
-/** Mounted as `library` (and `library.org`) to keep existing client paths stable. */
 export function galleryRouter(container: AppContainer) {
   return router({
     ...globalLibraryRoutes(container),
