@@ -238,6 +238,9 @@ importers:
       '@deck-pack/billing':
         specifier: workspace:*
         version: link:../../packages/billing
+      '@deck-pack/brand-profiles':
+        specifier: workspace:*
+        version: link:../../packages/brand-profiles
       '@deck-pack/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -639,6 +642,34 @@ importers:
       '@deck-pack/errors':
         specifier: workspace:*
         version: link:../errors
+      drizzle-orm:
+        specifier: ^0.45.1
+        version: 0.45.2(@electric-sql/pglite@0.5.4)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(better-sqlite3@11.10.0)(kysely@0.28.16)(pg@8.20.0)
+      zod:
+        specifier: 'catalog:'
+        version: 4.3.6
+    devDependencies:
+      '@deck-pack/config':
+        specifier: workspace:*
+        version: link:../config
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.19.17
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+
+  packages/brand-profiles:
+    dependencies:
+      '@deck-pack/db':
+        specifier: workspace:*
+        version: link:../db
+      '@deck-pack/errors':
+        specifier: workspace:*
+        version: link:../errors
+      '@deck-pack/presentation-check':
+        specifier: workspace:*
+        version: link:../presentation-check
       drizzle-orm:
         specifier: ^0.45.1
         version: 0.45.2(@electric-sql/pglite@0.5.4)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(better-sqlite3@11.10.0)(kysely@0.28.16)(pg@8.20.0)

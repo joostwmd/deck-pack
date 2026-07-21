@@ -1,17 +1,13 @@
 import {
-  BRAND_PROFILE_SCHEMA_VERSION,
   brandProfileConfigurationSchema,
   brandProfileDetailSchema,
   brandProfileSummarySchema,
   normalizeBrandProfileConfiguration,
 } from "@deck-pack/presentation-check";
 
-import type { listBrandProfilesByUser } from "@deck-pack/db/queries/listBrandProfilesByUser";
-import type { getBrandProfileWithVersion } from "@deck-pack/db/queries/getBrandProfileWithVersion";
+import type { BrandProfileListRow, BrandProfileWithVersion } from "./domain/brand-profile";
 
-export function mapBrandProfileSummary(
-  row: Awaited<ReturnType<typeof listBrandProfilesByUser>>[number],
-) {
+export function mapBrandProfileSummary(row: BrandProfileListRow) {
   return brandProfileSummarySchema.parse({
     id: row.id,
     name: row.name,
@@ -21,18 +17,14 @@ export function mapBrandProfileSummary(
     versionNumber: row.versionNumber,
     schemaVersion: row.schemaVersion,
     configuration: row.configuration
-      ? normalizeBrandProfileConfiguration(
-          brandProfileConfigurationSchema.parse(row.configuration),
-        )
+      ? normalizeBrandProfileConfiguration(brandProfileConfigurationSchema.parse(row.configuration))
       : null,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   });
 }
 
-export function mapBrandProfileDetail(loaded: NonNullable<
-  Awaited<ReturnType<typeof getBrandProfileWithVersion>>
->) {
+export function mapBrandProfileDetail(loaded: BrandProfileWithVersion) {
   return brandProfileDetailSchema.parse({
     id: loaded.profile.id,
     name: loaded.profile.name,
@@ -54,5 +46,3 @@ export function mapBrandProfileDetail(loaded: NonNullable<
       : null,
   });
 }
-
-export { BRAND_PROFILE_SCHEMA_VERSION };

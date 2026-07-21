@@ -1,21 +1,11 @@
 import { BrandfetchClient } from "@deck-pack/integrations/brandfetch";
-import { archiveBrandProfile } from "@deck-pack/db/queries/archiveBrandProfile";
-import {
-  createBrandProfile,
-  duplicateBrandProfile,
-} from "@deck-pack/db/queries/createBrandProfile";
-import { createBrandProfileVersion } from "@deck-pack/db/queries/createBrandProfileVersion";
 import { deleteAllShortcutOverrides } from "@deck-pack/db/queries/deleteAllShortcutOverrides";
 import { deleteShortcutOverride } from "@deck-pack/db/queries/deleteShortcutOverride";
 import { getAgendaInstance } from "@deck-pack/db/queries/getAgendaInstance";
-import { getBrandProfileWithVersion } from "@deck-pack/db/queries/getBrandProfileWithVersion";
 import { insertAssetInsertion } from "@deck-pack/db/queries/insertAssetInsertion";
 import { assertInsertAllowed } from "@deck-pack/db/queries/usage-entitlements";
 import { listAllShortcutOverridesByUser } from "@deck-pack/db/queries/listShortcutOverridesByUser";
-import { listBrandProfilesByUser } from "@deck-pack/db/queries/listBrandProfilesByUser";
-import { setDefaultBrandProfile } from "@deck-pack/db/queries/setDefaultBrandProfile";
 import { syncAgenda } from "@deck-pack/db/queries/syncAgenda";
-import { updateBrandProfileMetadata } from "@deck-pack/db/queries/updateBrandProfileMetadata";
 import { upsertShortcutOverride } from "@deck-pack/db/queries/upsertShortcutOverride";
 import { NounProjectClient } from "@deck-pack/integrations/noun-project";
 import { PexelsClient } from "@deck-pack/integrations/pexels";
@@ -24,8 +14,6 @@ import { createAddinRoutes } from "../domains/addin/routes";
 import { createAddinService } from "../domains/addin/service";
 import { createAgendaRoutes } from "../domains/agenda/routes";
 import { createAgendaService } from "../domains/agenda/service";
-import { createBrandProfileRoutes } from "../domains/brand-profiles/routes";
-import { createBrandProfileService } from "../domains/brand-profiles/service";
 import { createFlagRoutes } from "../domains/flags/routes";
 import { createFlagService } from "../domains/flags/service";
 import { createIconRoutes } from "../domains/icons/routes";
@@ -33,6 +21,7 @@ import { createIconService } from "../domains/icons/service";
 import { createLogoRoutes } from "../domains/logos/routes";
 import { createLogoService } from "../domains/logos/service";
 import { billingRouter } from "../routers/billing-router";
+import { brandProfilesRouter } from "../routers/brand-profiles-router";
 import { galleryRouter } from "../routers/gallery-router";
 import { membersRouter } from "../routers/members-router";
 import { organizationRouter } from "../routers/organization-router";
@@ -96,17 +85,6 @@ export function createAppRouter(deps: AddinRouterDeps, container: AppContainer) 
     getAgendaInstance,
   });
 
-  const brandProfileService = createBrandProfileService({
-    listBrandProfilesByUser,
-    getBrandProfileWithVersion,
-    createBrandProfile,
-    createBrandProfileVersion,
-    updateBrandProfileMetadata,
-    duplicateBrandProfile,
-    setDefaultBrandProfile,
-    archiveBrandProfile,
-  });
-
   const shortcutService = createShortcutService({
     listAllShortcutOverridesByUser,
     upsertShortcutOverride,
@@ -133,7 +111,7 @@ export function createAppRouter(deps: AddinRouterDeps, container: AppContainer) 
     }),
     addin: router(createAddinRoutes(addinService)),
     agenda: router(createAgendaRoutes(agendaService)),
-    brandProfiles: router(createBrandProfileRoutes(brandProfileService)),
+    brandProfiles: brandProfilesRouter(container),
     shortcuts: router(createShortcutRoutes(shortcutService)),
   });
 }

@@ -3,6 +3,9 @@ import { env } from "@deck-pack/env/server";
 import type { BillingRepository } from "@deck-pack/billing";
 import { InMemoryBillingRepository } from "@deck-pack/billing/repositories/in-memory-billing-repository";
 import { DrizzleBillingRepository } from "@deck-pack/billing/repositories/billing-repository";
+import type { BrandProfilesRepository } from "@deck-pack/brand-profiles";
+import { InMemoryBrandProfilesRepository } from "@deck-pack/brand-profiles/repositories/in-memory-brand-profiles-repository";
+import { DrizzleBrandProfilesRepository } from "@deck-pack/brand-profiles/repositories/brand-profiles-repository";
 import type { GalleryRepository } from "@deck-pack/gallery";
 import { InMemoryGalleryRepository } from "@deck-pack/gallery/repositories/in-memory-gallery-repository";
 import { DrizzleGalleryRepository } from "@deck-pack/gallery/repositories/gallery-repository";
@@ -44,6 +47,7 @@ export type AppContainerOverrides = Partial<{
   billingRepository: BillingRepository;
   usageRepository: UsageRepository;
   galleryRepository: GalleryRepository;
+  brandProfilesRepository: BrandProfilesRepository;
   objectStorage: ObjectStorage;
   brandfetchClient: BrandfetchClient;
   nounProjectClient: NounProjectClient;
@@ -104,6 +108,7 @@ export class AppContainer {
     public readonly billingRepository: BillingRepository,
     public readonly usageRepository: UsageRepository,
     public readonly galleryRepository: GalleryRepository,
+    public readonly brandProfilesRepository: BrandProfilesRepository,
     public readonly objectStorage: ObjectStorage,
     public readonly brandfetchClient: BrandfetchClient,
     public readonly nounProjectClient: NounProjectClient,
@@ -122,6 +127,7 @@ export class AppContainer {
       new DrizzleBillingRepository(unitOfWork),
       new DrizzleUsageRepository(unitOfWork),
       new DrizzleGalleryRepository(unitOfWork),
+      new DrizzleBrandProfilesRepository(unitOfWork),
       storage,
       new BrandfetchClient({
         apiKey: env.BRANDFETCH_API_KEY,
@@ -147,6 +153,7 @@ export class AppContainer {
       new DrizzleBillingRepository(uow),
       new DrizzleUsageRepository(uow),
       new DrizzleGalleryRepository(uow),
+      new DrizzleBrandProfilesRepository(uow),
       createMemoryObjectStorage(),
       emptyBrandfetchClient,
       emptyNounProjectClient,
@@ -166,6 +173,7 @@ export class AppContainer {
       overrides.billingRepository ?? new InMemoryBillingRepository(),
       overrides.usageRepository ?? new InMemoryUsageRepository(),
       overrides.galleryRepository ?? new InMemoryGalleryRepository(),
+      overrides.brandProfilesRepository ?? new InMemoryBrandProfilesRepository(),
       overrides.objectStorage ?? createMemoryObjectStorage(),
       overrides.brandfetchClient ?? emptyBrandfetchClient,
       overrides.nounProjectClient ?? emptyNounProjectClient,
