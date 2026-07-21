@@ -8,8 +8,8 @@ import {
   shortcutOverrideSchema,
 } from "@deck-pack/shortcuts";
 
-import { protectedProcedure } from "../../api/procedures";
-import { unwrapServiceResult } from "../../api/resilience/service-result";
+import { protectedProcedure } from "../../trpc/procedures";
+import { unwrapServiceResult } from "../../trpc/service-result";
 
 import type { ShortcutService } from "./service";
 
@@ -48,10 +48,8 @@ export function createShortcutRoutes(service: ShortcutService) {
         );
       }),
 
-    resetAll: protectedProcedure
-      .output(resetAllShortcutsOutputSchema)
-      .mutation(async ({ ctx }) => {
-        return unwrapServiceResult(await service.resetAll(ctx.tx, { userId: ctx.session!.user.id }));
-      }),
+    resetAll: protectedProcedure.output(resetAllShortcutsOutputSchema).mutation(async ({ ctx }) => {
+      return unwrapServiceResult(await service.resetAll(ctx.tx, { userId: ctx.session!.user.id }));
+    }),
   };
 }

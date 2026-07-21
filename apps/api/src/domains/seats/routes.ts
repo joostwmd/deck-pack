@@ -1,7 +1,7 @@
-import { teamWorkspaceProcedure } from "../../api/procedures";
-import { requirePermission } from "../../api/guards/authorization";
-import { requireActiveOrganizationId } from "../../api/guards/org-context";
-import { unwrapServiceResult } from "../../api/resilience/service-result";
+import { teamWorkspaceProcedure } from "../../trpc/procedures";
+import { requirePermission } from "../../trpc/guards/middleware/require-permission";
+import { requireActiveOrganizationId } from "../../trpc/guards/assertions/require-active-organization-id";
+import { unwrapServiceResult } from "../../trpc/service-result";
 
 import {
   assignSeatInputSchema,
@@ -12,9 +12,7 @@ import {
 import type { SeatsService } from "./service";
 import { z } from "zod";
 
-export const listSeatsProcedure = teamWorkspaceProcedure.use(
-  requirePermission({ seat: ["view"] }),
-);
+export const listSeatsProcedure = teamWorkspaceProcedure.use(requirePermission({ seat: ["view"] }));
 
 export const assignSeatProcedure = teamWorkspaceProcedure.use(
   requirePermission({ seat: ["assign"] }),
@@ -26,19 +24,15 @@ export const revokeSeatProcedure = teamWorkspaceProcedure.use(
 
 export function createSeatsRoutes(service: SeatsService) {
   return {
-    capacity: listSeatsProcedure
-      .output(seatCapacitySchema)
-      .query(async ({ ctx }) => {
-        const organizationId = requireActiveOrganizationId(ctx);
-        return unwrapServiceResult(await service.capacity(ctx.tx, organizationId));
-      }),
+    capacity: listSeatsProcedure.output(seatCapacitySchema).query(async ({ ctx }) => {
+      const organizationId = requireActiveOrganizationId(ctx);
+      return unwrapServiceResult(await service.capacity(ctx.tx, organizationId));
+    }),
 
-    list: listSeatsProcedure
-      .output(z.array(organizationSeatSchema))
-      .query(async ({ ctx }) => {
-        const organizationId = requireActiveOrganizationId(ctx);
-        return unwrapServiceResult(await service.list(ctx.tx, organizationId));
-      }),
+    list: listSeatsProcedure.output(z.array(organizationSeatSchema)).query(async ({ ctx }) => {
+      const organizationId = requireActiveOrganizationId(ctx);
+      return unwrapServiceResult(await service.list(ctx.tx, organizationId));
+    }),
 
     assign: assignSeatProcedure
       .input(assignSeatInputSchema)

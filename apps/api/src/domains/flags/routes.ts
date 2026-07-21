@@ -7,8 +7,8 @@ import {
   assetSearchQuerySchema,
   assetSearchResponseSchema,
 } from "../assets/schemas";
-import { protectedProcedure } from "../../api/procedures";
-import { discoveryOrganizationId } from "../../api/discovery-context";
+import { protectedProcedure } from "../../trpc/procedures";
+import { activeOrganizationIdFromSession } from "../../trpc/context";
 
 import type { FlagService } from "./service";
 
@@ -26,7 +26,7 @@ export function createFlagRoutes(flagService: FlagService) {
         try {
           return await flagService.search(ctx.tx, {
             query: input.query,
-            organizationId: discoveryOrganizationId(ctx),
+            organizationId: activeOrganizationIdFromSession(ctx),
             internalOnly: input.internalOnly,
           });
         } catch (error) {
@@ -46,7 +46,7 @@ export function createFlagRoutes(flagService: FlagService) {
           const flag = await flagService.getDetails(
             ctx.tx,
             input.externalId,
-            discoveryOrganizationId(ctx),
+            activeOrganizationIdFromSession(ctx),
           );
 
           if (!flag) {

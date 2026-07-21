@@ -2,7 +2,7 @@ import { TRPCError } from "@trpc/server";
 
 import { PexelsRateLimitError } from "@deck-pack/integrations/pexels";
 
-import { protectedProcedure } from "../../api/procedures";
+import { protectedProcedure } from "../../trpc/procedures";
 
 import { photoSearchInputSchema, photoSearchResponseSchema } from "./schemas";
 import type { PhotoService } from "./service";

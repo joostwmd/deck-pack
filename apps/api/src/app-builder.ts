@@ -5,14 +5,14 @@ import { Hono } from "hono";
 
 import { auth } from "@deck-pack/auth/server";
 
-import { createContext } from "./api/context";
-import type { Context } from "./api/context";
-import type { AppRouter } from "./api/router";
+import { createContext } from "./trpc/context";
+import type { Context } from "./trpc/context";
+import type { AppRouter } from "./trpc/router";
 import { initializeApitally } from "./lib/observability/apitally";
 import { captureRequestError } from "./lib/observability/sentry";
 import { apitallySessionConsumerMiddleware } from "./transport/apitally-consumer";
 import { sessionMiddleware } from "./transport/auth-session";
-import { registerErrorHandlers } from "./transport/error-handling";
+import { registerErrorHandlers } from "./transport/http-error-handler";
 import { registerHealthRoutes } from "./transport/health-checks";
 import { requestContextMiddleware } from "./transport/request-context";
 import { requestLoggingMiddleware } from "./transport/request-logging";

@@ -4,10 +4,10 @@ import {
   organizationMemberProcedure,
   protectedProcedure,
   teamWorkspaceProcedure,
-} from "../../api/procedures";
-import { requirePermission } from "../../api/guards/authorization";
-import { requireActiveOrganizationId } from "../../api/guards/org-context";
-import { unwrapServiceResult } from "../../api/resilience/service-result";
+} from "../../trpc/procedures";
+import { requirePermission } from "../../trpc/guards/middleware/require-permission";
+import { requireActiveOrganizationId } from "../../trpc/guards/assertions/require-active-organization-id";
+import { unwrapServiceResult } from "../../trpc/service-result";
 
 import {
   acceptInvitationInputSchema,

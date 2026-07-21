@@ -1,21 +1,15 @@
 import type { Transaction } from "@deck-pack/db/transaction";
 
-import { serviceFail, serviceOk, type ServiceResult } from "../../api/resilience/service-result";
+import { serviceFail, serviceOk, type ServiceResult } from "../../trpc/service-result";
 
 import type { createOrganizationSubscription } from "@deck-pack/db/queries/createOrganizationSubscription";
-import type {
-  createPlan,
-  CreatePlanInput,
-} from "@deck-pack/db/queries/createPlan";
+import type { createPlan, CreatePlanInput } from "@deck-pack/db/queries/createPlan";
 import type { getOrganizationSubscription } from "@deck-pack/db/queries/getOrganizationSubscription";
 import type { getPlan } from "@deck-pack/db/queries/getPlan";
 import type { listOrganizationSubscriptions } from "@deck-pack/db/queries/listOrganizationSubscriptions";
 import type { listPlans } from "@deck-pack/db/queries/listPlans";
 import type { updateOrganizationSubscription } from "@deck-pack/db/queries/updateOrganizationSubscription";
-import type {
-  updatePlan,
-  UpdatePlanInput,
-} from "@deck-pack/db/queries/updatePlan";
+import type { updatePlan, UpdatePlanInput } from "@deck-pack/db/queries/updatePlan";
 
 export type BillingServiceDeps = {
   listPlans: typeof listPlans;
@@ -129,10 +123,7 @@ export function createBillingService(deps: BillingServiceDeps) {
       return serviceOk(rows);
     },
 
-    getOrganizationSubscription: async (
-      tx: Transaction,
-      input: { subscriptionId: string },
-    ) => {
+    getOrganizationSubscription: async (tx: Transaction, input: { subscriptionId: string }) => {
       const row = await deps.getOrganizationSubscription({
         tx,
         subscriptionId: input.subscriptionId,

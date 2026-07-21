@@ -19,7 +19,7 @@ vi.hoisted(() => {
 });
 
 import { ApiAppBuilder } from "@deck-pack/api/app-builder";
-import { router, t } from "@deck-pack/api/api/setup";
+import { router, t } from "@deck-pack/api/trpc/init";
 import { trpcQuery } from "./test-utils/trpc-request";
 
 const testRouter = router({

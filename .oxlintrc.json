@@ -30,7 +30,7 @@
               },
               {
                 "name": "@trpc/server",
-                "message": "Use procedures from api/procedures; do not import tRPC helpers in routes."
+                "message": "Use procedures from trpc/procedures; do not import tRPC helpers in routes."
               }
             ],
             "patterns": [
@@ -64,7 +64,7 @@
       }
     },
     {
-      "files": ["apps/api/src/api/guards/**", "apps/api/src/trpc/guards/**"],
+      "files": ["apps/api/src/trpc/guards/**"],
       "rules": {
         "no-restricted-imports": [
           "error",
@@ -110,7 +110,13 @@
       }
     },
     {
-      "files": ["apps/api/src/trpc/**"],
+      "files": [
+        "apps/api/src/trpc/init.ts",
+        "apps/api/src/trpc/context.ts",
+        "apps/api/src/trpc/error-mapping.ts",
+        "apps/api/src/trpc/procedures.ts",
+        "apps/api/src/trpc/service-result.ts"
+      ],
       "rules": {
         "no-restricted-imports": [
           "error",

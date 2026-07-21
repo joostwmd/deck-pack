@@ -1,5 +1,5 @@
-import { protectedProcedure } from "../../api/procedures";
-import { unwrapServiceResult } from "../../api/resilience/service-result";
+import { protectedProcedure } from "../../trpc/procedures";
+import { unwrapServiceResult } from "../../trpc/service-result";
 
 import {
   getAgendaInputSchema,

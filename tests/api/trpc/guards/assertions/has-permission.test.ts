@@ -20,7 +20,7 @@ vi.mock("@deck-pack/auth/permissions", async (importOriginal) => {
 });
 
 import { assertHasPermission } from "@deck-pack/auth/permissions";
-import { hasPermission } from "@deck-pack/api/api/guards/authorization";
+import { hasPermission } from "@deck-pack/api/trpc/guards/assertions/has-permission";
 
 describe("hasPermission", () => {
   beforeEach(() => {

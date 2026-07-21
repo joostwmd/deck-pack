@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import type { SessionPayload } from "@deck-pack/api/types";
 
-import { requireAuthenticatedSession } from "@deck-pack/api/api/guards/authentication";
+import { assertAuthenticatedSession } from "@deck-pack/api/trpc/guards/middleware/require-authenticated-session";
 
 function minimalPayload(userPresent: boolean): SessionPayload {
   const base = {
@@ -13,11 +13,11 @@ function minimalPayload(userPresent: boolean): SessionPayload {
   return base as unknown as SessionPayload;
 }
 
-describe("requireAuthenticatedSession", () => {
+describe("assertAuthenticatedSession", () => {
   it("throws UNAUTHORIZED when signed out", () => {
-    expect(() => requireAuthenticatedSession(null)).toThrow(TRPCError);
+    expect(() => assertAuthenticatedSession(null)).toThrow(TRPCError);
     try {
-      requireAuthenticatedSession(null);
+      assertAuthenticatedSession(null);
     } catch (e) {
       expect(e).toBeInstanceOf(TRPCError);
       expect((e as TRPCError).code).toBe("UNAUTHORIZED");
@@ -25,12 +25,12 @@ describe("requireAuthenticatedSession", () => {
   });
 
   it("throws when user missing on payload", () => {
-    expect(() => requireAuthenticatedSession(minimalPayload(false))).toThrow(TRPCError);
+    expect(() => assertAuthenticatedSession(minimalPayload(false))).toThrow(TRPCError);
   });
 
   it("returns session when user present", () => {
     const s = minimalPayload(true);
-    const out = requireAuthenticatedSession(s);
+    const out = assertAuthenticatedSession(s);
     expect(out.user.id).toBe("u1");
   });
 });

@@ -1,6 +1,6 @@
 import type { Transaction } from "@deck-pack/db/transaction";
 
-import { serviceFail, serviceOk, type ServiceResult } from "../../api/resilience/service-result";
+import { serviceFail, serviceOk, type ServiceResult } from "../../trpc/service-result";
 
 import type { addOrganizationMember } from "@deck-pack/db/queries/addOrganizationMember";
 import type { assignOrganizationSeat } from "@deck-pack/db/queries/assignOrganizationSeat";

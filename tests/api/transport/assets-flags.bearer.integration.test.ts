@@ -1,4 +1,4 @@
-import { createAppRouter } from "@deck-pack/api/api/router";
+import { createAppRouter } from "@deck-pack/api/trpc/router";
 import { createApp } from "@deck-pack/api/server";
 import { createDb } from "@deck-pack/db";
 import { session, user } from "@deck-pack/db/schema/auth";

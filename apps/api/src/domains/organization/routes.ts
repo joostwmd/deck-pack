@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 import { ORGANIZATION_TYPES } from "@deck-pack/db/org-metadata";
-import { platformAdminProcedure } from "../../api/procedures";
-import { unwrapServiceResult } from "../../api/resilience/service-result";
+import { platformAdminProcedure } from "../../trpc/procedures";
+import { unwrapServiceResult } from "../../trpc/service-result";
 
 import {
   organizationEmailSchema as emailSchema,

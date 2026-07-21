@@ -1,4 +1,4 @@
-import { createAppRouter } from "@deck-pack/api/api/router";
+import { createAppRouter } from "@deck-pack/api/trpc/router";
 import { createApp } from "@deck-pack/api/server";
 import { createDb } from "@deck-pack/db";
 import { session, user } from "@deck-pack/db/schema/auth";
@@ -10,10 +10,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { createMemoryObjectStorage } from "@deck-pack/storage";
 
 import { createSignedSessionFixture } from "../test-utils/create-signed-session-fixture";
-import {
-  seedReadyShape,
-  seedReadySlide,
-} from "../test-utils/seed-ready-library-fixture";
+import { seedReadyShape, seedReadySlide } from "../test-utils/seed-ready-library-fixture";
 import { trpcQuery } from "../test-utils/trpc-request";
 
 describe("assets slides and shapes bearer transport", () => {

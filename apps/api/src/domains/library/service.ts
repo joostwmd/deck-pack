@@ -25,7 +25,7 @@ import {
   type ObjectStorage,
 } from "@deck-pack/storage";
 
-import { serviceFail, serviceOk, type ServiceResult } from "../../api/resilience/service-result";
+import { serviceFail, serviceOk, type ServiceResult } from "../../trpc/service-result";
 
 import { uploadTargetForClient } from "./upload-target-for-client";
 

@@ -4,7 +4,7 @@ import type {
 } from "@deck-pack/integrations/noun-project";
 
 import type { AssetDetailsResponse, AssetSearchResponse } from "../assets/types";
-import { capitalize } from "../../lib/strings";
+import { capitalize } from "../../utils/strings";
 
 export function mapIconSearchResponse(response: NounProjectSearchResponse): AssetSearchResponse {
   return {

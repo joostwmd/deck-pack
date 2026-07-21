@@ -6,7 +6,7 @@ import type {
 } from "@deck-pack/integrations/brandfetch";
 
 import type { AssetDetailsResponse, AssetSearchResponse } from "../assets/types";
-import { capitalize } from "../../lib/strings";
+import { capitalize } from "../../utils/strings";
 
 const FORMAT_PREFERENCE = ["svg", "png", "webp", "jpeg"] as const;
 

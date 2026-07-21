@@ -107,7 +107,7 @@ import {
 } from "@deck-pack/storage";
 import { env } from "@deck-pack/env/server";
 
-import { router } from "./setup";
+import { router } from "./init";
 
 export type AddinRouterDeps = {
   brandfetchApiKey: string;

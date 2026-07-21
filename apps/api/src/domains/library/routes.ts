@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-import { platformAdminProcedure } from "../../api/procedures";
-import { unwrapServiceResult } from "../../api/resilience/service-result";
+import { platformAdminProcedure } from "../../trpc/procedures";
+import { unwrapServiceResult } from "../../trpc/service-result";
 
 import {
   libraryAssetClassSchema,
@@ -99,7 +99,11 @@ export function createLibraryRoutes(service: LibraryService) {
           id: z.string().trim().min(1),
           role: libraryUploadRoleSchema,
           contentType: z.string().trim().min(1).max(256),
-          byteSize: z.number().int().positive().max(100 * 1024 * 1024),
+          byteSize: z
+            .number()
+            .int()
+            .positive()
+            .max(100 * 1024 * 1024),
         }),
       )
       .output(uploadTargetSchema)

@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 
-import { protectedProcedure } from "../../api/procedures";
-import { discoveryOrganizationId } from "../../api/discovery-context";
+import { protectedProcedure } from "../../trpc/procedures";
+import { activeOrganizationIdFromSession } from "../../trpc/context";
 
 import { shapeSearchInputSchema, shapeSearchResponseSchema } from "./schemas";
 import type { ShapeService } from "./service";
@@ -15,7 +15,7 @@ export function createShapeRoutes(shapeService: ShapeService) {
         try {
           return await shapeService.search(ctx.tx, {
             ...input,
-            organizationId: discoveryOrganizationId(ctx),
+            organizationId: activeOrganizationIdFromSession(ctx),
           });
         } catch (error) {
           console.error("Shape search error:", error);

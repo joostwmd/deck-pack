@@ -2,7 +2,7 @@ import type { insertAssetInsertion } from "@deck-pack/db/queries/insertAssetInse
 import type { assertInsertAllowed } from "@deck-pack/db/queries/usage-entitlements";
 import type { Transaction } from "@deck-pack/db/transaction";
 
-import { serviceFail, serviceOk, type ServiceResult } from "../../api/resilience/service-result";
+import { serviceFail, serviceOk, type ServiceResult } from "../../trpc/service-result";
 
 export type AddinServiceDeps = {
   insertAssetInsertion: typeof insertAssetInsertion;

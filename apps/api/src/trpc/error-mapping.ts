@@ -1,7 +1,7 @@
 import { AppError } from "@deck-pack/errors";
 import { TRPCError } from "@trpc/server";
 
-import { middleware } from "../setup";
+import { middleware } from "./init";
 
 function appErrorToTrpcCode(error: AppError): TRPCError["code"] {
   switch (error.httpStatus) {

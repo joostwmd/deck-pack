@@ -1,6 +1,6 @@
 import type { Transaction } from "@deck-pack/db/transaction";
 
-import { serviceFail, serviceOk, type ServiceResult } from "../../api/resilience/service-result";
+import { serviceFail, serviceOk, type ServiceResult } from "../../trpc/service-result";
 
 import type { deleteUser } from "@deck-pack/db/queries/deleteUser";
 import type { listUsersWithMembership } from "@deck-pack/db/queries/listUsersWithMembership";

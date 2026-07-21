@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-import { platformAdminProcedure } from "../../api/procedures";
-import { unwrapServiceResult } from "../../api/resilience/service-result";
+import { platformAdminProcedure } from "../../trpc/procedures";
+import { unwrapServiceResult } from "../../trpc/service-result";
 
 import {
   organizationSubscriptionSchema,

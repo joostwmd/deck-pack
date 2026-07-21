@@ -28,3 +28,8 @@ export async function createContext({ context }: CreateContextOptions): Promise<
     tx,
   };
 }
+
+/** Active organization id from the session, or null when unset (discovery/asset browse). */
+export function activeOrganizationIdFromSession(ctx: Context): string | null {
+  return ctx.session?.session?.activeOrganizationId ?? null;
+}

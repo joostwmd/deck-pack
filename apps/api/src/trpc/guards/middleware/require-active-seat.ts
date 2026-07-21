@@ -1,17 +1,21 @@
 import { TRPCError } from "@trpc/server";
 
-import type { Transaction } from "@deck-pack/db/transaction";
 import { hasActiveSeat } from "@deck-pack/db/queries/activateOrganizationSeat";
 import { isOrganizationMember } from "@deck-pack/db/queries/isOrganizationMember";
 
-export async function assertActiveSeat(
-  tx: Transaction,
-  input: { organizationId: string; userId: string },
-): Promise<void> {
+import type { Context } from "../../context";
+import { middleware } from "../../init";
+import { requireActiveOrganizationId } from "../assertions/require-active-organization-id";
+
+/** Requires the caller to hold an active add-in seat in the current organization. */
+export const requireActiveSeat = middleware<Context>(async ({ ctx, next }) => {
+  const organizationId = requireActiveOrganizationId(ctx);
+  const userId = ctx.session!.user.id;
+
   const isMember = await isOrganizationMember({
-    tx,
-    userId: input.userId,
-    organizationId: input.organizationId,
+    tx: ctx.tx,
+    userId,
+    organizationId,
   });
 
   if (!isMember) {
@@ -22,9 +26,9 @@ export async function assertActiveSeat(
   }
 
   const seated = await hasActiveSeat({
-    tx,
-    organizationId: input.organizationId,
-    userId: input.userId,
+    tx: ctx.tx,
+    organizationId,
+    userId,
   });
 
   if (!seated) {
@@ -33,4 +37,6 @@ export async function assertActiveSeat(
       message: "An active add-in seat is required for this operation",
     });
   }
-}
+
+  return next({ ctx });
+});

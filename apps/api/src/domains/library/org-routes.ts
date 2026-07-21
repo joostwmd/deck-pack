@@ -1,9 +1,9 @@
 import { z } from "zod";
 
-import { teamWorkspaceProcedure } from "../../api/procedures";
-import { requirePermission } from "../../api/guards/authorization";
-import { requireActiveOrganizationId } from "../../api/guards/org-context";
-import { unwrapServiceResult } from "../../api/resilience/service-result";
+import { teamWorkspaceProcedure } from "../../trpc/procedures";
+import { requirePermission } from "../../trpc/guards/middleware/require-permission";
+import { requireActiveOrganizationId } from "../../trpc/guards/assertions/require-active-organization-id";
+import { unwrapServiceResult } from "../../trpc/service-result";
 
 import {
   libraryAssetClassSchema,
@@ -44,9 +44,7 @@ export function createOrgLibraryRoutes(service: OrgLibraryService) {
       .output(z.array(libraryListItemSchema))
       .query(async ({ ctx, input }) => {
         const organizationId = requireActiveOrganizationId(ctx);
-        return unwrapServiceResult(
-          await service.list(ctx.tx, { organizationId, ...input }),
-        );
+        return unwrapServiceResult(await service.list(ctx.tx, { organizationId, ...input }));
       }),
 
     get: orgLibraryReadProcedure
@@ -54,9 +52,7 @@ export function createOrgLibraryRoutes(service: OrgLibraryService) {
       .output(libraryItemDetailSchema)
       .query(async ({ ctx, input }) => {
         const organizationId = requireActiveOrganizationId(ctx);
-        return unwrapServiceResult(
-          await service.get(ctx.tx, { organizationId, id: input.id }),
-        );
+        return unwrapServiceResult(await service.get(ctx.tx, { organizationId, id: input.id }));
       }),
 
     create: orgLibraryCreateProcedure
@@ -96,9 +92,7 @@ export function createOrgLibraryRoutes(service: OrgLibraryService) {
       .output(libraryItemDetailSchema)
       .mutation(async ({ ctx, input }) => {
         const organizationId = requireActiveOrganizationId(ctx);
-        return unwrapServiceResult(
-          await service.update(ctx.tx, { organizationId, ...input }),
-        );
+        return unwrapServiceResult(await service.update(ctx.tx, { organizationId, ...input }));
       }),
 
     publish: orgLibraryUpdateProcedure
@@ -106,9 +100,7 @@ export function createOrgLibraryRoutes(service: OrgLibraryService) {
       .output(libraryItemDetailSchema)
       .mutation(async ({ ctx, input }) => {
         const organizationId = requireActiveOrganizationId(ctx);
-        return unwrapServiceResult(
-          await service.publish(ctx.tx, { organizationId, id: input.id }),
-        );
+        return unwrapServiceResult(await service.publish(ctx.tx, { organizationId, id: input.id }));
       }),
 
     unpublish: orgLibraryUpdateProcedure
@@ -126,9 +118,7 @@ export function createOrgLibraryRoutes(service: OrgLibraryService) {
       .output(libraryItemDetailSchema)
       .mutation(async ({ ctx, input }) => {
         const organizationId = requireActiveOrganizationId(ctx);
-        return unwrapServiceResult(
-          await service.archive(ctx.tx, { organizationId, id: input.id }),
-        );
+        return unwrapServiceResult(await service.archive(ctx.tx, { organizationId, id: input.id }));
       }),
 
     createUploadTarget: orgLibraryCreateProcedure
@@ -137,7 +127,11 @@ export function createOrgLibraryRoutes(service: OrgLibraryService) {
           id: z.string().trim().min(1),
           role: libraryUploadRoleSchema,
           contentType: z.string().trim().min(1).max(256),
-          byteSize: z.number().int().positive().max(100 * 1024 * 1024),
+          byteSize: z
+            .number()
+            .int()
+            .positive()
+            .max(100 * 1024 * 1024),
         }),
       )
       .output(uploadTargetSchema)

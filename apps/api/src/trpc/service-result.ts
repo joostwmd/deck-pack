@@ -1,5 +1,9 @@
 import { TRPCError } from "@trpc/server";
 
+/**
+ * @deprecated Prefer throwing `AppError` subclasses from `@deck-pack/errors`.
+ * Migrated per-domain in Phase 3+.
+ */
 export type ServiceErrorCode =
   | "not_found"
   | "conflict"

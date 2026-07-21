@@ -4,7 +4,7 @@ import { Hono } from "hono";
 import { env } from "@deck-pack/env/server";
 
 import { ApiAppBuilder } from "./app-builder";
-import { createAppRouter, type AppRouter } from "./api/router";
+import { createAppRouter, type AppRouter } from "./trpc/router";
 import { AppContainer } from "./container";
 import type { AppEnv } from "./types";
 

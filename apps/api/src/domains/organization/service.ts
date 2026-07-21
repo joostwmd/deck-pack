@@ -1,10 +1,7 @@
 import type { Transaction } from "@deck-pack/db/transaction";
-import {
-  serializeOrganizationMetadata,
-  type OrganizationType,
-} from "@deck-pack/db/org-metadata";
+import { serializeOrganizationMetadata, type OrganizationType } from "@deck-pack/db/org-metadata";
 
-import { serviceFail, serviceOk, type ServiceResult } from "../../api/resilience/service-result";
+import { serviceFail, serviceOk, type ServiceResult } from "../../trpc/service-result";
 
 import type { createOrganizationWithOwner } from "@deck-pack/db/queries/createOrganizationWithOwner";
 import type { deleteOrganization } from "@deck-pack/db/queries/deleteOrganization";
@@ -31,8 +28,7 @@ export function createOrganizationService(deps: OrganizationServiceDeps) {
       input: { email: string },
     ): Promise<
       ServiceResult<
-        | { found: true; name: string; email: string; hasOrg: boolean }
-        | { found: false }
+        { found: true; name: string; email: string; hasOrg: boolean } | { found: false }
       >
     > => {
       const row = await deps.findUserByEmail({ tx, email: input.email });

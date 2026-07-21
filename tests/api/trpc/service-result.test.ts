@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { describe, expect, it } from "vitest";
 
-import { serviceFail, serviceOk, toTrpcError } from "@deck-pack/api/api/resilience/service-result";
+import { serviceFail, serviceOk, toTrpcError } from "@deck-pack/api/trpc/service-result";
 
 describe("service-result", () => {
   it("serviceOk wraps data", () => {

@@ -1,6 +1,6 @@
-import { requireActiveOrganizationId } from "../../api/guards/org-context";
-import { addinLicensedProcedure } from "../../api/procedures";
-import { unwrapServiceResult } from "../../api/resilience/service-result";
+import { requireActiveOrganizationId } from "../../trpc/guards/assertions/require-active-organization-id";
+import { addinLicensedProcedure } from "../../trpc/procedures";
+import { unwrapServiceResult } from "../../trpc/service-result";
 
 import { trackAssetInsertionInputSchema, trackAssetInsertionOutputSchema } from "./schemas";
 import type { AddinService } from "./service";

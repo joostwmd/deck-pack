@@ -5,7 +5,7 @@ import {
 } from "@deck-pack/presentation-check";
 import type { Transaction } from "@deck-pack/db/transaction";
 
-import { serviceFail, serviceOk, type ServiceResult } from "../../api/resilience/service-result";
+import { serviceFail, serviceOk, type ServiceResult } from "../../trpc/service-result";
 
 import type { archiveBrandProfile } from "@deck-pack/db/queries/archiveBrandProfile";
 import type {

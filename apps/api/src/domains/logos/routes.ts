@@ -7,7 +7,7 @@ import {
   assetSearchQuerySchema,
   assetSearchResponseSchema,
 } from "../assets/schemas";
-import { protectedProcedure } from "../../api/procedures";
+import { protectedProcedure } from "../../trpc/procedures";
 
 import type { LogoService } from "./service";
 

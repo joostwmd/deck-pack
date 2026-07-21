@@ -1,7 +1,7 @@
 import { buildAnalyticsMetadata } from "@deck-pack/agenda";
 import type { Transaction } from "@deck-pack/db/transaction";
 
-import { serviceFail, serviceOk, type ServiceResult } from "../../api/resilience/service-result";
+import { serviceFail, serviceOk, type ServiceResult } from "../../trpc/service-result";
 
 import type { getAgendaInstance } from "@deck-pack/db/queries/getAgendaInstance";
 import type { syncAgenda, SyncAgendaInput } from "@deck-pack/db/queries/syncAgenda";
@@ -67,10 +67,7 @@ export function createAgendaService(deps: AgendaServiceDeps) {
       });
     },
 
-    getForUser: async (
-      tx: Transaction,
-      input: { userId: string; documentAgendaId: string },
-    ) => {
+    getForUser: async (tx: Transaction, input: { userId: string; documentAgendaId: string }) => {
       const instance = await deps.getAgendaInstance({
         tx,
         userId: input.userId,

@@ -4,7 +4,7 @@ import { BrandfetchClient } from "@deck-pack/integrations/brandfetch";
 import { NounProjectClient } from "@deck-pack/integrations/noun-project";
 import { PexelsClient } from "@deck-pack/integrations/pexels";
 
-import type { AddinRouterDeps } from "./api/router";
+import type { AddinRouterDeps } from "./trpc/router";
 
 export type AppContainerOverrides = Partial<{
   unitOfWork: UnitOfWork;

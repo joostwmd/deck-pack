@@ -6,8 +6,8 @@ import {
   brandProfileSummarySchema,
 } from "@deck-pack/presentation-check";
 
-import { protectedProcedure } from "../../api/procedures";
-import { unwrapServiceResult } from "../../api/resilience/service-result";
+import { protectedProcedure } from "../../trpc/procedures";
+import { unwrapServiceResult } from "../../trpc/service-result";
 
 import { BRAND_PROFILE_SCHEMA_VERSION } from "./mappers";
 import type { BrandProfileService } from "./service";
@@ -16,11 +16,9 @@ const profileIdSchema = z.object({ profileId: z.string().uuid() });
 
 export function createBrandProfileRoutes(service: BrandProfileService) {
   return {
-    list: protectedProcedure
-      .output(z.array(brandProfileSummarySchema))
-      .query(async ({ ctx }) => {
-        return unwrapServiceResult(await service.list(ctx.tx, { userId: ctx.session!.user.id }));
-      }),
+    list: protectedProcedure.output(z.array(brandProfileSummarySchema)).query(async ({ ctx }) => {
+      return unwrapServiceResult(await service.list(ctx.tx, { userId: ctx.session!.user.id }));
+    }),
 
     get: protectedProcedure
       .input(profileIdSchema.extend({ versionId: z.string().uuid().optional() }))

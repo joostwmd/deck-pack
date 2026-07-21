@@ -10,7 +10,7 @@ import {
 } from "@deck-pack/shortcuts";
 import type { Transaction } from "@deck-pack/db/transaction";
 
-import { serviceFail, serviceOk } from "../../api/resilience/service-result";
+import { serviceFail, serviceOk } from "../../trpc/service-result";
 
 import type { deleteAllShortcutOverrides } from "@deck-pack/db/queries/deleteAllShortcutOverrides";
 import type { deleteShortcutOverride } from "@deck-pack/db/queries/deleteShortcutOverride";

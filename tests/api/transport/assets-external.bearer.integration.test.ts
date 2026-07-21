@@ -4,7 +4,7 @@ import { session, user } from "@deck-pack/db/schema/auth";
 import { eq } from "drizzle-orm";
 import { afterAll, describe, expect, it, vi } from "vitest";
 
-import { createAppRouter } from "@deck-pack/api/api/router";
+import { createAppRouter } from "@deck-pack/api/trpc/router";
 import { createSignedSessionFixture } from "../test-utils/create-signed-session-fixture";
 import { trpcQuery } from "../test-utils/trpc-request";
 import { createApp } from "@deck-pack/api/server";
@@ -32,8 +32,7 @@ const samplePhoto = {
       "https://images.pexels.com/photos/2014422/pexels-photo-2014422.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=1200&w=800",
     landscape:
       "https://images.pexels.com/photos/2014422/pexels-photo-2014422.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200",
-    tiny:
-      "https://images.pexels.com/photos/2014422/pexels-photo-2014422.jpeg?auto=compress&cs=tinysrgb&dpr=1&fit=crop&h=200&w=280",
+    tiny: "https://images.pexels.com/photos/2014422/pexels-photo-2014422.jpeg?auto=compress&cs=tinysrgb&dpr=1&fit=crop&h=200&w=280",
   },
   alt: "Brown Rocks During Golden Hour",
 };

@@ -1,5 +1,5 @@
 import type { AssetDetailsResponse, AssetSearchResponse } from "../assets/types";
-import { capitalize } from "../../lib/strings";
+import { capitalize } from "../../utils/strings";
 
 import type { FlagDetailsResponse, FlagSearchResult } from "./types";
 

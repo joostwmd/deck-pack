@@ -11,7 +11,7 @@ import type {
 import type { getActiveOrganizationSubscriptionByOrgId } from "@deck-pack/db/queries/getActiveOrganizationSubscriptionByOrgId";
 import type { Transaction } from "@deck-pack/db/transaction";
 
-import { serviceFail, serviceOk, type ServiceResult } from "../../api/resilience/service-result";
+import { serviceFail, serviceOk, type ServiceResult } from "../../trpc/service-result";
 
 export type UsageServiceDeps = {
   getActiveOrganizationSubscriptionByOrgId: typeof getActiveOrganizationSubscriptionByOrgId;

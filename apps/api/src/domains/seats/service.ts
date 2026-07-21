@@ -1,6 +1,6 @@
 import type { Transaction } from "@deck-pack/db/transaction";
 
-import { serviceFail, serviceOk, type ServiceResult } from "../../api/resilience/service-result";
+import { serviceFail, serviceOk, type ServiceResult } from "../../trpc/service-result";
 
 import type { assignOrganizationSeat } from "@deck-pack/db/queries/assignOrganizationSeat";
 import type { countAssignedSeats } from "@deck-pack/db/queries/countAssignedSeats";
@@ -25,9 +25,7 @@ export function createSeatsService(deps: SeatsServiceDeps) {
     capacity: async (
       tx: Transaction,
       organizationId: string,
-    ): Promise<
-      ServiceResult<{ purchased: number; used: number; remaining: number }>
-    > => {
+    ): Promise<ServiceResult<{ purchased: number; used: number; remaining: number }>> => {
       const subscription = await deps.getActiveOrganizationSubscriptionByOrgId({
         tx,
         organizationId,
@@ -102,10 +100,7 @@ export function createSeatsService(deps: SeatsServiceDeps) {
       return serviceOk(result);
     },
 
-    revoke: async (
-      tx: Transaction,
-      input: { organizationId: string; seatId: string },
-    ) => {
+    revoke: async (tx: Transaction, input: { organizationId: string; seatId: string }) => {
       const result = await deps.revokeOrganizationSeat({
         tx,
         seatId: input.seatId,

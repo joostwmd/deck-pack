@@ -2,7 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { describe, expect, it } from "vitest";
 
 import { ConflictError, ForbiddenError, InvalidStateError, NotFoundError } from "@deck-pack/errors";
-import { normalizeProcedureError } from "@deck-pack/api/api/resilience/error-mapping";
+import { normalizeProcedureError } from "@deck-pack/api/trpc/error-mapping";
 
 describe("normalizeProcedureError", () => {
   it("preserves TRPCError instances", () => {
