@@ -1,23 +1,22 @@
 import { PortalPageShell } from "@/components/portal-page-shell";
+import { OrgUsageDashboardSection } from "@/features/usage/org-usage-dashboard-section";
 
 export type OrgDashboardViewProps = {
   activeOrganizationId: string;
   userName?: string | null;
-  apiMessage?: string;
 };
 
-export function OrgDashboardView({
-  activeOrganizationId,
-  userName,
-  apiMessage,
-}: OrgDashboardViewProps) {
+export function OrgDashboardView({ activeOrganizationId, userName }: OrgDashboardViewProps) {
   return (
     <PortalPageShell
-      title="Org dashboard"
-      description={`Organization: ${activeOrganizationId}`}
+      title="Dashboard"
+      description={
+        userName
+          ? `Welcome back, ${userName}`
+          : `Organization workspace ${activeOrganizationId.slice(0, 8)}…`
+      }
     >
-      {userName ? <p>Welcome {userName}</p> : null}
-      {apiMessage ? <p className="text-sm">API: {apiMessage}</p> : null}
+      <OrgUsageDashboardSection />
     </PortalPageShell>
   );
 }

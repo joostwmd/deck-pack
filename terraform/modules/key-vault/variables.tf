@@ -61,6 +61,66 @@ variable "email_from_secret_name" {
   default     = "email-from"
 }
 
+variable "pexels_api_key" {
+  description = "Pexels API key for stock photo search (Key Vault secret value)."
+  type        = string
+  sensitive   = true
+}
+
+variable "pexels_api_key_secret_name" {
+  description = "Secret name used to store the Pexels API key."
+  type        = string
+  default     = "pexels-api-key"
+}
+
+variable "brandfetch_api_key" {
+  description = "Brandfetch API key for logo search (Key Vault secret value)."
+  type        = string
+  sensitive   = true
+}
+
+variable "brandfetch_api_key_secret_name" {
+  description = "Secret name used to store the Brandfetch API key."
+  type        = string
+  default     = "brandfetch-api-key"
+}
+
+variable "brandfetch_client_id" {
+  description = "Brandfetch client ID for logo search (Key Vault secret value)."
+  type        = string
+  sensitive   = true
+}
+
+variable "brandfetch_client_id_secret_name" {
+  description = "Secret name used to store the Brandfetch client ID."
+  type        = string
+  default     = "brandfetch-client-id"
+}
+
+variable "noun_project_api_key" {
+  description = "Noun Project OAuth1 consumer key (Key Vault secret value)."
+  type        = string
+  sensitive   = true
+}
+
+variable "noun_project_api_key_secret_name" {
+  description = "Secret name used to store the Noun Project API key."
+  type        = string
+  default     = "noun-project-api-key"
+}
+
+variable "noun_project_api_secret" {
+  description = "Noun Project OAuth1 consumer secret (Key Vault secret value)."
+  type        = string
+  sensitive   = true
+}
+
+variable "noun_project_api_secret_name" {
+  description = "Secret name used to store the Noun Project API secret."
+  type        = string
+  default     = "noun-project-api-secret"
+}
+
 variable "soft_delete_retention_days" {
   description = "Soft-delete retention in days for Key Vault (7-90)."
   type        = number

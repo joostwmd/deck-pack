@@ -6,6 +6,7 @@ export type {
   ObjectKey,
   ObjectStorage,
   PutObjectInput,
+  UploadMode,
   UploadTarget,
 } from "./port";
 

@@ -26,6 +26,8 @@ export function createUsersService(deps: UsersServiceDeps) {
           createdAt: Date;
           organizationId: string | null;
           organizationName: string | null;
+          organizationSlug: string | null;
+          organizationType: "individual" | "team" | null;
           memberRole: string | null;
         }>
       >
@@ -43,6 +45,8 @@ export function createUsersService(deps: UsersServiceDeps) {
           createdAt: row.createdAt,
           organizationId: row.organizationId,
           organizationName: row.organizationName,
+          organizationSlug: row.organizationSlug,
+          organizationType: row.organizationType,
           memberRole: row.memberRole,
         })),
       );

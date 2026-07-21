@@ -27,6 +27,8 @@ type DataTableProps<TData, TValue> = {
   filterColumnId?: string;
   filterPlaceholder?: string;
   emptyMessage?: string;
+  /** Tighter cell padding for dense ops tables. */
+  density?: "default" | "compact";
 };
 
 export function DataTable<TData, TValue>({
@@ -35,7 +37,11 @@ export function DataTable<TData, TValue>({
   filterColumnId,
   filterPlaceholder = "Filter…",
   emptyMessage = "No results.",
+  density = "default",
 }: DataTableProps<TData, TValue>) {
+  const compact = density === "compact";
+  const headClassName = compact ? "h-9 px-2 text-xs" : undefined;
+  const cellClassName = compact ? "px-2 py-1.5" : undefined;
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
@@ -60,9 +66,7 @@ export function DataTable<TData, TValue>({
         <Input
           placeholder={filterPlaceholder}
           value={(table.getColumn(filterColumnId)?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn(filterColumnId)?.setFilterValue(event.target.value)
-          }
+          onChange={(event) => table.getColumn(filterColumnId)?.setFilterValue(event.target.value)}
           className="max-w-sm"
         />
       ) : null}
@@ -73,7 +77,7 @@ export function DataTable<TData, TValue>({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
+                  <TableHead key={header.id} className={headClassName}>
                     {header.isPlaceholder
                       ? null
                       : flexRender(header.column.columnDef.header, header.getContext())}
@@ -87,7 +91,7 @@ export function DataTable<TData, TValue>({
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell key={cell.id} className={cellClassName}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
@@ -95,7 +99,10 @@ export function DataTable<TData, TValue>({
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="text-muted-foreground h-24 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="text-muted-foreground h-24 text-center"
+                >
                   {emptyMessage}
                 </TableCell>
               </TableRow>

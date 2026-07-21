@@ -70,12 +70,12 @@ Jobs that touch Azure use **`azure/login`** with **OIDC** and GitHub **Environme
 
 Public HTTPS entry points for the four applications on Azure Static Web Apps (frontends) and Azure App Service (API).
 
-| Application | Role                                                      | Production                                                                                                     | Staging                                                                                                      |
-| ----------- | --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| **Ops**     | Internal operations dashboard (Static Web App)            | [https://blue-stone-00d228c03.7.azurestaticapps.net/](https://blue-stone-00d228c03.7.azurestaticapps.net/)     | [https://orange-bay-0bf467703.7.azurestaticapps.net/](https://orange-bay-0bf467703.7.azurestaticapps.net/)   |
-| **Portal**  | Organization admin dashboard (Static Web App)             | [https://white-wave-0cfaad503.7.azurestaticapps.net/](https://white-wave-0cfaad503.7.azurestaticapps.net/)     | [https://blue-hill-0434a2003.7.azurestaticapps.net/](https://blue-hill-0434a2003.7.azurestaticapps.net/)     |
-| **Add-in**  | DeckPack add-in web shell / Static Web App                | [https://lively-coast-020399703.7.azurestaticapps.net/](https://lively-coast-020399703.7.azurestaticapps.net/) | [https://yellow-tree-08cc84803.7.azurestaticapps.net/](https://yellow-tree-08cc84803.7.azurestaticapps.net/) |
-| **API**     | Hono + tRPC + Better Auth (App Service – Linux container) | [https://deck-pack-api-jw.azurewebsites.net/](https://deck-pack-api-jw.azurewebsites.net/)                     | [https://deck-pack-api-staging-jw.azurewebsites.net/](https://deck-pack-api-staging-jw.azurewebsites.net/)   |
+| Application | Role                                                      | Production                                                                                                           | Staging                                                                                                                |
+| ----------- | --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **Ops**     | Internal operations dashboard (Static Web App)            | [https://black-smoke-07a6dfd03.7.azurestaticapps.net/](https://black-smoke-07a6dfd03.7.azurestaticapps.net/)         | [https://icy-bush-019ec7e03.7.azurestaticapps.net/](https://icy-bush-019ec7e03.7.azurestaticapps.net/)                 |
+| **Portal**  | Organization admin dashboard (Static Web App)             | [https://green-ocean-0ddb52203.7.azurestaticapps.net/](https://green-ocean-0ddb52203.7.azurestaticapps.net/)         | [https://gentle-river-0e962ad03.7.azurestaticapps.net/](https://gentle-river-0e962ad03.7.azurestaticapps.net/)         |
+| **Add-in**  | DeckPack add-in web shell / Static Web App                | [https://wonderful-field-03fcf7803.7.azurestaticapps.net/](https://wonderful-field-03fcf7803.7.azurestaticapps.net/) | [https://delightful-stone-022ae5503.7.azurestaticapps.net/](https://delightful-stone-022ae5503.7.azurestaticapps.net/) |
+| **API**     | Hono + tRPC + Better Auth (App Service – Linux container) | [https://deck-pack-api-dpc.azurewebsites.net/](https://deck-pack-api-dpc.azurewebsites.net/)                         | [https://deck-pack-api-staging-dpc.azurewebsites.net/](https://deck-pack-api-staging-dpc.azurewebsites.net/)           |
 
 ---
 
@@ -151,11 +151,11 @@ pnpm dev:assets   # Add-in assets — HTTPS Vite port 3003
 
 The assets add-in uses **two Microsoft sign-in strategies**:
 
-| Context | Strategy | Session transport |
-| ------- | -------- | ----------------- |
-| Browser preview (`/web/*`) | Better Auth redirect OAuth | HTTP-only cookies |
-| Office taskpane with NAA | MSAL Nested App Authentication → Better Auth `signIn.social({ idToken })` | In-memory Better Auth bearer token |
-| Office without NAA | Microsoft button disabled; use email OTP | In-memory bearer token after OTP |
+| Context                    | Strategy                                                                  | Session transport                  |
+| -------------------------- | ------------------------------------------------------------------------- | ---------------------------------- |
+| Browser preview (`/web/*`) | Better Auth redirect OAuth                                                | HTTP-only cookies                  |
+| Office taskpane with NAA   | MSAL Nested App Authentication → Better Auth `signIn.social({ idToken })` | In-memory Better Auth bearer token |
+| Office without NAA         | Microsoft button disabled; use email OTP                                  | In-memory bearer token after OTP   |
 
 **Entra app registration (single application):**
 

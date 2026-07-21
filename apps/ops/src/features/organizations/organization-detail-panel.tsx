@@ -71,6 +71,30 @@ export function OrganizationDetailPanel({ orgId }: { orgId: string }) {
     },
   });
 
+  const downgradeMutation = useMutation({
+    mutationFn: () => {
+      const org = detailQuery.data;
+      if (!org || org.type !== "team") {
+        throw new Error("Only team organizations can be downgraded");
+      }
+      return organization.updateOrganization({
+        organizationId: orgId,
+        name: org.name,
+        slug: org.slug,
+        type: "individual",
+      });
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["organization", "detail", orgId] });
+      void queryClient.invalidateQueries({ queryKey: ["organization", "list"] });
+      void queryClient.invalidateQueries({ queryKey: ["users", "list"] });
+      toast.success("Organization downgraded to solo");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Could not downgrade organization");
+    },
+  });
+
   const dirty =
     Boolean(detailQuery.data) &&
     (name.trim() !== detailQuery.data?.name ||
@@ -103,6 +127,14 @@ export function OrganizationDetailPanel({ orgId }: { orgId: string }) {
       saving={updateMutation.isPending}
       onSubmit={handleSubmit}
       dirty={dirty}
+      downgrading={downgradeMutation.isPending}
+      onDowngradeToSolo={
+        detailQuery.data?.type === "team"
+          ? async () => {
+              await downgradeMutation.mutateAsync();
+            }
+          : undefined
+      }
       deleting={deleteMutation.isPending}
       onDelete={async () => {
         await deleteMutation.mutateAsync();

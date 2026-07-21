@@ -1,4 +1,6 @@
-export type GalleryAssetClass = "flag" | "shape" | "slide";
+import type { GalleryAssetClass } from "@deck-pack/library-admin/gallery-config";
+
+export type { GalleryAssetClass };
 
 export type GalleryClassConfig = {
   assetClass: GalleryAssetClass;

@@ -16,7 +16,7 @@ function isAdminUser(user: PlatformUser): boolean {
 
 export function UsersPanel() {
   const queryClient = useQueryClient();
-  const { users, auth } = useServices();
+  const { users, auth, organization } = useServices();
   const { data: session } = auth.useSession();
   const [impersonatingUserId, setImpersonatingUserId] = useState<string | null>(null);
 
@@ -57,6 +57,34 @@ export function UsersPanel() {
     },
   });
 
+  const upgradeMutation = useMutation({
+    mutationFn: (user: PlatformUser) => {
+      if (
+        !user.organizationId ||
+        !user.organizationName ||
+        !user.organizationSlug ||
+        user.organizationType !== "individual"
+      ) {
+        throw new Error("User does not have a solo organization to upgrade");
+      }
+
+      return organization.updateOrganization({
+        organizationId: user.organizationId,
+        name: user.organizationName,
+        slug: user.organizationSlug,
+        type: "team",
+      });
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["users", "list"] });
+      void queryClient.invalidateQueries({ queryKey: ["organization", "list"] });
+      toast.success("Solo workspace upgraded to team");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Could not upgrade organization");
+    },
+  });
+
   const handleImpersonate = useCallback(
     (user: PlatformUser) => {
       impersonateMutation.mutate(user.id);
@@ -71,6 +99,13 @@ export function UsersPanel() {
     [deleteMutation],
   );
 
+  const handleUpgradeToTeam = useCallback(
+    async (user: PlatformUser) => {
+      await upgradeMutation.mutateAsync(user);
+    },
+    [upgradeMutation],
+  );
+
   const allUsers = listQuery.data ?? [];
   const adminUsers = useMemo(() => allUsers.filter(isAdminUser), [allUsers]);
   const customerUsers = useMemo(() => allUsers.filter((user) => !isAdminUser(user)), [allUsers]);
@@ -80,7 +115,7 @@ export function UsersPanel() {
       createUserColumns({
         showDelete: true,
         onDelete: handleDelete,
-        deletingUserId: deleteMutation.isPending ? deleteMutation.variables ?? null : null,
+        deletingUserId: deleteMutation.isPending ? (deleteMutation.variables ?? null) : null,
         currentUserId: session?.user.id ?? null,
       }),
     [deleteMutation.isPending, deleteMutation.variables, handleDelete, session?.user.id],
@@ -92,9 +127,12 @@ export function UsersPanel() {
         showImpersonate: true,
         impersonatingUserId,
         onImpersonate: handleImpersonate,
+        showUpgradeToTeam: true,
+        onUpgradeToTeam: handleUpgradeToTeam,
+        upgradingUserId: upgradeMutation.isPending ? (upgradeMutation.variables?.id ?? null) : null,
         showDelete: true,
         onDelete: handleDelete,
-        deletingUserId: deleteMutation.isPending ? deleteMutation.variables ?? null : null,
+        deletingUserId: deleteMutation.isPending ? (deleteMutation.variables ?? null) : null,
         currentUserId: session?.user.id ?? null,
       }),
     [
@@ -102,8 +140,11 @@ export function UsersPanel() {
       deleteMutation.variables,
       handleDelete,
       handleImpersonate,
+      handleUpgradeToTeam,
       impersonatingUserId,
       session?.user.id,
+      upgradeMutation.isPending,
+      upgradeMutation.variables,
     ],
   );
 
@@ -128,6 +169,7 @@ export function UsersPanel() {
             <DataTable
               columns={adminColumns}
               data={adminUsers}
+              density="compact"
               filterColumnId="email"
               filterPlaceholder="Filter admins by email…"
               emptyMessage="No admin users found."
@@ -144,6 +186,7 @@ export function UsersPanel() {
             <DataTable
               columns={customerColumns}
               data={customerUsers}
+              density="compact"
               filterColumnId="email"
               filterPlaceholder="Filter users by email…"
               emptyMessage="No customer users found."

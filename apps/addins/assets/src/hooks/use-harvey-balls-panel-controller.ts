@@ -13,6 +13,7 @@ import {
   type HarveyBallConfig,
 } from "@/lib/harvey-ball-svg";
 import { HARVEY_BALL_EXTERNAL_ID } from "@/lib/insert-harvey-ball";
+import { getUserFacingApiErrorMessage } from "@/lib/user-facing-api-error";
 
 export function useHarveyBallsPanelController() {
   const insertionStrategy = useInsertionStrategy();
@@ -58,7 +59,7 @@ export function useHarveyBallsPanelController() {
       );
     } catch (error) {
       console.error("Error inserting Harvey ball:", error);
-      toast.error(error instanceof Error ? error.message : "Error inserting Harvey ball");
+      toast.error(getUserFacingApiErrorMessage(error, "Error inserting Harvey ball"));
     } finally {
       insertingRef.current = false;
       setIsInserting(false);

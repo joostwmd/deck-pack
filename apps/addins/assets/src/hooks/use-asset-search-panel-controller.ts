@@ -16,6 +16,7 @@ import type { AssetDetailsResponse, AssetListItem, AssetType } from "@/types/ass
 
 import { getSearchResultOptionId } from "@/components/asset-browser/search-results";
 import type { AssetSearchPanelViewProps } from "@/components/asset-browser/asset-search-panel-view";
+import { getUserFacingApiErrorMessage } from "@/lib/user-facing-api-error";
 
 export interface AssetSearchPanelProps {
   assetType: AssetType;
@@ -28,7 +29,10 @@ export interface AssetSearchPanelProps {
   noVariantsDescription: string;
   search: (query: string) => Promise<AssetListItem[]>;
   getDetails: (id: string) => Promise<AssetDetailsResponse>;
-  getInsertionMetadata?: (details: AssetDetailsResponse, variantId: string) => Record<string, string>;
+  getInsertionMetadata?: (
+    details: AssetDetailsResponse,
+    variantId: string,
+  ) => Record<string, string>;
   supportsInternalFilter?: boolean;
 }
 
@@ -96,7 +100,7 @@ export function useAssetSearchPanelController({
       );
     }).catch((error) => {
       console.error(`Error inserting ${label}:`, error);
-      toast.error(error instanceof Error ? error.message : `Error inserting ${label}`);
+      toast.error(getUserFacingApiErrorMessage(error, `Error inserting ${label}`));
     });
   }, [
     assetLabel,

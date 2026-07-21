@@ -1,7 +1,4 @@
-import type {
-  LibraryAssetClass,
-  LibraryItemStatus,
-} from "@deck-pack/db/library-catalog";
+import type { LibraryAssetClass, LibraryItemStatus } from "@deck-pack/db/library-catalog";
 
 export type LibraryUploadRole =
   | "svg"
@@ -48,10 +45,17 @@ export type LibraryItemDetail = {
   slide: {
     category: string;
     aspectRatio: string;
-    presentationFile: { id: string; blobPath: string; contentType: string; byteSize: number } | null;
+    presentationFile: {
+      id: string;
+      blobPath: string;
+      contentType: string;
+      byteSize: number;
+    } | null;
     thumbnailFile: { id: string; blobPath: string; contentType: string; byteSize: number } | null;
   } | null;
 };
+
+export type UploadMode = "direct" | "proxy";
 
 export type UploadTarget = {
   key: string;
@@ -59,6 +63,7 @@ export type UploadTarget = {
   method: "PUT" | "POST";
   headers: Record<string, string>;
   expiresAt: Date;
+  mode: UploadMode;
 };
 
 export interface LibraryStore {

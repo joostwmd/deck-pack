@@ -16,7 +16,7 @@ import { assignOrganizationSeat } from "@deck-pack/db/queries/assignOrganization
 import { countAssignedSeats } from "@deck-pack/db/queries/countAssignedSeats";
 import { addOrganizationMember } from "@deck-pack/db/queries/addOrganizationMember";
 import { cancelInvitation } from "@deck-pack/db/queries/listPendingInvitations";
-import { createOrganizationInvitation } from "@deck-pack/db/queries/createOrganizationInvitation";
+import { createInvitationViaAuth } from "../domains/members/create-invitation-via-auth";
 import { findUserByEmail } from "@deck-pack/db/queries/findUserByEmail";
 import { getActiveOrganizationSubscriptionByOrgId } from "@deck-pack/db/queries/getActiveOrganizationSubscriptionByOrgId";
 import { listOrganizationSeats } from "@deck-pack/db/queries/listOrganizationSeats";
@@ -24,6 +24,13 @@ import { listPendingInvitations } from "@deck-pack/db/queries/listPendingInvitat
 import { removeOrganizationMember } from "@deck-pack/db/queries/removeOrganizationMember";
 import { revokeOrganizationSeat } from "@deck-pack/db/queries/revokeOrganizationSeat";
 import { updateOrganizationMemberRole } from "@deck-pack/db/queries/updateOrganizationMemberRole";
+import { getInvitationById } from "@deck-pack/db/queries/getInvitationById";
+import { getCurrentMembershipSummary } from "@deck-pack/db/queries/getCurrentMembershipSummary";
+import { vacateCurrentOrganization } from "@deck-pack/db/queries/vacateCurrentOrganization";
+import { acceptInvitationForUser } from "@deck-pack/db/queries/acceptInvitationForUser";
+import { findPendingOrgIntentByEmail } from "@deck-pack/db/queries/findPendingOrgIntentByEmail";
+import { activateSeatForUser } from "@deck-pack/db/queries/activateSeatForUser";
+import { setSessionActiveOrganization } from "@deck-pack/db/queries/setSessionActiveOrganization";
 import { getAgendaInstance } from "@deck-pack/db/queries/getAgendaInstance";
 import { getBrandProfileWithVersion } from "@deck-pack/db/queries/getBrandProfileWithVersion";
 import { getOrganizationSubscription } from "@deck-pack/db/queries/getOrganizationSubscription";
@@ -31,6 +38,14 @@ import { getOrganizationMetadataById } from "@deck-pack/db/queries/getOrganizati
 import { getOrganizationWithOwner } from "@deck-pack/db/queries/getOrganizationWithOwner";
 import { getPlan } from "@deck-pack/db/queries/getPlan";
 import { insertAssetInsertion } from "@deck-pack/db/queries/insertAssetInsertion";
+import { countInsertionsByAssetTypeForOrgPeriod } from "@deck-pack/db/queries/countInsertionsForOrgPeriod";
+import { listInsertionSeriesForOrg } from "@deck-pack/db/queries/listInsertionSeriesForOrg";
+import { listSeatUsageForOrg } from "@deck-pack/db/queries/listSeatUsageForOrg";
+import {
+  assertInsertAllowed,
+  getEntitlementWindow,
+  getUsagePeriodContext,
+} from "@deck-pack/db/queries/usage-entitlements";
 import { listAllShortcutOverridesByUser } from "@deck-pack/db/queries/listShortcutOverridesByUser";
 import { listBrandProfilesByUser } from "@deck-pack/db/queries/listBrandProfilesByUser";
 import { listOrganizationMembers } from "@deck-pack/db/queries/listOrganizationMembers";
@@ -76,6 +91,8 @@ import { createShortcutRoutes } from "../domains/shortcuts/routes";
 import { createShortcutService } from "../domains/shortcuts/service";
 import { createSlideRoutes } from "../domains/slides/routes";
 import { createSlideService } from "../domains/slides/service";
+import { createUsageRoutes } from "../domains/usage/routes";
+import { createUsageService } from "../domains/usage/service";
 import { createUsersRoutes } from "../domains/users/routes";
 import { createUsersService } from "../domains/users/service";
 import { createLibraryRoutes } from "../domains/library/routes";
@@ -139,7 +156,17 @@ export function createAppRouter(deps: AddinRouterDeps) {
       }),
   });
   const flagService = createFlagService({ storage });
-  const addinService = createAddinService({ insertAssetInsertion });
+  const addinService = createAddinService({ insertAssetInsertion, assertInsertAllowed });
+
+  const usageService = createUsageService({
+    getActiveOrganizationSubscriptionByOrgId,
+    getPlan,
+    getEntitlementWindow,
+    getUsagePeriodContext,
+    countInsertionsByAssetTypeForOrgPeriod,
+    listInsertionSeriesForOrg,
+    listSeatUsageForOrg,
+  });
 
   const organizationService = createOrganizationService({
     findUserByEmail,
@@ -204,7 +231,7 @@ export function createAppRouter(deps: AddinRouterDeps) {
     listPendingInvitations,
     findUserByEmail,
     addOrganizationMember,
-    createOrganizationInvitation,
+    createInvitation: createInvitationViaAuth,
     updateOrganizationMemberRole,
     removeOrganizationMember,
     cancelInvitation,
@@ -212,6 +239,13 @@ export function createAppRouter(deps: AddinRouterDeps) {
     getOrganizationMetadataById,
     getActiveOrganizationSubscriptionByOrgId,
     getPlan,
+    getInvitationById,
+    getCurrentMembershipSummary,
+    vacateCurrentOrganization,
+    acceptInvitationForUser,
+    findPendingOrgIntentByEmail,
+    activateSeatForUser,
+    setSessionActiveOrganization,
   });
 
   const libraryService = createLibraryService({ storage });
@@ -222,6 +256,7 @@ export function createAppRouter(deps: AddinRouterDeps) {
     organization: router(createOrganizationRoutes(organizationService)),
     members: router(createMembersRoutes(membersService)),
     seats: router(createSeatsRoutes(seatsService)),
+    usage: router(createUsageRoutes(usageService)),
     users: router(createUsersRoutes(usersService)),
     billing: router(createBillingRoutes(billingService)),
     library: router({

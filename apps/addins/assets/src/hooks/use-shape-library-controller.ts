@@ -8,6 +8,7 @@ import { useShapeLibrary } from "@/hooks/use-shape-library";
 
 import type { ShapeSearchRequest, ShapeSearchResponse } from "./types";
 import { useShapeLibraryHotkeys } from "@/hooks/use-shape-library-hotkeys";
+import { getUserFacingApiErrorMessage } from "@/lib/user-facing-api-error";
 
 async function fetchSvgText(svgUrl: string): Promise<string> {
   const response = await fetch(svgUrl);
@@ -57,7 +58,7 @@ export function useShapeLibraryController(
       );
     }).catch((error) => {
       console.error("Error inserting shape:", error);
-      toast.error(error instanceof Error ? error.message : "Error inserting shape");
+      toast.error(getUserFacingApiErrorMessage(error, "Error inserting shape"));
     });
   }, [flow.selectedShape, insertionStrategy, runInsertion]);
 

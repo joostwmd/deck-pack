@@ -71,6 +71,13 @@
       "when": 1784416000000,
       "tag": "0009_session_workspace",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1784416100000,
+      "tag": "0010_usage_tracking",
+      "breakpoints": true
     }
   ]
 }

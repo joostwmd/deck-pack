@@ -9,29 +9,18 @@ import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
-import { portalHomePath, workspaceFromSession } from "@/config/portal-nav";
+import { resolvePortalPostAuthDestination } from "@/features/join/resolve-portal-post-auth";
 import { useServices } from "@/services/services-context";
 import { getAuthClient } from "@/utils/auth";
-import { trpcClient } from "@/utils/trpc";
 
 const AUTH_CALLBACK_PATH = "/auth/callback";
-
-async function resolvePortalHome() {
-  const session = await getAuthClient().getSession();
-  let workspace = workspaceFromSession(session.data?.session);
-  if (session.data?.session?.activeOrganizationId) {
-    const profile = await trpcClient.members.getOrganizationProfile.query();
-    workspace = profile.workspace ?? workspace;
-  }
-  return portalHomePath(workspace);
-}
 
 export const Route = createFileRoute("/")({
   beforeLoad: async ({ context }) => {
     const session = await context.authClient.getSession();
     if (session.data) {
       redirect({
-        to: await resolvePortalHome(),
+        ...(await resolvePortalPostAuthDestination()),
         throw: true,
       });
     }
@@ -45,10 +34,7 @@ function HomeComponent() {
   const [microsoftSigningIn, setMicrosoftSigningIn] = useState(false);
 
   const authClient = getAuthClient();
-  const callbackURL = useMemo(
-    () => `${window.location.origin}${AUTH_CALLBACK_PATH}`,
-    [],
-  );
+  const callbackURL = useMemo(() => `${window.location.origin}${AUTH_CALLBACK_PATH}`, []);
   const microsoftAvailability = getMicrosoftSignInAvailability({
     host: "web",
     isNaaSupported: false,
@@ -90,7 +76,7 @@ function HomeComponent() {
       signInWithEmailOtp: auth.signInWithEmailOtp,
     },
     onSuccess: async () => {
-      void navigate({ to: await resolvePortalHome() });
+      void navigate(await resolvePortalPostAuthDestination());
     },
     onMicrosoftSignIn: microsoftStrategy ? () => void handleMicrosoftSignIn() : undefined,
     microsoftDisabled: !microsoftAvailability.available,

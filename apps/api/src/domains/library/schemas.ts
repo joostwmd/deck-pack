@@ -91,4 +91,5 @@ export const uploadTargetSchema = z.object({
   method: z.enum(["PUT", "POST"]),
   headers: z.record(z.string(), z.string()),
   expiresAt: z.date(),
+  mode: z.enum(["direct", "proxy"]),
 });

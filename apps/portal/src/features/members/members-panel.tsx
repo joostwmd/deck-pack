@@ -48,6 +48,24 @@ const ASSIGNABLE_ROLES = [
   ORGANIZATION_ROLES.libraryManager,
 ] as const;
 
+function invitationAcceptUrl(invitationId: string) {
+  return `${window.location.origin}/accept-invitation/${invitationId}`;
+}
+
+async function copyInvitationLink(invitationId: string) {
+  const url = invitationAcceptUrl(invitationId);
+  try {
+    await navigator.clipboard.writeText(url);
+    toast.success("Invite link copied");
+  } catch {
+    toast.message("Invite link", { description: url });
+  }
+}
+
+function isAssignableRole(value: string): value is (typeof ASSIGNABLE_ROLES)[number] {
+  return (ASSIGNABLE_ROLES as readonly string[]).includes(value);
+}
+
 export function MembersPanel() {
   const { activeOrganizationId } = membersRoute.useRouteContext();
   const queryClient = useQueryClient();
@@ -55,13 +73,24 @@ export function MembersPanel() {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<(typeof ASSIGNABLE_ROLES)[number]>(ORGANIZATION_ROLES.member);
   const [assignSeat, setAssignSeat] = useState(false);
+  const [roleEdit, setRoleEdit] = useState<{
+    memberId: string;
+    name: string | null;
+    email: string;
+    role: (typeof ASSIGNABLE_ROLES)[number];
+  } | null>(null);
 
   const membersQuery = useQuery(trpc.members.list.queryOptions());
 
   const addMutation = useMutation(
     trpc.members.add.mutationOptions({
-      onSuccess: async () => {
-        toast.success("Member added");
+      onSuccess: async (result) => {
+        if (result.kind === "invitation") {
+          toast.success("Invitation emailed");
+          await copyInvitationLink(result.invitationId);
+        } else {
+          toast.success("Member added");
+        }
         setAddOpen(false);
         setEmail("");
         setAssignSeat(false);
@@ -71,6 +100,17 @@ export function MembersPanel() {
       onError: (error) => {
         toast.error(error.message);
       },
+    }),
+  );
+
+  const updateRoleMutation = useMutation(
+    trpc.members.updateRole.mutationOptions({
+      onSuccess: async () => {
+        toast.success("Role updated");
+        setRoleEdit(null);
+        await queryClient.invalidateQueries({ queryKey: trpc.members.list.queryKey() });
+      },
+      onError: (error) => toast.error(error.message),
     }),
   );
 
@@ -113,7 +153,8 @@ export function MembersPanel() {
               <DialogHeader>
                 <DialogTitle>Add member</DialogTitle>
                 <DialogDescription>
-                  Existing users are added immediately. New emails receive an invitation.
+                  Existing users are added immediately. New emails receive an invitation link you
+                  can copy and share.
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-2">
@@ -169,9 +210,7 @@ export function MembersPanel() {
                 <Button
                   type="button"
                   disabled={addMutation.isPending || !email.trim()}
-                  onClick={() =>
-                    addMutation.mutate({ email: email.trim(), role, assignSeat })
-                  }
+                  onClick={() => addMutation.mutate({ email: email.trim(), role, assignSeat })}
                 >
                   Add member
                 </Button>
@@ -223,27 +262,58 @@ export function MembersPanel() {
                     </TableCell>
                     <TableCell className="text-right">
                       {entry.kind === "invitation" ? (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          disabled={cancelInviteMutation.isPending}
-                          onClick={() =>
-                            cancelInviteMutation.mutate({ invitationId: entry.id })
-                          }
-                        >
-                          Cancel invite
-                        </Button>
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => void copyInvitationLink(entry.id)}
+                          >
+                            Copy link
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={cancelInviteMutation.isPending}
+                            onClick={() => cancelInviteMutation.mutate({ invitationId: entry.id })}
+                          >
+                            Cancel invite
+                          </Button>
+                        </div>
                       ) : (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          disabled={removeMutation.isPending}
-                          onClick={() => removeMutation.mutate({ memberId: entry.id })}
-                        >
-                          Remove
-                        </Button>
+                        <div className="flex justify-end gap-2">
+                          <Can permissions={{ member: ["update"] }}>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() =>
+                                setRoleEdit({
+                                  memberId: entry.id,
+                                  name: entry.name,
+                                  email: entry.email,
+                                  role: isAssignableRole(entry.role)
+                                    ? entry.role
+                                    : ORGANIZATION_ROLES.admin,
+                                })
+                              }
+                            >
+                              Change role
+                            </Button>
+                          </Can>
+                          <Can permissions={{ member: ["delete"] }}>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              disabled={removeMutation.isPending}
+                              onClick={() => removeMutation.mutate({ memberId: entry.id })}
+                            >
+                              Remove
+                            </Button>
+                          </Can>
+                        </div>
                       )}
                     </TableCell>
                   </TableRow>
@@ -253,6 +323,69 @@ export function MembersPanel() {
           </Table>
         </div>
       )}
+
+      <Dialog
+        open={roleEdit !== null}
+        onOpenChange={(open) => {
+          if (!open) setRoleEdit(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Change role</DialogTitle>
+            <DialogDescription>
+              Update the portal role for{" "}
+              {roleEdit?.name?.trim() || roleEdit?.email || "this member"}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-2 py-2">
+            <Label htmlFor="edit-member-role">Role</Label>
+            <Select
+              value={roleEdit?.role}
+              onValueChange={(value) => {
+                if (!roleEdit || !isAssignableRole(value)) return;
+                setRoleEdit({ ...roleEdit, role: value });
+              }}
+            >
+              <SelectTrigger id="edit-member-role" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent alignItemWithTrigger={false}>
+                <SelectGroup>
+                  {ASSIGNABLE_ROLES.map((value) => (
+                    <SelectItem key={value} value={value}>
+                      {organizationRoleLabel(value)}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={updateRoleMutation.isPending}
+              onClick={() => setRoleEdit(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              disabled={updateRoleMutation.isPending || !roleEdit}
+              onClick={() => {
+                if (!roleEdit) return;
+                updateRoleMutation.mutate({
+                  memberId: roleEdit.memberId,
+                  role: roleEdit.role,
+                });
+              }}
+            >
+              {updateRoleMutation.isPending ? "Saving…" : "Save role"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </PortalPageShell>
   );
 }

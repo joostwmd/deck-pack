@@ -15,6 +15,8 @@ const userListItemSchema = z.object({
   createdAt: z.date(),
   organizationId: z.string().nullable(),
   organizationName: z.string().nullable(),
+  organizationSlug: z.string().nullable(),
+  organizationType: z.enum(["individual", "team"]).nullable(),
   memberRole: z.string().nullable(),
 });
 

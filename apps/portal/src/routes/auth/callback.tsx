@@ -1,8 +1,7 @@
 import { Loader } from "@deck-pack/ui/components/system/loader";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
-import { portalHomePath, workspaceFromSession } from "@/config/portal-nav";
-import { trpcClient } from "@/utils/trpc";
+import { resolvePortalPostAuthDestination } from "@/features/join/resolve-portal-post-auth";
 
 export const Route = createFileRoute("/auth/callback")({
   beforeLoad: async ({ context }) => {
@@ -13,15 +12,7 @@ export const Route = createFileRoute("/auth/callback")({
       });
     }
 
-    let workspace = workspaceFromSession(session.data.session);
-    if (session.data.session?.activeOrganizationId) {
-      const profile = await trpcClient.members.getOrganizationProfile.query();
-      workspace = profile.workspace ?? workspace;
-    }
-
-    throw redirect({
-      to: portalHomePath(workspace),
-    });
+    throw redirect(await resolvePortalPostAuthDestination());
   },
   component: AuthCallbackComponent,
 });

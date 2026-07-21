@@ -55,6 +55,8 @@ export type OrganizationDetailViewProps = {
   saving: boolean;
   onSubmit: (event: React.FormEvent) => void;
   dirty: boolean;
+  downgrading?: boolean;
+  onDowngradeToSolo?: () => Promise<void>;
   deleting: boolean;
   onDelete: () => Promise<void>;
 };
@@ -75,19 +77,20 @@ export function OrganizationDetailView({
   saving,
   onSubmit,
   dirty,
+  downgrading = false,
+  onDowngradeToSolo,
   deleting,
   onDelete,
 }: OrganizationDetailViewProps) {
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [downgradeOpen, setDowngradeOpen] = useState(false);
 
   if (loading) {
     return <p className="text-muted-foreground text-sm">Loading…</p>;
   }
 
   if (errorMessage || !organization) {
-    return (
-      <p className="text-destructive text-sm">{errorMessage ?? "Organization not found"}</p>
-    );
+    return <p className="text-destructive text-sm">{errorMessage ?? "Organization not found"}</p>;
   }
 
   const handleConfirmDelete = async () => {
@@ -95,15 +98,62 @@ export function OrganizationDetailView({
     setDeleteOpen(false);
   };
 
+  const handleConfirmDowngrade = async () => {
+    if (!onDowngradeToSolo) return;
+    await onDowngradeToSolo();
+    setDowngradeOpen(false);
+  };
+
+  const typeLabel = organization.type === "individual" ? "solo" : (organization.type ?? "unknown");
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold">{organization.name}</h1>
-        <p className="text-muted-foreground text-sm">
-          {organization.memberCount} member{organization.memberCount === 1 ? "" : "s"} · Owner{" "}
-          {organization.ownerEmail ?? "—"} ·{" "}
-          <Badge variant="secondary">{organization.type ?? "unknown"}</Badge>
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-semibold">{organization.name}</h1>
+          <p className="text-muted-foreground text-sm">
+            {organization.memberCount} member{organization.memberCount === 1 ? "" : "s"} · Owner{" "}
+            {organization.ownerEmail ?? "—"} · <Badge variant="secondary">{typeLabel}</Badge>
+          </p>
+        </div>
+        {onDowngradeToSolo ? (
+          <Dialog open={downgradeOpen} onOpenChange={setDowngradeOpen}>
+            <DialogTrigger
+              render={
+                <Button type="button" variant="outline" size="sm" disabled={downgrading}>
+                  Downgrade to solo
+                </Button>
+              }
+            />
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Downgrade to solo workspace?</DialogTitle>
+                <DialogDescription>
+                  This converts{" "}
+                  <span className="font-medium text-foreground">{organization.name}</span> from a
+                  team organization to a solo workspace.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setDowngradeOpen(false)}
+                  disabled={downgrading}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => void handleConfirmDowngrade()}
+                  disabled={downgrading}
+                >
+                  {downgrading ? "Downgrading…" : "Downgrade to solo"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        ) : null}
       </div>
 
       <Card>
@@ -124,15 +174,14 @@ export function OrganizationDetailView({
             </div>
             <div className="space-y-2">
               <Label htmlFor="org-slug">Slug</Label>
-              <Input
-                id="org-slug"
-                value={slug}
-                onChange={(e) => onSlugChange(e.target.value)}
-              />
+              <Input id="org-slug" value={slug} onChange={(e) => onSlugChange(e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="org-type">Organization type</Label>
-              <Select value={type} onValueChange={(value) => onTypeChange(value as "individual" | "team")}>
+              <Select
+                value={type}
+                onValueChange={(value) => onTypeChange(value as "individual" | "team")}
+              >
                 <SelectTrigger id="org-type">
                   <SelectValue />
                 </SelectTrigger>
@@ -154,9 +203,7 @@ export function OrganizationDetailView({
       <div className="space-y-3">
         <div>
           <h2 className="text-lg font-semibold">Members</h2>
-          <p className="text-muted-foreground text-sm">
-            People with access to this organization
-          </p>
+          <p className="text-muted-foreground text-sm">People with access to this organization</p>
         </div>
 
         {membersLoading ? (

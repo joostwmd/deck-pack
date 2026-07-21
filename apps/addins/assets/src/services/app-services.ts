@@ -84,12 +84,13 @@ function createAgendaStore(api: ReturnType<typeof getTrpcClient>): AgendaStore {
 
 function createInsertionStore(api: ReturnType<typeof getTrpcClient>): InsertionStore {
   return {
-    track: ({ assetType, externalId, client, metadata }) => {
-      void api.addin.insertions.track
-        .mutate({ assetType, externalId, client, metadata })
-        .catch((error) => {
-          console.error("Failed to track asset insertion:", error);
-        });
+    track: async ({ assetType, externalId, client, metadata }) => {
+      await api.addin.insertions.track.mutate({
+        assetType,
+        externalId,
+        client,
+        metadata,
+      });
     },
   };
 }

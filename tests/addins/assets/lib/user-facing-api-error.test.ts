@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import {
   AUTHENTICATION_REQUIRED_MESSAGE,
+  QUOTA_EXCEEDED_MESSAGE,
   getUserFacingApiErrorMessage,
   isAuthenticationError,
+  isQuotaExceededError,
 } from "@/lib/user-facing-api-error";
 
 describe("getUserFacingApiErrorMessage", () => {
@@ -27,6 +29,16 @@ describe("getUserFacingApiErrorMessage", () => {
     );
   });
 
+  it("maps quota exceeded errors to an upgrade message", () => {
+    const error = Object.assign(new Error("Monthly insert limit reached for logo"), {
+      cause: { code: "quota_exceeded", assetType: "logo" },
+    });
+
+    expect(getUserFacingApiErrorMessage(error, "Error inserting logo")).toBe(
+      QUOTA_EXCEEDED_MESSAGE,
+    );
+  });
+
   it("preserves genuine network error messages", () => {
     const error = new TypeError("Failed to fetch");
 
@@ -44,5 +56,17 @@ describe("isAuthenticationError", () => {
   it("distinguishes authentication failures from network failures", () => {
     expect(isAuthenticationError({ data: { code: "UNAUTHORIZED" } })).toBe(true);
     expect(isAuthenticationError(new TypeError("Failed to fetch"))).toBe(false);
+  });
+});
+
+describe("isQuotaExceededError", () => {
+  it("detects quota details nested on the error cause", () => {
+    expect(
+      isQuotaExceededError({
+        message: "Request failed",
+        cause: { code: "quota_exceeded" },
+      }),
+    ).toBe(true);
+    expect(isQuotaExceededError(new TypeError("Failed to fetch"))).toBe(false);
   });
 });

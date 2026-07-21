@@ -53,6 +53,7 @@ export function createMemoryObjectStorage(): MemoryObjectStorage {
           "Content-Type": input.contentType,
         },
         expiresAt,
+        mode: "proxy",
       };
     },
 

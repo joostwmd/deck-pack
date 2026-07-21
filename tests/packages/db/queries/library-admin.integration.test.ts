@@ -54,6 +54,8 @@ describe("library admin (integration)", () => {
     expect(target.ok).toBe(true);
     if (!target.ok) return;
 
+    expect(target.data.mode).toBe("proxy");
+
     const svg = `<svg xmlns="http://www.w3.org/2000/svg"></svg>`;
     const finalized = await service.putAndFinalize(tx, {
       id: itemId,

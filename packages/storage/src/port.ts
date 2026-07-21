@@ -9,6 +9,9 @@ export type CreateUploadTargetInput = {
   expiresInSeconds: number;
 };
 
+/** How the browser should deliver bytes after createUploadTarget. */
+export type UploadMode = "direct" | "proxy";
+
 export type UploadTarget = {
   key: ObjectKey;
   uploadUrl: string;
@@ -16,6 +19,8 @@ export type UploadTarget = {
   /** Headers the client must send with the upload request. */
   headers: Record<string, string>;
   expiresAt: Date;
+  /** direct: PUT to uploadUrl then finalize; proxy: send bytes via API putAndFinalize. */
+  mode: UploadMode;
 };
 
 export type CreateDownloadUrlInput = {

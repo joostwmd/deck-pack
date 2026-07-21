@@ -79,6 +79,11 @@ variable "cors_origins" {
   }
 }
 
+variable "portal_app_url" {
+  description = "Portal web app HTTPS URL used in organization invitation emails (PORTAL_APP_URL)."
+  type        = string
+}
+
 variable "database_url_secret_uri" {
   description = "Versionless SecretUri for DATABASE_URL in Key Vault."
   type        = string
@@ -97,6 +102,41 @@ variable "email_api_key_secret_uri" {
 variable "email_from_secret_uri" {
   description = "Versionless SecretUri for EMAIL_FROM in Key Vault."
   type        = string
+}
+
+variable "pexels_api_key_secret_uri" {
+  description = "Versionless SecretUri for PEXELS_API_KEY in Key Vault."
+  type        = string
+}
+
+variable "brandfetch_api_key_secret_uri" {
+  description = "Versionless SecretUri for BRANDFETCH_API_KEY in Key Vault."
+  type        = string
+}
+
+variable "brandfetch_client_id_secret_uri" {
+  description = "Versionless SecretUri for BRANDFETCH_CLIENT_ID in Key Vault."
+  type        = string
+}
+
+variable "noun_project_api_key_secret_uri" {
+  description = "Versionless SecretUri for NOUN_PROJECT_API_KEY in Key Vault."
+  type        = string
+}
+
+variable "noun_project_api_secret_secret_uri" {
+  description = "Versionless SecretUri for NOUN_PROJECT_API_SECRET in Key Vault."
+  type        = string
+}
+
+variable "ops_origins" {
+  description = "Ops dashboard origins for OTP soft-gate (HTTPS URLs). Stored as comma-separated OPS_ORIGINS."
+  type        = list(string)
+
+  validation {
+    condition     = length(var.ops_origins) >= 1
+    error_message = "Provide at least one OPS origin (the API refuses to start with an empty list)."
+  }
 }
 
 variable "key_vault_id" {

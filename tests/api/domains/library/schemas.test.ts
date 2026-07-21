@@ -48,8 +48,10 @@ describe("library schemas", () => {
       method: "PUT",
       headers: { "Content-Type": "image/svg+xml" },
       expiresAt: new Date("2026-01-01T00:15:00.000Z"),
+      mode: "proxy",
     });
 
     expect(parsed.method).toBe("PUT");
+    expect(parsed.mode).toBe("proxy");
   });
 });

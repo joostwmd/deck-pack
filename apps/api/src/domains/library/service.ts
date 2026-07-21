@@ -27,6 +27,8 @@ import {
 
 import { serviceFail, serviceOk, type ServiceResult } from "../../api/resilience/service-result";
 
+import { uploadTargetForClient } from "./upload-target-for-client";
+
 import type { z } from "zod";
 
 import type { libraryUploadRoleSchema } from "./schemas";
@@ -175,7 +177,9 @@ export function createLibraryService(deps: LibraryServiceDeps) {
       const detail = await getGlobalLibraryItem({ tx, id: input.id });
       if (!detail) return serviceFail("not_found", { message: "Asset not found" });
       if (detail.status !== "ready") {
-        return serviceFail("invalid_state", { message: "Only published assets can be unpublished" });
+        return serviceFail("invalid_state", {
+          message: "Only published assets can be unpublished",
+        });
       }
       await setGlobalLibraryItemStatus({ tx, id: input.id, status: "pending" });
       return requireGlobalLibraryItem(tx, input.id);
@@ -221,7 +225,7 @@ export function createLibraryService(deps: LibraryServiceDeps) {
         expiresInSeconds: 15 * 60,
       });
 
-      return serviceOk(target);
+      return serviceOk(uploadTargetForClient(target));
     },
 
     finalizeUpload: async (
