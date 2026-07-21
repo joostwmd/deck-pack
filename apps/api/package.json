@@ -31,6 +31,7 @@
     "@deck-pack/seats": "workspace:*",
     "@deck-pack/shortcuts": "workspace:*",
     "@deck-pack/storage": "workspace:*",
+    "@deck-pack/usage": "workspace:*",
     "@deck-pack/users": "workspace:*",
     "@hono/node-server": "^1.14.4",
     "@hono/trpc-server": "^0.4.0",

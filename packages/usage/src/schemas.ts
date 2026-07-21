@@ -1,6 +1,7 @@
 import { USAGE_PERIOD_PRESETS } from "@deck-pack/db/usage-period";
-import { PLAN_LIMIT_ASSET_TYPES } from "@deck-pack/db/schema/billing";
 import { z } from "zod";
+
+import { PLAN_LIMIT_ASSET_TYPES } from "./domain/usage";
 
 export const usagePeriodInputSchema = z.union([
   z.object({

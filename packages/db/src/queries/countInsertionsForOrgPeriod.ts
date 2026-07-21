@@ -41,32 +41,3 @@ export async function countInsertionsForOrgPeriod({
 
   return row?.count ?? 0;
 }
-
-export async function countInsertionsByAssetTypeForOrgPeriod({
-  tx,
-  input,
-}: {
-  tx: Transaction;
-  input: Omit<CountInsertionsForOrgPeriodInput, "assetType">;
-}): Promise<Array<{ assetType: string; count: number }>> {
-  const rows = await tx
-    .select({
-      assetType: assetInsertions.assetType,
-      count: sql<number>`count(*)::int`,
-    })
-    .from(assetInsertions)
-    .where(
-      and(
-        eq(assetInsertions.organizationId, input.organizationId),
-        gte(assetInsertions.createdAt, input.periodStart),
-        lt(assetInsertions.createdAt, input.periodEnd),
-        ...(input.userId ? [eq(assetInsertions.userId, input.userId)] : []),
-      ),
-    )
-    .groupBy(assetInsertions.assetType);
-
-  return rows.map((row) => ({
-    assetType: row.assetType,
-    count: row.count,
-  }));
-}

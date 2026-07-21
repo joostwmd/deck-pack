@@ -16,6 +16,9 @@ import { DrizzleOrganizationRepository } from "@deck-pack/organization/repositor
 import type { SeatsRepository } from "@deck-pack/seats";
 import { InMemorySeatsRepository } from "@deck-pack/seats/repositories/in-memory-seats-repository";
 import { DrizzleSeatsRepository } from "@deck-pack/seats/repositories/seats-repository";
+import type { UsageRepository } from "@deck-pack/usage";
+import { InMemoryUsageRepository } from "@deck-pack/usage/repositories/in-memory-usage-repository";
+import { DrizzleUsageRepository } from "@deck-pack/usage/repositories/usage-repository";
 import type { UsersRepository } from "@deck-pack/users";
 import { InMemoryUsersRepository } from "@deck-pack/users/repositories/in-memory-users-repository";
 import { DrizzleUsersRepository } from "@deck-pack/users/repositories/users-repository";
@@ -31,6 +34,7 @@ export type AppContainerOverrides = Partial<{
   membersRepository: MembersRepository;
   invitationPort: InvitationPort;
   billingRepository: BillingRepository;
+  usageRepository: UsageRepository;
   brandfetchClient: BrandfetchClient;
   nounProjectClient: NounProjectClient;
   pexelsClient: PexelsClient;
@@ -77,6 +81,7 @@ export class AppContainer {
     public readonly membersRepository: MembersRepository,
     public readonly invitationPort: InvitationPort,
     public readonly billingRepository: BillingRepository,
+    public readonly usageRepository: UsageRepository,
     public readonly brandfetchClient: BrandfetchClient,
     public readonly nounProjectClient: NounProjectClient,
     public readonly pexelsClient: PexelsClient,
@@ -91,6 +96,7 @@ export class AppContainer {
       new DrizzleMembersRepository(unitOfWork),
       createBetterAuthInvitationPort(),
       new DrizzleBillingRepository(unitOfWork),
+      new DrizzleUsageRepository(unitOfWork),
       new BrandfetchClient({
         apiKey: env.BRANDFETCH_API_KEY,
         clientId: env.BRANDFETCH_CLIENT_ID,
@@ -113,6 +119,7 @@ export class AppContainer {
       new DrizzleMembersRepository(uow),
       new InMemoryInvitationPort(),
       new DrizzleBillingRepository(uow),
+      new DrizzleUsageRepository(uow),
       emptyBrandfetchClient,
       emptyNounProjectClient,
       emptyPexelsClient,
@@ -129,6 +136,7 @@ export class AppContainer {
       overrides.membersRepository ?? new InMemoryMembersRepository(),
       overrides.invitationPort ?? new InMemoryInvitationPort(),
       overrides.billingRepository ?? new InMemoryBillingRepository(),
+      overrides.usageRepository ?? new InMemoryUsageRepository(),
       overrides.brandfetchClient ?? emptyBrandfetchClient,
       overrides.nounProjectClient ?? emptyNounProjectClient,
       overrides.pexelsClient ?? emptyPexelsClient,

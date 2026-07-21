@@ -33,6 +33,7 @@ describe("AppContainer", () => {
     expect(container.membersRepository).toBeDefined();
     expect(container.invitationPort).toBeDefined();
     expect(container.billingRepository).toBeDefined();
+    expect(container.usageRepository).toBeDefined();
     expect(container.brandfetchClient).toBeDefined();
     expect(container.nounProjectClient).toBeDefined();
     expect(container.pexelsClient).toBeDefined();

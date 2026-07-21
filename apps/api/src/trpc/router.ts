@@ -7,19 +7,10 @@ import {
 import { createBrandProfileVersion } from "@deck-pack/db/queries/createBrandProfileVersion";
 import { deleteAllShortcutOverrides } from "@deck-pack/db/queries/deleteAllShortcutOverrides";
 import { deleteShortcutOverride } from "@deck-pack/db/queries/deleteShortcutOverride";
-import { getActiveOrganizationSubscriptionByOrgId } from "@deck-pack/db/queries/getActiveOrganizationSubscriptionByOrgId";
 import { getAgendaInstance } from "@deck-pack/db/queries/getAgendaInstance";
 import { getBrandProfileWithVersion } from "@deck-pack/db/queries/getBrandProfileWithVersion";
-import { getPlan } from "@deck-pack/db/queries/getPlan";
 import { insertAssetInsertion } from "@deck-pack/db/queries/insertAssetInsertion";
-import { countInsertionsByAssetTypeForOrgPeriod } from "@deck-pack/db/queries/countInsertionsForOrgPeriod";
-import { listInsertionSeriesForOrg } from "@deck-pack/db/queries/listInsertionSeriesForOrg";
-import { listSeatUsageForOrg } from "@deck-pack/db/queries/listSeatUsageForOrg";
-import {
-  assertInsertAllowed,
-  getEntitlementWindow,
-  getUsagePeriodContext,
-} from "@deck-pack/db/queries/usage-entitlements";
+import { assertInsertAllowed } from "@deck-pack/db/queries/usage-entitlements";
 import { listAllShortcutOverridesByUser } from "@deck-pack/db/queries/listShortcutOverridesByUser";
 import { listBrandProfilesByUser } from "@deck-pack/db/queries/listBrandProfilesByUser";
 import { setDefaultBrandProfile } from "@deck-pack/db/queries/setDefaultBrandProfile";
@@ -46,6 +37,7 @@ import { membersRouter } from "../routers/members-router";
 import { organizationRouter } from "../routers/organization-router";
 import { usersRouter } from "../routers/users-router";
 import { seatsRouter } from "../routers/seats-router";
+import { usageRouter } from "../routers/usage-router";
 import { AppContainer } from "../container";
 import { createPhotoRoutes } from "../domains/photos/routes";
 import { createPhotoService } from "../domains/photos/service";
@@ -55,8 +47,6 @@ import { createShortcutRoutes } from "../domains/shortcuts/routes";
 import { createShortcutService } from "../domains/shortcuts/service";
 import { createSlideRoutes } from "../domains/slides/routes";
 import { createSlideService } from "../domains/slides/service";
-import { createUsageRoutes } from "../domains/usage/routes";
-import { createUsageService } from "../domains/usage/service";
 import { createLibraryRoutes } from "../domains/library/routes";
 import { createOrgLibraryRoutes } from "../domains/library/org-routes";
 import { createLibraryService } from "../domains/library/service";
@@ -120,16 +110,6 @@ export function createAppRouter(deps: AddinRouterDeps, container: AppContainer) 
   const flagService = createFlagService({ storage });
   const addinService = createAddinService({ insertAssetInsertion, assertInsertAllowed });
 
-  const usageService = createUsageService({
-    getActiveOrganizationSubscriptionByOrgId,
-    getPlan,
-    getEntitlementWindow,
-    getUsagePeriodContext,
-    countInsertionsByAssetTypeForOrgPeriod,
-    listInsertionSeriesForOrg,
-    listSeatUsageForOrg,
-  });
-
   const agendaService = createAgendaService({
     syncAgenda,
     getAgendaInstance,
@@ -161,7 +141,7 @@ export function createAppRouter(deps: AddinRouterDeps, container: AppContainer) 
     organization: organizationRouter(container),
     members: membersRouter(container),
     seats: seatsRouter(container),
-    usage: router(createUsageRoutes(usageService)),
+    usage: usageRouter(container),
     users: usersRouter(container),
     billing: billingRouter(container),
     library: router({
