@@ -1,5 +1,8 @@
 import { unitOfWork, UnitOfWork, type Database } from "@deck-pack/db";
 import { env } from "@deck-pack/env/server";
+import type { BillingRepository } from "@deck-pack/billing";
+import { InMemoryBillingRepository } from "@deck-pack/billing/repositories/in-memory-billing-repository";
+import { DrizzleBillingRepository } from "@deck-pack/billing/repositories/billing-repository";
 import { BrandfetchClient } from "@deck-pack/integrations/brandfetch";
 import { NounProjectClient } from "@deck-pack/integrations/noun-project";
 import { PexelsClient } from "@deck-pack/integrations/pexels";
@@ -27,6 +30,7 @@ export type AppContainerOverrides = Partial<{
   seatsRepository: SeatsRepository;
   membersRepository: MembersRepository;
   invitationPort: InvitationPort;
+  billingRepository: BillingRepository;
   brandfetchClient: BrandfetchClient;
   nounProjectClient: NounProjectClient;
   pexelsClient: PexelsClient;
@@ -72,6 +76,7 @@ export class AppContainer {
     public readonly seatsRepository: SeatsRepository,
     public readonly membersRepository: MembersRepository,
     public readonly invitationPort: InvitationPort,
+    public readonly billingRepository: BillingRepository,
     public readonly brandfetchClient: BrandfetchClient,
     public readonly nounProjectClient: NounProjectClient,
     public readonly pexelsClient: PexelsClient,
@@ -85,6 +90,7 @@ export class AppContainer {
       new DrizzleSeatsRepository(unitOfWork),
       new DrizzleMembersRepository(unitOfWork),
       createBetterAuthInvitationPort(),
+      new DrizzleBillingRepository(unitOfWork),
       new BrandfetchClient({
         apiKey: env.BRANDFETCH_API_KEY,
         clientId: env.BRANDFETCH_CLIENT_ID,
@@ -106,6 +112,7 @@ export class AppContainer {
       new DrizzleSeatsRepository(uow),
       new DrizzleMembersRepository(uow),
       new InMemoryInvitationPort(),
+      new DrizzleBillingRepository(uow),
       emptyBrandfetchClient,
       emptyNounProjectClient,
       emptyPexelsClient,
@@ -121,6 +128,7 @@ export class AppContainer {
       overrides.seatsRepository ?? new InMemorySeatsRepository(),
       overrides.membersRepository ?? new InMemoryMembersRepository(),
       overrides.invitationPort ?? new InMemoryInvitationPort(),
+      overrides.billingRepository ?? new InMemoryBillingRepository(),
       overrides.brandfetchClient ?? emptyBrandfetchClient,
       overrides.nounProjectClient ?? emptyNounProjectClient,
       overrides.pexelsClient ?? emptyPexelsClient,

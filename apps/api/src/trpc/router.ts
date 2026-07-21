@@ -5,14 +5,11 @@ import {
   duplicateBrandProfile,
 } from "@deck-pack/db/queries/createBrandProfile";
 import { createBrandProfileVersion } from "@deck-pack/db/queries/createBrandProfileVersion";
-import { createOrganizationSubscription } from "@deck-pack/db/queries/createOrganizationSubscription";
-import { createPlan } from "@deck-pack/db/queries/createPlan";
 import { deleteAllShortcutOverrides } from "@deck-pack/db/queries/deleteAllShortcutOverrides";
 import { deleteShortcutOverride } from "@deck-pack/db/queries/deleteShortcutOverride";
 import { getActiveOrganizationSubscriptionByOrgId } from "@deck-pack/db/queries/getActiveOrganizationSubscriptionByOrgId";
 import { getAgendaInstance } from "@deck-pack/db/queries/getAgendaInstance";
 import { getBrandProfileWithVersion } from "@deck-pack/db/queries/getBrandProfileWithVersion";
-import { getOrganizationSubscription } from "@deck-pack/db/queries/getOrganizationSubscription";
 import { getPlan } from "@deck-pack/db/queries/getPlan";
 import { insertAssetInsertion } from "@deck-pack/db/queries/insertAssetInsertion";
 import { countInsertionsByAssetTypeForOrgPeriod } from "@deck-pack/db/queries/countInsertionsForOrgPeriod";
@@ -25,13 +22,9 @@ import {
 } from "@deck-pack/db/queries/usage-entitlements";
 import { listAllShortcutOverridesByUser } from "@deck-pack/db/queries/listShortcutOverridesByUser";
 import { listBrandProfilesByUser } from "@deck-pack/db/queries/listBrandProfilesByUser";
-import { listOrganizationSubscriptions } from "@deck-pack/db/queries/listOrganizationSubscriptions";
-import { listPlans } from "@deck-pack/db/queries/listPlans";
 import { setDefaultBrandProfile } from "@deck-pack/db/queries/setDefaultBrandProfile";
 import { syncAgenda } from "@deck-pack/db/queries/syncAgenda";
 import { updateBrandProfileMetadata } from "@deck-pack/db/queries/updateBrandProfileMetadata";
-import { updateOrganizationSubscription } from "@deck-pack/db/queries/updateOrganizationSubscription";
-import { updatePlan } from "@deck-pack/db/queries/updatePlan";
 import { upsertShortcutOverride } from "@deck-pack/db/queries/upsertShortcutOverride";
 import { NounProjectClient } from "@deck-pack/integrations/noun-project";
 import { PexelsClient } from "@deck-pack/integrations/pexels";
@@ -40,8 +33,6 @@ import { createAddinRoutes } from "../domains/addin/routes";
 import { createAddinService } from "../domains/addin/service";
 import { createAgendaRoutes } from "../domains/agenda/routes";
 import { createAgendaService } from "../domains/agenda/service";
-import { createBillingRoutes } from "../domains/billing/routes";
-import { createBillingService } from "../domains/billing/service";
 import { createBrandProfileRoutes } from "../domains/brand-profiles/routes";
 import { createBrandProfileService } from "../domains/brand-profiles/service";
 import { createFlagRoutes } from "../domains/flags/routes";
@@ -50,6 +41,7 @@ import { createIconRoutes } from "../domains/icons/routes";
 import { createIconService } from "../domains/icons/service";
 import { createLogoRoutes } from "../domains/logos/routes";
 import { createLogoService } from "../domains/logos/service";
+import { billingRouter } from "../routers/billing-router";
 import { membersRouter } from "../routers/members-router";
 import { organizationRouter } from "../routers/organization-router";
 import { usersRouter } from "../routers/users-router";
@@ -161,17 +153,6 @@ export function createAppRouter(deps: AddinRouterDeps, container: AppContainer) 
     deleteAllShortcutOverrides,
   });
 
-  const billingService = createBillingService({
-    listPlans,
-    getPlan,
-    createPlan,
-    updatePlan,
-    listOrganizationSubscriptions,
-    getOrganizationSubscription,
-    createOrganizationSubscription,
-    updateOrganizationSubscription,
-  });
-
   const libraryService = createLibraryService({ storage });
   const orgLibraryService = createOrgLibraryService({ storage });
 
@@ -182,7 +163,7 @@ export function createAppRouter(deps: AddinRouterDeps, container: AppContainer) 
     seats: seatsRouter(container),
     usage: router(createUsageRoutes(usageService)),
     users: usersRouter(container),
-    billing: router(createBillingRoutes(billingService)),
+    billing: billingRouter(container),
     library: router({
       ...createLibraryRoutes(libraryService),
       org: router(createOrgLibraryRoutes(orgLibraryService)),

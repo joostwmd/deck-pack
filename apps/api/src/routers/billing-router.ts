@@ -1,37 +1,38 @@
 import { z } from "zod";
 
-import { platformAdminProcedure } from "../../trpc/procedures";
-import { unwrapServiceResult } from "../../trpc/service-result";
-
+import {
+  CreateOrganizationSubscription,
+  CreatePlan,
+  GetOrganizationSubscription,
+  GetPlan,
+  ListOrganizationSubscriptions,
+  ListPlans,
+  UpdateOrganizationSubscription,
+  UpdatePlan,
+} from "@deck-pack/billing";
 import {
   organizationSubscriptionSchema,
   planLimitsInputSchema,
   planSchema,
   planSlugSchema,
-} from "./schemas";
-import type { BillingService } from "./service";
+  subscriptionMutationSchema,
+} from "@deck-pack/billing/schemas";
 
-const subscriptionMutationSchema = z.object({
-  id: z.string(),
-  organizationId: z.string(),
-  planId: z.string(),
-  quantity: z.number().int(),
-  status: z.string(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-});
+import type { AppContainer } from "../container";
+import { platformAdminProcedure } from "../trpc/procedures";
+import { router } from "../trpc/init";
 
-export function createBillingRoutes(service: BillingService) {
-  return {
-    listPlans: platformAdminProcedure.output(z.array(planSchema)).query(async ({ ctx }) => {
-      return unwrapServiceResult(await service.listPlans(ctx.tx));
+export function billingRouter(container: AppContainer) {
+  return router({
+    listPlans: platformAdminProcedure.output(z.array(planSchema)).query(() => {
+      return new ListPlans(container.billingRepository).execute();
     }),
 
     getPlan: platformAdminProcedure
       .input(z.object({ planId: z.string().trim().min(1) }))
       .output(planSchema)
-      .query(async ({ ctx, input }) => {
-        return unwrapServiceResult(await service.getPlan(ctx.tx, input));
+      .query(({ input }) => {
+        return new GetPlan(container.billingRepository).execute(input);
       }),
 
     createPlan: platformAdminProcedure
@@ -43,8 +44,8 @@ export function createBillingRoutes(service: BillingService) {
         }),
       )
       .output(planSchema)
-      .mutation(async ({ ctx, input }) => {
-        return unwrapServiceResult(await service.createPlan(ctx.tx, input));
+      .mutation(({ input }) => {
+        return new CreatePlan(container.billingRepository).execute(input);
       }),
 
     updatePlan: platformAdminProcedure
@@ -57,21 +58,21 @@ export function createBillingRoutes(service: BillingService) {
         }),
       )
       .output(planSchema)
-      .mutation(async ({ ctx, input }) => {
-        return unwrapServiceResult(await service.updatePlan(ctx.tx, input));
+      .mutation(({ input }) => {
+        return new UpdatePlan(container.billingRepository).execute(input);
       }),
 
     listOrganizationSubscriptions: platformAdminProcedure
       .output(z.array(organizationSubscriptionSchema))
-      .query(async ({ ctx }) => {
-        return unwrapServiceResult(await service.listOrganizationSubscriptions(ctx.tx));
+      .query(() => {
+        return new ListOrganizationSubscriptions(container.billingRepository).execute();
       }),
 
     getOrganizationSubscription: platformAdminProcedure
       .input(z.object({ subscriptionId: z.string().trim().min(1) }))
       .output(organizationSubscriptionSchema)
-      .query(async ({ ctx, input }) => {
-        return unwrapServiceResult(await service.getOrganizationSubscription(ctx.tx, input));
+      .query(({ input }) => {
+        return new GetOrganizationSubscription(container.billingRepository).execute(input);
       }),
 
     createOrganizationSubscription: platformAdminProcedure
@@ -83,8 +84,8 @@ export function createBillingRoutes(service: BillingService) {
         }),
       )
       .output(subscriptionMutationSchema)
-      .mutation(async ({ ctx, input }) => {
-        return unwrapServiceResult(await service.createOrganizationSubscription(ctx.tx, input));
+      .mutation(({ input }) => {
+        return new CreateOrganizationSubscription(container.billingRepository).execute(input);
       }),
 
     updateOrganizationSubscription: platformAdminProcedure
@@ -105,8 +106,8 @@ export function createBillingRoutes(service: BillingService) {
           ),
       )
       .output(subscriptionMutationSchema)
-      .mutation(async ({ ctx, input }) => {
-        return unwrapServiceResult(await service.updateOrganizationSubscription(ctx.tx, input));
+      .mutation(({ input }) => {
+        return new UpdateOrganizationSubscription(container.billingRepository).execute(input);
       }),
-  };
+  });
 }
