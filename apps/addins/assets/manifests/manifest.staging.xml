@@ -73,8 +73,8 @@
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="GetStarted.Title" DefaultValue="Get started with DeckPack"/>
-        <bt:String id="CommandsGroup.Label" DefaultValue="DeckPack"/>
-        <bt:String id="TaskpaneButton.Label" DefaultValue="DeckPack"/>
+        <bt:String id="CommandsGroup.Label" DefaultValue="(Staging) DeckPack"/>
+        <bt:String id="TaskpaneButton.Label" DefaultValue="(Staging) DeckPack"/>
       </bt:ShortStrings>
       <bt:LongStrings>
         <bt:String id="GetStarted.Description" DefaultValue="DeckPack loaded successfully. Go to the HOME tab and click the DeckPack button to open the task pane."/>
