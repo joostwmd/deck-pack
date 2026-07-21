@@ -11,11 +11,13 @@ export function OrganizationsListPanel() {
     queryFn: () => organization.listOrganizations(),
   });
 
+  const teamOrganizations = (listQuery.data ?? []).filter((org) => org.type === "team");
+
   return (
     <OrganizationsListView
       loading={listQuery.isLoading}
       errorMessage={listQuery.isError ? listQuery.error.message : undefined}
-      organizations={listQuery.data ?? []}
+      organizations={teamOrganizations}
     />
   );
 }

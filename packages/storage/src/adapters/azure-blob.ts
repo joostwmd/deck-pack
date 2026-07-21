@@ -53,10 +53,7 @@ export function createAzureObjectStorage(config: AzureObjectStorageConfig): Obje
 
   const credential = config.credential ?? new DefaultAzureCredential();
   const clockSkewMs = (config.clockSkewSeconds ?? 300) * 1000;
-  const service = new BlobServiceClient(
-    `https://${accountName}.blob.core.windows.net`,
-    credential,
-  );
+  const service = new BlobServiceClient(`https://${accountName}.blob.core.windows.net`, credential);
   const container = service.getContainerClient(containerName);
 
   async function mintSas(args: {
@@ -111,6 +108,7 @@ export function createAzureObjectStorage(config: AzureObjectStorageConfig): Obje
           "x-ms-blob-type": "BlockBlob",
         },
         expiresAt,
+        mode: "direct",
       };
     },
 

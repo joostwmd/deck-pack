@@ -37,3 +37,53 @@ export const removeMemberInputSchema = z.object({
 export const cancelInvitationInputSchema = z.object({
   invitationId: z.string().trim().min(1),
 });
+
+export const currentMembershipImpactSchema = z
+  .object({
+    organizationId: z.string(),
+    organizationName: z.string(),
+    organizationType: z.enum(["individual", "team"]).nullable(),
+    willDeleteOnVacate: z.boolean(),
+    blockedSoleOwner: z.boolean(),
+  })
+  .nullable();
+
+export const invitationPreviewSchema = z.object({
+  invitationId: z.string(),
+  email: z.string(),
+  role: z.string().nullable(),
+  expiresAt: z.date(),
+  organizationId: z.string(),
+  organizationName: z.string(),
+  organizationType: z.enum(["individual", "team"]).nullable(),
+  status: z.string(),
+  currentMembership: currentMembershipImpactSchema,
+});
+
+export const acceptInvitationInputSchema = z.object({
+  invitationId: z.string().trim().min(1),
+  /** Required when the user already belongs to another organization. */
+  confirmReplace: z.boolean().default(false),
+});
+
+export const pendingJoinSchema = z
+  .object({
+    kind: z.enum(["invitation", "seat"]),
+    invitationId: z.string().optional(),
+    seatId: z.string().optional(),
+    organizationId: z.string(),
+    organizationName: z.string(),
+    role: z.string().nullable().optional(),
+    currentMembership: currentMembershipImpactSchema,
+  })
+  .nullable();
+
+export const acceptPendingSeatInputSchema = z.object({
+  confirmReplace: z.boolean().default(false),
+});
+
+export const joinResultSchema = z.object({
+  organizationId: z.string(),
+  workspace: z.enum(["solo", "team"]).nullable(),
+  vacatedAction: z.enum(["deleted", "left"]).nullable(),
+});

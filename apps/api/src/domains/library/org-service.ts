@@ -27,6 +27,8 @@ import {
 
 import { serviceFail, serviceOk, type ServiceResult } from "../../api/resilience/service-result";
 
+import { uploadTargetForClient } from "./upload-target-for-client";
+
 import type { z } from "zod";
 
 import type { libraryUploadRoleSchema } from "./schemas";
@@ -160,10 +162,7 @@ export function createOrgLibraryService(deps: OrgLibraryServiceDeps) {
       return requireOrgLibraryItem(tx, input.organizationId, input.id);
     },
 
-    publish: async (
-      tx: Transaction,
-      input: { organizationId: string; id: string },
-    ) => {
+    publish: async (tx: Transaction, input: { organizationId: string; id: string }) => {
       const detail = await getOrgLibraryItem({
         tx,
         id: input.id,
@@ -188,10 +187,7 @@ export function createOrgLibraryService(deps: OrgLibraryServiceDeps) {
       return requireOrgLibraryItem(tx, input.organizationId, input.id);
     },
 
-    unpublish: async (
-      tx: Transaction,
-      input: { organizationId: string; id: string },
-    ) => {
+    unpublish: async (tx: Transaction, input: { organizationId: string; id: string }) => {
       const detail = await getOrgLibraryItem({
         tx,
         id: input.id,
@@ -199,7 +195,9 @@ export function createOrgLibraryService(deps: OrgLibraryServiceDeps) {
       });
       if (!detail) return serviceFail("not_found", { message: "Asset not found" });
       if (detail.status !== "ready") {
-        return serviceFail("invalid_state", { message: "Only published assets can be unpublished" });
+        return serviceFail("invalid_state", {
+          message: "Only published assets can be unpublished",
+        });
       }
       await setOrgLibraryItemStatus({
         tx,
@@ -210,10 +208,7 @@ export function createOrgLibraryService(deps: OrgLibraryServiceDeps) {
       return requireOrgLibraryItem(tx, input.organizationId, input.id);
     },
 
-    archive: async (
-      tx: Transaction,
-      input: { organizationId: string; id: string },
-    ) => {
+    archive: async (tx: Transaction, input: { organizationId: string; id: string }) => {
       const detail = await getOrgLibraryItem({
         tx,
         id: input.id,
@@ -268,7 +263,7 @@ export function createOrgLibraryService(deps: OrgLibraryServiceDeps) {
         expiresInSeconds: 15 * 60,
       });
 
-      return serviceOk(target);
+      return serviceOk(uploadTargetForClient(target));
     },
 
     finalizeUpload: async (

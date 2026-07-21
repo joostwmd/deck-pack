@@ -12,10 +12,7 @@ import {
   type FileSlotEvent,
   type FileSlotState,
 } from "../lib/file-slot-machine";
-import {
-  useFileUploaderController,
-  type UploadFileFn,
-} from "./use-file-uploader-controller";
+import { useFileUploaderController, type UploadFileFn } from "./use-file-uploader-controller";
 
 export type UseFileSlotControllerOptions = {
   /** Server-attached file for this slot (null when missing). */
@@ -47,9 +44,7 @@ function currentKeyOf(current: FileSlotCurrent | null): string {
   return `${current.blobPath}|${current.contentType}|${current.name}|${String(current.byteSize ?? "")}`;
 }
 
-export function useFileSlotController(
-  options: UseFileSlotControllerOptions,
-): FileSlotController {
+export function useFileSlotController(options: UseFileSlotControllerOptions): FileSlotController {
   const [state, dispatch] = useReducer(
     fileSlotReducer,
     options.current,
@@ -114,7 +109,9 @@ export function useFileSlotController(
 
   // Clear local File[] after settle — only when non-empty (setFiles([]) every time loops forever).
   useEffect(() => {
-    if (state.status !== "filled" && state.status !== "empty") return;
+    if (state.status !== "filled" && state.status !== "empty" && state.status !== "error") {
+      return;
+    }
     if (filesRef.current.length === 0) return;
     onValueChange([]);
   }, [state.status, onValueChange]);

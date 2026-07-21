@@ -5,7 +5,14 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin, bearer, emailOTP, type Member } from "better-auth/plugins";
 import { organization } from "better-auth/plugins";
 import { createAuthMiddleware } from "better-auth/api";
-import { organizationOwner, organizationAdmin, organizationMember, organizationAddinUser, organizationLibraryManager, ac } from "./utils/rbac";
+import {
+  organizationOwner,
+  organizationAdmin,
+  organizationMember,
+  organizationAddinUser,
+  organizationLibraryManager,
+  ac,
+} from "./utils/rbac";
 import { createMicrosoftIdTokenVerifier } from "./microsoft-id-token";
 import { assertOpsOtpAllowed, emailMatchesAdminDomain } from "./ops-soft-gate";
 import { workspaceFromOrganizationMetadata, type WorkspaceKind } from "./workspace";
@@ -17,12 +24,22 @@ export type OtpEmailType = "sign-in" | "email-verification" | "forget-password" 
 
 export type SendOtp = (args: { email: string; otp: string; type: OtpEmailType }) => Promise<void>;
 
+export type SendOrganizationInvitation = (args: {
+  to: string;
+  organizationName: string;
+  inviterName: string;
+  inviteLink: string;
+}) => Promise<void>;
+
 export interface AuthDeps {
   db: AuthDb;
   secret: string;
   baseURL: string;
   trustedOrigins: string[];
   sendOtp: SendOtp;
+  sendOrganizationInvitation: SendOrganizationInvitation;
+  /** Portal origin for invite links (no trailing slash). */
+  portalAppUrl: string;
   adminEmailDomain: string;
   opsOrigins: string[];
   microsoftOAuth?: {
@@ -36,12 +53,18 @@ export interface AuthDeps {
  * without loading `@deck-pack/env` (which requires DATABASE_URL etc.).
  */
 async function loadDbRuntime() {
-  const [{ tx }, { activateSeatForUser }, { bootstrapPersonalOrganization }] = await Promise.all([
+  const [
+    { tx },
+    { activateSeatForUser },
+    { bootstrapPersonalOrganization },
+    { findPendingOrgIntentByEmail },
+  ] = await Promise.all([
     import("@deck-pack/db/transaction"),
     import("@deck-pack/db/queries/activateSeatForUser"),
     import("@deck-pack/db/queries/bootstrapPersonalOrganization"),
+    import("@deck-pack/db/queries/findPendingOrgIntentByEmail"),
   ]);
-  return { tx, activateSeatForUser, bootstrapPersonalOrganization };
+  return { tx, activateSeatForUser, bootstrapPersonalOrganization, findPendingOrgIntentByEmail };
 }
 
 function baseAuthOptions(
@@ -88,17 +111,6 @@ function baseAuthOptions(
   } satisfies BetterAuthOptions;
 }
 
-const organizationPlugin = organization({
-  ac: ac,
-  roles: { organizationOwner, organizationAdmin, organizationMember, organizationAddinUser, organizationLibraryManager },
-  allowUserToCreateOrganization: false,
-  organizationLimit: 1,
-  sendInvitationEmail: async (data) => {
-    console.log("sendInvitationEmail", data);
-    //await sendInvitationEmail(data);
-  },
-});
-
 /** Populates active org on session when user is a member; activates pending seats on login. */
 async function sessionCreateAfter(
   session: { id: string; userId: string },
@@ -106,7 +118,8 @@ async function sessionCreateAfter(
   ctx: any,
 ) {
   const adapter = ctx!.context.adapter;
-  const { tx, activateSeatForUser, bootstrapPersonalOrganization } = await loadDbRuntime();
+  const { tx, activateSeatForUser, bootstrapPersonalOrganization, findPendingOrgIntentByEmail } =
+    await loadDbRuntime();
 
   const userRecord = (await adapter.findOne({
     model: "user",
@@ -128,27 +141,36 @@ async function sessionCreateAfter(
     where: [{ field: "userId", value: session.userId }],
   })) as Member | null;
 
+  // Only bootstrap a personal org when there is no membership and no pending
+  // invite/seat (pending intent should win — user joins that org instead).
   if (!member && userRecord?.email) {
-    const bootstrap = await bootstrapPersonalOrganization({
+    const pendingIntent = await findPendingOrgIntentByEmail({
       tx,
-      input: {
-        userId: session.userId,
-        email: userRecord.email,
-        name: userRecord.email.split("@")[0],
-      },
-    }).catch((error) => {
-      console.error("bootstrapPersonalOrganization on session failed", {
-        userId: session.userId,
-        error,
-      });
-      return null;
-    });
+      email: userRecord.email,
+    }).catch(() => null);
 
-    if (bootstrap?.ok) {
-      member = (await adapter.findOne({
-        model: "member",
-        where: [{ field: "userId", value: session.userId }],
-      })) as Member | null;
+    if (!pendingIntent) {
+      const bootstrap = await bootstrapPersonalOrganization({
+        tx,
+        input: {
+          userId: session.userId,
+          email: userRecord.email,
+          name: userRecord.email.split("@")[0],
+        },
+      }).catch((error) => {
+        console.error("bootstrapPersonalOrganization on session failed", {
+          userId: session.userId,
+          error,
+        });
+        return null;
+      });
+
+      if (bootstrap?.ok) {
+        member = (await adapter.findOne({
+          model: "member",
+          where: [{ field: "userId", value: session.userId }],
+        })) as Member | null;
+      }
     }
   }
 
@@ -190,7 +212,37 @@ async function sessionCreateAfter(
  * Admin promotion is domain-only; ops OTP is soft-gated by Origin.
  */
 export function createAuth(deps: AuthDeps) {
-  const { sendOtp, adminEmailDomain, opsOrigins, microsoftOAuth } = deps;
+  const {
+    sendOtp,
+    sendOrganizationInvitation,
+    portalAppUrl,
+    adminEmailDomain,
+    opsOrigins,
+    microsoftOAuth,
+  } = deps;
+
+  const portalOrigin = portalAppUrl.replace(/\/$/, "");
+
+  const organizationPlugin = organization({
+    ac: ac,
+    roles: {
+      organizationOwner,
+      organizationAdmin,
+      organizationMember,
+      organizationAddinUser,
+      organizationLibraryManager,
+    },
+    allowUserToCreateOrganization: false,
+    organizationLimit: 1,
+    sendInvitationEmail: async (data) => {
+      await sendOrganizationInvitation({
+        to: data.email,
+        organizationName: data.organization.name,
+        inviterName: data.inviter.user.name,
+        inviteLink: `${portalOrigin}/accept-invitation/${data.id}`,
+      });
+    },
+  });
 
   return betterAuth(
     baseAuthOptions(deps, {
@@ -233,8 +285,7 @@ export function createAuth(deps: AuthDeps) {
       hooks: {
         before: createAuthMiddleware(async (ctx) => {
           const email =
-            (ctx.body?.email as string | undefined) ??
-            (ctx.body?.identifier as string | undefined);
+            (ctx.body?.email as string | undefined) ?? (ctx.body?.identifier as string | undefined);
 
           assertOpsOtpAllowed({
             path: ctx.path,
@@ -259,7 +310,20 @@ export function createAuth(deps: AuthDeps) {
                 });
               }
 
-              const { tx, bootstrapPersonalOrganization } = await loadDbRuntime();
+              const { tx, bootstrapPersonalOrganization, findPendingOrgIntentByEmail } =
+                await loadDbRuntime();
+
+              const pendingIntent = await findPendingOrgIntentByEmail({
+                tx,
+                email: user.email,
+              }).catch(() => null);
+
+              // Pending invite/seat wins — do not create a personal org that would
+              // block joining the company workspace.
+              if (pendingIntent) {
+                return;
+              }
+
               await bootstrapPersonalOrganization({
                 tx,
                 input: {

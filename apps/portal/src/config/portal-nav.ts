@@ -24,15 +24,30 @@ export type OrgNavItem = {
   permissions?: Permissions;
 };
 
-export const SOLO_NAV_ITEMS: SoloNavItem[] = [
-  { title: "Subscription", to: "/solo/subscription" },
-];
+export type OrgNavGroup = {
+  title: string;
+  permissions?: Permissions;
+  items: OrgNavItem[];
+};
 
+export const SOLO_NAV_ITEMS: SoloNavItem[] = [{ title: "Subscription", to: "/solo/subscription" }];
+
+/** Flat list kept for breadcrumbs / active checks; sidebar uses ORG_NAV_GROUPS. */
 export const ORG_NAV_ITEMS: OrgNavItem[] = [
   { title: "Dashboard", to: "/org/dashboard" },
   {
-    title: "Library",
+    title: "Shapes",
     to: "/org/library/shapes",
+    permissions: { library: ["create"] },
+  },
+  {
+    title: "Flags",
+    to: "/org/library/flags",
+    permissions: { library: ["create"] },
+  },
+  {
+    title: "Slides",
+    to: "/org/library/slides",
     permissions: { library: ["create"] },
   },
   {
@@ -44,6 +59,29 @@ export const ORG_NAV_ITEMS: OrgNavItem[] = [
     title: "Seats",
     to: "/org/seats",
     permissions: { seat: ["view"] },
+  },
+];
+
+export const ORG_NAV_GROUPS: OrgNavGroup[] = [
+  {
+    title: "Team",
+    items: [{ title: "Dashboard", to: "/org/dashboard" }],
+  },
+  {
+    title: "Library",
+    permissions: { library: ["create"] },
+    items: [
+      { title: "Shapes", to: "/org/library/shapes", permissions: { library: ["create"] } },
+      { title: "Flags", to: "/org/library/flags", permissions: { library: ["create"] } },
+      { title: "Slides", to: "/org/library/slides", permissions: { library: ["create"] } },
+    ],
+  },
+  {
+    title: "Admin",
+    items: [
+      { title: "Members", to: "/org/members", permissions: { member: ["create"] } },
+      { title: "Seats", to: "/org/seats", permissions: { seat: ["view"] } },
+    ],
   },
 ];
 
@@ -83,12 +121,48 @@ export function portalBreadcrumbs(
     return [{ label: "Members" }];
   }
 
-  if (pathname.startsWith("/org/library")) {
-    return [{ label: "Library" }];
-  }
-
   if (pathname === "/org/seats") {
     return [{ label: "Seats" }];
+  }
+
+  if (pathname === "/org/library/shapes") {
+    return [{ label: "Library" }, { label: "Shapes" }];
+  }
+  if (pathname === "/org/library/shapes/new") {
+    return [{ label: "Library" }, { label: "Shapes", to: "/org/library/shapes" }, { label: "New" }];
+  }
+  const shapeDetail = pathname.match(/^\/org\/library\/shapes\/([^/]+)$/);
+  if (shapeDetail && shapeDetail[1] !== "new") {
+    const label = dynamicLabels[pathname] ?? "Shape";
+    return [{ label: "Library" }, { label: "Shapes", to: "/org/library/shapes" }, { label }];
+  }
+
+  if (pathname === "/org/library/flags") {
+    return [{ label: "Library" }, { label: "Flags" }];
+  }
+  if (pathname === "/org/library/flags/new") {
+    return [{ label: "Library" }, { label: "Flags", to: "/org/library/flags" }, { label: "New" }];
+  }
+  const flagDetail = pathname.match(/^\/org\/library\/flags\/([^/]+)$/);
+  if (flagDetail && flagDetail[1] !== "new") {
+    const label = dynamicLabels[pathname] ?? "Flag";
+    return [{ label: "Library" }, { label: "Flags", to: "/org/library/flags" }, { label }];
+  }
+
+  if (pathname === "/org/library/slides") {
+    return [{ label: "Library" }, { label: "Slides" }];
+  }
+  if (pathname === "/org/library/slides/new") {
+    return [{ label: "Library" }, { label: "Slides", to: "/org/library/slides" }, { label: "New" }];
+  }
+  const slideDetail = pathname.match(/^\/org\/library\/slides\/([^/]+)$/);
+  if (slideDetail && slideDetail[1] !== "new") {
+    const label = dynamicLabels[pathname] ?? "Slide";
+    return [{ label: "Library" }, { label: "Slides", to: "/org/library/slides" }, { label }];
+  }
+
+  if (pathname.startsWith("/org/library")) {
+    return [{ label: "Library" }];
   }
 
   const dynamicLabel = dynamicLabels[pathname];

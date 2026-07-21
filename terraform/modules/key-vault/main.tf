@@ -58,3 +58,48 @@ resource "azurerm_key_vault_secret" "email_from" {
   tags         = var.tags
   depends_on   = [azurerm_role_assignment.current_user_kv_admin]
 }
+
+resource "azurerm_key_vault_secret" "pexels_api_key" {
+  name         = var.pexels_api_key_secret_name
+  value        = var.pexels_api_key
+  key_vault_id = azurerm_key_vault.main.id
+  content_type = "text/plain"
+  tags         = var.tags
+  depends_on   = [azurerm_role_assignment.current_user_kv_admin]
+}
+
+resource "azurerm_key_vault_secret" "brandfetch_api_key" {
+  name         = var.brandfetch_api_key_secret_name
+  value        = var.brandfetch_api_key
+  key_vault_id = azurerm_key_vault.main.id
+  content_type = "text/plain"
+  tags         = var.tags
+  depends_on   = [azurerm_role_assignment.current_user_kv_admin]
+}
+
+resource "azurerm_key_vault_secret" "brandfetch_client_id" {
+  name         = var.brandfetch_client_id_secret_name
+  value        = var.brandfetch_client_id
+  key_vault_id = azurerm_key_vault.main.id
+  content_type = "text/plain"
+  tags         = var.tags
+  depends_on   = [azurerm_role_assignment.current_user_kv_admin]
+}
+
+resource "azurerm_key_vault_secret" "noun_project_api_key" {
+  name         = var.noun_project_api_key_secret_name
+  value        = var.noun_project_api_key
+  key_vault_id = azurerm_key_vault.main.id
+  content_type = "text/plain"
+  tags         = var.tags
+  depends_on   = [azurerm_role_assignment.current_user_kv_admin]
+}
+
+resource "azurerm_key_vault_secret" "noun_project_api_secret" {
+  name         = var.noun_project_api_secret_name
+  value        = var.noun_project_api_secret
+  key_vault_id = azurerm_key_vault.main.id
+  content_type = "text/plain"
+  tags         = var.tags
+  depends_on   = [azurerm_role_assignment.current_user_kv_admin]
+}

@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import {
   organizationMemberProcedure,
+  protectedProcedure,
   teamWorkspaceProcedure,
 } from "../../api/procedures";
 import { requirePermission } from "../../api/guards/authorization";
@@ -9,9 +10,14 @@ import { requireActiveOrganizationId } from "../../api/guards/org-context";
 import { unwrapServiceResult } from "../../api/resilience/service-result";
 
 import {
+  acceptInvitationInputSchema,
+  acceptPendingSeatInputSchema,
   addMemberInputSchema,
   cancelInvitationInputSchema,
+  invitationPreviewSchema,
+  joinResultSchema,
   memberListEntrySchema,
+  pendingJoinSchema,
   removeMemberInputSchema,
   updateMemberRoleInputSchema,
 } from "./schemas";
@@ -39,12 +45,10 @@ export const cancelInvitationProcedure = teamWorkspaceProcedure.use(
 
 export function createMembersRoutes(service: MembersService) {
   return {
-    list: listMembersProcedure
-      .output(z.array(memberListEntrySchema))
-      .query(async ({ ctx }) => {
-        const organizationId = requireActiveOrganizationId(ctx);
-        return unwrapServiceResult(await service.list(ctx.tx, organizationId));
-      }),
+    list: listMembersProcedure.output(z.array(memberListEntrySchema)).query(async ({ ctx }) => {
+      const organizationId = requireActiveOrganizationId(ctx);
+      return unwrapServiceResult(await service.list(ctx.tx, organizationId));
+    }),
 
     add: addMemberProcedure
       .input(addMemberInputSchema)
@@ -63,6 +67,7 @@ export function createMembersRoutes(service: MembersService) {
             role: input.role,
             assignSeat: input.assignSeat,
             inviterId: ctx.session!.user.id,
+            headers: ctx.headers,
           }),
         );
       }),
@@ -124,8 +129,56 @@ export function createMembersRoutes(service: MembersService) {
       )
       .query(async ({ ctx }) => {
         const organizationId = requireActiveOrganizationId(ctx);
+        return unwrapServiceResult(await service.getOrganizationProfile(ctx.tx, organizationId));
+      }),
+
+    getInvitationPreview: protectedProcedure
+      .input(z.object({ invitationId: z.string().trim().min(1) }))
+      .output(invitationPreviewSchema)
+      .query(async ({ ctx, input }) => {
         return unwrapServiceResult(
-          await service.getOrganizationProfile(ctx.tx, organizationId),
+          await service.getInvitationPreview(ctx.tx, {
+            invitationId: input.invitationId,
+            userId: ctx.session!.user.id,
+            userEmail: ctx.session!.user.email,
+          }),
+        );
+      }),
+
+    acceptInvitation: protectedProcedure
+      .input(acceptInvitationInputSchema)
+      .output(joinResultSchema)
+      .mutation(async ({ ctx, input }) => {
+        return unwrapServiceResult(
+          await service.acceptInvitation(ctx.tx, {
+            invitationId: input.invitationId,
+            userId: ctx.session!.user.id,
+            sessionId: ctx.session!.session.id,
+            confirmReplace: input.confirmReplace,
+          }),
+        );
+      }),
+
+    getPendingJoin: protectedProcedure.output(pendingJoinSchema).query(async ({ ctx }) => {
+      return unwrapServiceResult(
+        await service.getPendingJoin(ctx.tx, {
+          userId: ctx.session!.user.id,
+          userEmail: ctx.session!.user.email,
+        }),
+      );
+    }),
+
+    acceptPendingSeat: protectedProcedure
+      .input(acceptPendingSeatInputSchema)
+      .output(joinResultSchema)
+      .mutation(async ({ ctx, input }) => {
+        return unwrapServiceResult(
+          await service.acceptPendingSeat(ctx.tx, {
+            userId: ctx.session!.user.id,
+            userEmail: ctx.session!.user.email,
+            sessionId: ctx.session!.session.id,
+            confirmReplace: input.confirmReplace,
+          }),
         );
       }),
   };

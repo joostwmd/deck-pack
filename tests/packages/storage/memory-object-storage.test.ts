@@ -18,6 +18,7 @@ describe("createMemoryObjectStorage", () => {
     expect(target.method).toBe("PUT");
     expect(target.headers["Content-Type"]).toBe("image/svg+xml");
     expect(target.uploadUrl).toContain("memory://upload/");
+    expect(target.mode).toBe("proxy");
     expect(target.expiresAt.getTime()).toBeGreaterThan(Date.now());
   });
 

@@ -9,36 +9,34 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarSeparator,
 } from "@deck-pack/ui/components/system/sidebar";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Buildings, Books, Chair, UserCircle, Users } from "@phosphor-icons/react";
 
 import {
-  ORG_NAV_ITEMS,
+  ORG_NAV_GROUPS,
   ORG_SECONDARY_NAV_ITEMS,
   isPortalNavItemActive,
+  type OrgNavGroup,
   type OrgNavItem,
-  type PortalNavRoute,
 } from "@/config/portal-nav";
 import { useCan } from "@/auth/use-can";
-import type { Icon } from "@phosphor-icons/react";
 
-const NAV_ICONS: Partial<Record<PortalNavRoute, Icon>> = {
-  "/org/dashboard": Buildings,
-  "/org/library/shapes": Books,
-  "/org/library/flags": Books,
-  "/org/library/slides": Books,
-  "/org/members": Users,
-  "/org/seats": Chair,
-  "/solo/account": UserCircle,
-};
+function filterGroupItems(
+  group: OrgNavGroup,
+  can: (permissions: NonNullable<OrgNavItem["permissions"]>) => boolean,
+  isLoading: boolean,
+): OrgNavItem[] {
+  if (group.permissions) {
+    if (isLoading || !can(group.permissions)) {
+      return [];
+    }
+  }
 
-export function OrgSidebar() {
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const { can, isLoading } = useCan();
-
-  const visibleOrgNavItems = ORG_NAV_ITEMS.filter((item: OrgNavItem) => {
+  return group.items.filter((item) => {
     if (!item.permissions) {
       return true;
     }
@@ -47,51 +45,59 @@ export function OrgSidebar() {
     }
     return can(item.permissions);
   });
+}
+
+export function OrgSidebar() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { can, isLoading } = useCan();
+
+  const visibleGroups = ORG_NAV_GROUPS.map((group) => ({
+    ...group,
+    items: filterGroupItems(group, can, isLoading),
+  })).filter((group) => group.items.length > 0);
 
   return (
     <Sidebar>
       <SidebarHeader className="p-3 text-sm font-semibold">Team workspace</SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Team</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {visibleOrgNavItems.map((item) => {
-                const Icon = NAV_ICONS[item.to] ?? Buildings;
-                return (
-                  <SidebarMenuItem key={item.to}>
-                    <SidebarMenuButton
-                      isActive={isPortalNavItemActive(pathname, item.to)}
-                      render={<Link to={item.to} />}
-                    >
-                      <Icon className="size-4" />
-                      <span>{item.title}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
+          <SidebarMenu>
+            {visibleGroups.map((group) => (
+              <SidebarMenuItem key={group.title}>
+                <SidebarMenuButton className="pointer-events-none font-medium">
+                  {group.title}
+                </SidebarMenuButton>
+                <SidebarMenuSub>
+                  {group.items.map((item) => (
+                    <SidebarMenuSubItem key={item.to}>
+                      <SidebarMenuSubButton
+                        render={<Link to={item.to} />}
+                        isActive={isPortalNavItemActive(pathname, item.to)}
+                      >
+                        <span>{item.title}</span>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                  ))}
+                </SidebarMenuSub>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
         </SidebarGroup>
         <SidebarSeparator className="mx-2" />
         <SidebarGroup>
           <SidebarGroupLabel>Also</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {ORG_SECONDARY_NAV_ITEMS.map((item) => {
-                const Icon = NAV_ICONS[item.to] ?? UserCircle;
-                return (
-                  <SidebarMenuItem key={item.to}>
-                    <SidebarMenuButton
-                      isActive={isPortalNavItemActive(pathname, item.to)}
-                      render={<Link to={item.to} />}
-                    >
-                      <Icon className="size-4" />
-                      <span>{item.title}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
+              {ORG_SECONDARY_NAV_ITEMS.map((item) => (
+                <SidebarMenuItem key={item.to}>
+                  <SidebarMenuButton
+                    isActive={isPortalNavItemActive(pathname, item.to)}
+                    render={<Link to={item.to} />}
+                  >
+                    <span>{item.title}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

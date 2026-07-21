@@ -16,7 +16,7 @@ import { assignOrganizationSeat } from "@deck-pack/db/queries/assignOrganization
 import { countAssignedSeats } from "@deck-pack/db/queries/countAssignedSeats";
 import { addOrganizationMember } from "@deck-pack/db/queries/addOrganizationMember";
 import { cancelInvitation } from "@deck-pack/db/queries/listPendingInvitations";
-import { createOrganizationInvitation } from "@deck-pack/db/queries/createOrganizationInvitation";
+import { createInvitationViaAuth } from "../domains/members/create-invitation-via-auth";
 import { findUserByEmail } from "@deck-pack/db/queries/findUserByEmail";
 import { getActiveOrganizationSubscriptionByOrgId } from "@deck-pack/db/queries/getActiveOrganizationSubscriptionByOrgId";
 import { listOrganizationSeats } from "@deck-pack/db/queries/listOrganizationSeats";
@@ -24,6 +24,13 @@ import { listPendingInvitations } from "@deck-pack/db/queries/listPendingInvitat
 import { removeOrganizationMember } from "@deck-pack/db/queries/removeOrganizationMember";
 import { revokeOrganizationSeat } from "@deck-pack/db/queries/revokeOrganizationSeat";
 import { updateOrganizationMemberRole } from "@deck-pack/db/queries/updateOrganizationMemberRole";
+import { getInvitationById } from "@deck-pack/db/queries/getInvitationById";
+import { getCurrentMembershipSummary } from "@deck-pack/db/queries/getCurrentMembershipSummary";
+import { vacateCurrentOrganization } from "@deck-pack/db/queries/vacateCurrentOrganization";
+import { acceptInvitationForUser } from "@deck-pack/db/queries/acceptInvitationForUser";
+import { findPendingOrgIntentByEmail } from "@deck-pack/db/queries/findPendingOrgIntentByEmail";
+import { activateSeatForUser } from "@deck-pack/db/queries/activateSeatForUser";
+import { setSessionActiveOrganization } from "@deck-pack/db/queries/setSessionActiveOrganization";
 import { getAgendaInstance } from "@deck-pack/db/queries/getAgendaInstance";
 import { getBrandProfileWithVersion } from "@deck-pack/db/queries/getBrandProfileWithVersion";
 import { getOrganizationSubscription } from "@deck-pack/db/queries/getOrganizationSubscription";
@@ -204,7 +211,7 @@ export function createAppRouter(deps: AddinRouterDeps) {
     listPendingInvitations,
     findUserByEmail,
     addOrganizationMember,
-    createOrganizationInvitation,
+    createInvitation: createInvitationViaAuth,
     updateOrganizationMemberRole,
     removeOrganizationMember,
     cancelInvitation,
@@ -212,6 +219,13 @@ export function createAppRouter(deps: AddinRouterDeps) {
     getOrganizationMetadataById,
     getActiveOrganizationSubscriptionByOrgId,
     getPlan,
+    getInvitationById,
+    getCurrentMembershipSummary,
+    vacateCurrentOrganization,
+    acceptInvitationForUser,
+    findPendingOrgIntentByEmail,
+    activateSeatForUser,
+    setSessionActiveOrganization,
   });
 
   const libraryService = createLibraryService({ storage });

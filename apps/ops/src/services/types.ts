@@ -9,9 +9,10 @@ export interface AuthService {
   getSession: AuthClient["getSession"];
   useSession: AuthClient["useSession"];
   signOut: AuthClient["signOut"];
-  sendVerificationOtp: (input: { email: string; type: "sign-in" }) => ReturnType<
-    AuthClient["emailOtp"]["sendVerificationOtp"]
-  >;
+  sendVerificationOtp: (input: {
+    email: string;
+    type: "sign-in";
+  }) => ReturnType<AuthClient["emailOtp"]["sendVerificationOtp"]>;
   signInWithEmailOtp: (input: {
     email: string;
     otp: string;
@@ -62,14 +63,15 @@ export type PlatformUser = {
   createdAt: Date;
   organizationId: string | null;
   organizationName: string | null;
+  organizationSlug: string | null;
+  organizationType: "individual" | "team" | null;
   memberRole: string | null;
 };
 
 export interface OrganizationStore {
-  lookupUser: (email: string) => Promise<
-    | { found: true; name: string; email: string; hasOrg: boolean }
-    | { found: false }
-  >;
+  lookupUser: (
+    email: string,
+  ) => Promise<{ found: true; name: string; email: string; hasOrg: boolean } | { found: false }>;
   listOrganizations: () => Promise<OrganizationSummary[]>;
   getOrganization: (organizationId: string) => Promise<OrganizationDetail>;
   listMembers: (organizationId: string) => Promise<OrganizationMember[]>;
@@ -99,14 +101,7 @@ export interface UsersStore {
 }
 
 export type PlanLimit = {
-  assetType:
-    | "logo"
-    | "flag"
-    | "icon"
-    | "harvey_ball"
-    | "photo"
-    | "slide"
-    | "shape";
+  assetType: "logo" | "flag" | "icon" | "harvey_ball" | "photo" | "slide" | "shape";
   /** Null means unlimited. */
   insertsPerMonth: number | null;
 };
@@ -137,11 +132,7 @@ export type OrganizationSubscription = {
 export interface BillingStore {
   listPlans: () => Promise<Plan[]>;
   getPlan: (planId: string) => Promise<Plan>;
-  createPlan: (input: {
-    name: string;
-    slug: string;
-    limits: PlanLimit[];
-  }) => Promise<Plan>;
+  createPlan: (input: { name: string; slug: string; limits: PlanLimit[] }) => Promise<Plan>;
   updatePlan: (input: {
     planId: string;
     name: string;
@@ -195,13 +186,7 @@ export type LibraryShapeCategory =
   | "Brackets & Dividers"
   | "Frames & Badges"
   | "Lines & Connectors";
-export type LibrarySlideCategory =
-  | "Intro"
-  | "Agenda"
-  | "Content"
-  | "Data"
-  | "People"
-  | "Closing";
+export type LibrarySlideCategory = "Intro" | "Agenda" | "Content" | "Data" | "People" | "Closing";
 export type LibrarySlideAspectRatio = "16:9" | "4:3";
 
 export type LibraryFileRef = {
@@ -283,6 +268,7 @@ export interface LibraryStore {
     method: "PUT" | "POST";
     headers: Record<string, string>;
     expiresAt: Date;
+    mode: "direct" | "proxy";
   }>;
   finalizeUpload: (input: {
     id: string;

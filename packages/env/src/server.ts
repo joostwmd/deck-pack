@@ -30,6 +30,8 @@ export const env = createEnv({
     EMAIL_API_KEY: z.string().min(1),
     /** Resend "from" (must be a verified sender in Resend). */
     EMAIL_FROM: z.string().min(1),
+    /** Portal web app origin used in organization invitation emails. */
+    PORTAL_APP_URL: z.url(),
     /** Server-side Sentry DSN; omit to disable Sentry. */
     SENTRY_DSN: z.string().min(1).optional(),
     /** Apitally client id; omit to skip Apitally middleware. */

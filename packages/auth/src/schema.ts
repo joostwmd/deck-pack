@@ -13,9 +13,13 @@ export const auth = createAuth({
   secret: "schema-generation-only",
   baseURL: "http://localhost",
   trustedOrigins: ["http://localhost"],
+  portalAppUrl: "http://localhost:3002",
   adminEmailDomain: "code.berlin",
   opsOrigins: ["http://localhost:3001"],
   sendOtp: async () => {
+    /* no-op for schema generation */
+  },
+  sendOrganizationInvitation: async () => {
     /* no-op for schema generation */
   },
 });

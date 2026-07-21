@@ -12,6 +12,16 @@ output "ops_default_host_name" {
   value       = module.ops.default_host_name
 }
 
+output "ops_default_url" {
+  description = "OPS Static Web App HTTPS URL (for API OPS_ORIGINS)."
+  value       = module.ops.default_url
+}
+
+output "portal_default_url" {
+  description = "Portal Static Web App HTTPS URL (for API PORTAL_APP_URL invitation links)."
+  value       = module.portal.default_url
+}
+
 output "ops_deployment_token" {
   description = "GitHub Actions secret value: create repo secret SWA_TOKEN_OPS_PROD with this output."
   value       = module.ops.api_key
