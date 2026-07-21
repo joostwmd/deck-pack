@@ -16,12 +16,6 @@
     "./brandfetch/*": {
       "default": "./src/brandfetch/*.ts"
     },
-    "./icons8": {
-      "default": "./src/icons8/index.ts"
-    },
-    "./icons8/*": {
-      "default": "./src/icons8/*.ts"
-    },
     "./noun-project": {
       "default": "./src/noun-project/index.ts"
     },

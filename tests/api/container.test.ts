@@ -40,7 +40,9 @@ describe("AppContainer", () => {
     expect(container.brandfetchClient).toBeDefined();
     expect(container.logoIntegration).toBeDefined();
     expect(container.nounProjectClient).toBeDefined();
+    expect(container.iconIntegration).toBeDefined();
     expect(container.pexelsClient).toBeDefined();
+    expect(container.photoIntegration).toBeDefined();
   });
 
   it("forIntegrationTest binds UnitOfWork to the supplied database", async () => {

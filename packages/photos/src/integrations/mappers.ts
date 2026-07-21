@@ -1,26 +1,6 @@
 import type { PexelsPhoto, PexelsSearchResponse } from "@deck-pack/integrations/pexels";
 
-export interface PhotoSearchResult {
-  id: string;
-  name: string;
-  thumbnailUrl: string;
-  insertImageUrl: string;
-  width: number;
-  height: number;
-  avgColor: string;
-  photoUrl: string;
-  photographer: string;
-  photographerUrl: string;
-  metadata: Record<string, string>;
-}
-
-export interface PhotoSearchResponse {
-  results: PhotoSearchResult[];
-  page: number;
-  perPage: number;
-  totalResults: number;
-  hasNextPage: boolean;
-}
+import type { PhotoSearchResponse, PhotoSearchResult } from "../domain/photo";
 
 export function mapPexelsPhoto(photo: PexelsPhoto): PhotoSearchResult {
   const insertImageUrl = photo.src.large2x || photo.src.large || photo.src.original;

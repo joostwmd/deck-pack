@@ -3,10 +3,13 @@ import type {
   NounProjectSearchResponse,
 } from "@deck-pack/integrations/noun-project";
 
-import type { AssetDetailsResponse, AssetSearchResponse } from "../assets/types";
-import { capitalize } from "../../utils/strings";
+import type { IconDetailsResponse, IconSearchResponse } from "../domain/icon";
 
-export function mapIconSearchResponse(response: NounProjectSearchResponse): AssetSearchResponse {
+function capitalize(value: string): string {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+export function mapIconSearchResponse(response: NounProjectSearchResponse): IconSearchResponse {
   return {
     results: response.icons.map((icon) => ({
       id: icon.id,
@@ -16,7 +19,7 @@ export function mapIconSearchResponse(response: NounProjectSearchResponse): Asse
   };
 }
 
-export function mapIconDetailsResponse(response: NounProjectIconDetails): AssetDetailsResponse {
+export function mapIconDetailsResponse(response: NounProjectIconDetails): IconDetailsResponse {
   const variants = response.variants
     .filter((variant) => variant.previewUrl || variant.svg)
     .map((variant) => {

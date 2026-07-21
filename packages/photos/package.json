@@ -1,0 +1,33 @@
+{
+  "name": "@deck-pack/photos",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./schemas": {
+      "default": "./src/schemas.ts"
+    },
+    "./integrations/*": {
+      "default": "./src/integrations/*.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@deck-pack/errors": "workspace:*",
+    "@deck-pack/integrations": "workspace:*",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@deck-pack/config": "workspace:*",
+    "@types/node": "catalog:",
+    "typescript": "catalog:"
+  }
+}

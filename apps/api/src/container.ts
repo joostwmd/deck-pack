@@ -12,6 +12,9 @@ import { DrizzleGalleryRepository } from "@deck-pack/gallery/repositories/galler
 import { BrandfetchClient } from "@deck-pack/integrations/brandfetch";
 import { NounProjectClient } from "@deck-pack/integrations/noun-project";
 import { PexelsClient } from "@deck-pack/integrations/pexels";
+import type { IconIntegrationPort } from "@deck-pack/icons";
+import { InMemoryIconIntegration } from "@deck-pack/icons/integrations/in-memory-icon-integration";
+import { NounProjectIconIntegration } from "@deck-pack/icons/integrations/noun-project-icon-integration";
 import type { LogoIntegrationPort } from "@deck-pack/logos";
 import { BrandfetchLogoIntegration } from "@deck-pack/logos/integrations/brandfetch-logo-integration";
 import { InMemoryLogoIntegration } from "@deck-pack/logos/integrations/in-memory-logo-integration";
@@ -22,6 +25,9 @@ import { DrizzleMembersRepository } from "@deck-pack/members/repositories/member
 import type { OrganizationRepository } from "@deck-pack/organization";
 import { InMemoryOrganizationRepository } from "@deck-pack/organization/repositories/in-memory-organization-repository";
 import { DrizzleOrganizationRepository } from "@deck-pack/organization/repositories/organization-repository";
+import type { PhotoIntegrationPort } from "@deck-pack/photos";
+import { InMemoryPhotoIntegration } from "@deck-pack/photos/integrations/in-memory-photo-integration";
+import { PexelsPhotoIntegration } from "@deck-pack/photos/integrations/pexels-photo-integration";
 import type { SeatsRepository } from "@deck-pack/seats";
 import { InMemorySeatsRepository } from "@deck-pack/seats/repositories/in-memory-seats-repository";
 import { DrizzleSeatsRepository } from "@deck-pack/seats/repositories/seats-repository";
@@ -55,7 +61,9 @@ export type AppContainerOverrides = Partial<{
   brandfetchClient: BrandfetchClient;
   logoIntegration: LogoIntegrationPort;
   nounProjectClient: NounProjectClient;
+  iconIntegration: IconIntegrationPort;
   pexelsClient: PexelsClient;
+  photoIntegration: PhotoIntegrationPort;
 }>;
 
 const emptyBrandfetchClient = {
@@ -117,7 +125,9 @@ export class AppContainer {
     public readonly brandfetchClient: BrandfetchClient,
     public readonly logoIntegration: LogoIntegrationPort,
     public readonly nounProjectClient: NounProjectClient,
+    public readonly iconIntegration: IconIntegrationPort,
     public readonly pexelsClient: PexelsClient,
+    public readonly photoIntegration: PhotoIntegrationPort,
   ) {}
 
   static production(): AppContainer {
@@ -126,6 +136,11 @@ export class AppContainer {
       apiKey: env.BRANDFETCH_API_KEY,
       clientId: env.BRANDFETCH_CLIENT_ID,
     });
+    const nounProjectClient = new NounProjectClient({
+      apiKey: env.NOUN_PROJECT_API_KEY,
+      apiSecret: env.NOUN_PROJECT_API_SECRET,
+    });
+    const pexelsClient = new PexelsClient(env.PEXELS_API_KEY);
     return new AppContainer(
       unitOfWork,
       new DrizzleOrganizationRepository(unitOfWork),
@@ -140,11 +155,10 @@ export class AppContainer {
       storage,
       brandfetchClient,
       new BrandfetchLogoIntegration(brandfetchClient),
-      new NounProjectClient({
-        apiKey: env.NOUN_PROJECT_API_KEY,
-        apiSecret: env.NOUN_PROJECT_API_SECRET,
-      }),
-      new PexelsClient(env.PEXELS_API_KEY),
+      nounProjectClient,
+      new NounProjectIconIntegration(nounProjectClient),
+      pexelsClient,
+      new PexelsPhotoIntegration(pexelsClient),
     );
   }
 
@@ -165,7 +179,9 @@ export class AppContainer {
       emptyBrandfetchClient,
       new BrandfetchLogoIntegration(emptyBrandfetchClient),
       emptyNounProjectClient,
+      new NounProjectIconIntegration(emptyNounProjectClient),
       emptyPexelsClient,
+      new PexelsPhotoIntegration(emptyPexelsClient),
     );
   }
 
@@ -186,7 +202,9 @@ export class AppContainer {
       overrides.brandfetchClient ?? emptyBrandfetchClient,
       overrides.logoIntegration ?? new InMemoryLogoIntegration(),
       overrides.nounProjectClient ?? emptyNounProjectClient,
+      overrides.iconIntegration ?? new InMemoryIconIntegration(),
       overrides.pexelsClient ?? emptyPexelsClient,
+      overrides.photoIntegration ?? new InMemoryPhotoIntegration(),
     );
   }
 

@@ -6,7 +6,7 @@ import {
   photoOrientationSchema,
   photoSearchInputSchema,
   photoSizeSchema,
-} from "@deck-pack/api/domains/photos/schemas";
+} from "@deck-pack/photos/schemas";
 
 describe("photo schemas", () => {
   it("accepts photo search filters and pagination defaults", () => {

@@ -1,10 +1,6 @@
 import { z } from "zod";
 
-import {
-  assetClientSchema,
-  assetExternalIdSchema,
-  assetTypeSchema,
-} from "../assets/schemas";
+import { assetClientSchema, assetExternalIdSchema, assetTypeSchema } from "../assets/schemas";
 
 export const trackAssetInsertionInputSchema = z.object({
   assetType: assetTypeSchema,
@@ -30,12 +26,8 @@ export {
   photoOrientationSchema,
   photoSearchInputSchema,
   photoSizeSchema,
-} from "../photos/schemas";
+} from "@deck-pack/photos/schemas";
 
-export {
-  slideAspectRatioSchema,
-  slideSearchInputSchema,
-  slideSortSchema,
-} from "../slides/schemas";
+export { slideAspectRatioSchema, slideSearchInputSchema, slideSortSchema } from "../slides/schemas";
 
 export { shapeSearchInputSchema } from "../shapes/schemas";

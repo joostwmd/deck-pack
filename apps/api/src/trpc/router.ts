@@ -16,20 +16,18 @@ import { createAgendaRoutes } from "../domains/agenda/routes";
 import { createAgendaService } from "../domains/agenda/service";
 import { createFlagRoutes } from "../domains/flags/routes";
 import { createFlagService } from "../domains/flags/service";
-import { createIconRoutes } from "../domains/icons/routes";
-import { createIconService } from "../domains/icons/service";
 import { billingRouter } from "../routers/billing-router";
 import { brandProfilesRouter } from "../routers/brand-profiles-router";
 import { galleryRouter } from "../routers/gallery-router";
+import { iconsRouter } from "../routers/icons-router";
 import { logosRouter } from "../routers/logos-router";
 import { membersRouter } from "../routers/members-router";
 import { organizationRouter } from "../routers/organization-router";
+import { photosRouter } from "../routers/photos-router";
 import { usersRouter } from "../routers/users-router";
 import { seatsRouter } from "../routers/seats-router";
 import { usageRouter } from "../routers/usage-router";
 import { AppContainer } from "../container";
-import { createPhotoRoutes } from "../domains/photos/routes";
-import { createPhotoService } from "../domains/photos/service";
 import { createShapeRoutes } from "../domains/shapes/routes";
 import { createShapeService } from "../domains/shapes/service";
 import { createShortcutRoutes } from "../domains/shortcuts/routes";
@@ -55,19 +53,8 @@ export type AddinRouterDeps = {
 
 export function createAppRouter(deps: AddinRouterDeps, container: AppContainer) {
   const storage = deps.storage ?? container.objectStorage;
-  const photoService = createPhotoService({
-    pexels: deps.pexels ?? new PexelsClient(deps.pexelsApiKey),
-  });
   const slideService = createSlideService({ storage });
   const shapeService = createShapeService({ storage });
-  const iconService = createIconService({
-    nounProject:
-      deps.nounProject ??
-      new NounProjectClient({
-        apiKey: deps.nounProjectApiKey,
-        apiSecret: deps.nounProjectApiSecret,
-      }),
-  });
   const flagService = createFlagService({ storage });
   const addinService = createAddinService({ insertAssetInsertion, assertInsertAllowed });
 
@@ -93,10 +80,10 @@ export function createAppRouter(deps: AddinRouterDeps, container: AppContainer) 
     billing: billingRouter(container),
     library: galleryRouter(container),
     assets: router({
-      photos: router(createPhotoRoutes(photoService)),
+      photos: photosRouter(container),
       slides: router(createSlideRoutes(slideService)),
       shapes: router(createShapeRoutes(shapeService)),
-      icons: router(createIconRoutes(iconService)),
+      icons: iconsRouter(container),
       logos: logosRouter(container),
       flags: router(createFlagRoutes(flagService)),
     }),
