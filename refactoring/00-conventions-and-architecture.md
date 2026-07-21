@@ -118,27 +118,87 @@ packages/<domain>/
     index.ts                          — exports only what apps/api's router needs: use-case classes, entity types, the repository interface (for DI typing), NOT the Drizzle implementation internals
 ```
 
-ESLint boundary rule (identical for every domain package, written once):
+Oxlint layer rules in [`.oxlintrc.json`](../../.oxlintrc.json) (identical pattern for every domain package, written once as overrides):
 
-```javascript
-settings: {
-  "boundaries/elements": [
-    { type: "domain", pattern: "src/domain/**" },
-    { type: "repository", pattern: "src/repositories/**" },
-    { type: "use-case", pattern: "src/use-cases/**" },
-  ],
-},
-rules: {
-  "boundaries/element-types": ["error", {
-    default: "disallow",
-    rules: [
-      { from: "domain", allow: [] },
-      { from: "repository", allow: ["domain"] },
-      { from: "use-case", allow: ["domain", "repository"] },
-    ],
-  }],
-},
+```json
+{
+  "overrides": [
+    {
+      "files": ["packages/*/src/domain/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "@deck-pack/db",
+                "message": "Domain layer must not import the DB. Use repository interfaces from use-cases only."
+              },
+              { "name": "drizzle-orm", "message": "Domain layer must not import Drizzle." },
+              { "name": "@trpc/server", "message": "Domain layer must not know tRPC." },
+              { "name": "hono", "message": "Domain layer must not know Hono." }
+            ],
+            "patterns": [
+              {
+                "group": ["@deck-pack/db/**"],
+                "message": "Domain layer must not import @deck-pack/db subpaths."
+              },
+              {
+                "group": ["../repositories/**", "../use-cases/**"],
+                "message": "Domain layer must not import sibling layers."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["packages/*/src/repositories/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              { "name": "@trpc/server", "message": "Repositories must not know tRPC." },
+              { "name": "hono", "message": "Repositories must not know Hono." }
+            ],
+            "patterns": [
+              { "group": ["../use-cases/**"], "message": "Repositories must not import use-cases." }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["packages/*/src/use-cases/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "@deck-pack/db",
+                "message": "Use-cases depend on repository interfaces, not Drizzle."
+              },
+              { "name": "drizzle-orm", "message": "Use-cases must not import Drizzle." },
+              { "name": "@trpc/server", "message": "Use-cases must not know tRPC." },
+              { "name": "hono", "message": "Use-cases must not know Hono." }
+            ],
+            "patterns": [
+              {
+                "group": ["@deck-pack/db/**"],
+                "message": "Use-cases must not import @deck-pack/db subpaths (including queries)."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
 ```
+
+Full inventory, phased rollout, and warn→error flip notes: [`packages/linting.md`](./packages/linting.md).
 
 ### 3.3 `apps/api` becomes thin
 
@@ -194,31 +254,83 @@ Views and hooks are **not** duplicated per app — see §5.
 AI-assisted development (and, frankly, humans in a hurry) will follow the path of least resistance. If the _only_ thing preventing a shortcut import is a convention documented in a markdown file, it will eventually be violated and nobody will notice until it's load-bearing. Two enforcement layers, from strongest to weakest:
 
 1. **Package dependency graph (strongest, zero config drift possible).** If package A's `package.json` doesn't list package B as a dependency, `import` from B fails module resolution. This is why domain-slicing happens at the package level (§3.1) — it's not a style choice, it's the enforcement mechanism.
-2. **`eslint-plugin-boundaries` (strong, but a rule that could be misconfigured or disabled).** Used _within_ a package to enforce the horizontal-layer rule (§3.2), and at the app level for the app-specific rules below.
+2. **Oxlint `no-restricted-imports` (strong, folder-scoped via `.oxlintrc.json` overrides).** Used _within_ a package to enforce the horizontal-layer rule (§3.2), and at the app level for router/trpc/transport folder roles. The repo uses oxlint (not ESLint); rules are expressed as `paths` + `patterns` + custom `message` per override — see [`packages/linting.md`](./packages/linting.md) for the full inventory.
 3. **Naming convention alone (weakest).** Only relied on where the first two don't apply — e.g. within a single flat file, class naming.
 
 ### 4.2 App-level boundary rules
 
-```javascript
-settings: {
-  "boundaries/elements": [
-    { type: "router", pattern: "apps/api/src/routers/**" },
-    { type: "trpc-plumbing", pattern: "apps/api/src/trpc/**" },
-    { type: "transport", pattern: "apps/api/src/transport/**" },
-  ],
-},
-rules: {
-  "boundaries/element-types": ["error", {
-    default: "allow",
-    rules: [
-      // routers may not reach into transport internals or call Drizzle directly
-      { from: "router", disallow: ["transport"] },
-    ],
-  }],
-},
+```json
+{
+  "overrides": [
+    {
+      "files": ["apps/api/src/routers/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              { "name": "drizzle-orm", "message": "Routers are thin adapters; call a use-case." },
+              { "name": "hono", "message": "Routers must not import Hono transport internals." }
+            ],
+            "patterns": [
+              {
+                "group": ["@deck-pack/db", "@deck-pack/db/**"],
+                "message": "Routers must not touch the DB."
+              },
+              {
+                "group": ["../transport/**"],
+                "message": "Routers must not import transport internals."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["apps/api/src/trpc/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["@deck-pack/db/queries/**"],
+                "message": "tRPC plumbing uses AppContainer; do not import query files directly."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["apps/api/src/transport/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "@trpc/server",
+                "message": "Transport is Hono-only; tRPC mounts elsewhere."
+              }
+            ],
+            "patterns": [
+              {
+                "group": ["@deck-pack/db/queries/**"],
+                "message": "Transport must not import DB query files."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
 ```
 
-Plus a blanket rule (any package, any app): no file under `packages/db/src/queries/**` may be imported directly from `apps/*` — only domain packages' repositories may import `@deck-pack/db`.
+During migration, equivalent rules also apply to today's `apps/api/src/domains/**/routes.ts` and `service.ts` — see [`packages/linting.md`](./packages/linting.md).
+
+Plus a blanket rule (target state): no file under `apps/*` may import `@deck-pack/db/queries/**` directly — only domain packages' `repositories/` may import `@deck-pack/db`. That rule starts as **warn** during migration and flips to **error** once `apps/api` no longer wires queries in `router.ts` / unmigrated `domains/`.
 
 ### 4.3 What this would have caught
 
