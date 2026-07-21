@@ -27,6 +27,7 @@
     "@deck-pack/errors": "workspace:*",
     "@deck-pack/gallery": "workspace:*",
     "@deck-pack/integrations": "workspace:*",
+    "@deck-pack/logos": "workspace:*",
     "@deck-pack/members": "workspace:*",
     "@deck-pack/organization": "workspace:*",
     "@deck-pack/presentation-check": "workspace:*",

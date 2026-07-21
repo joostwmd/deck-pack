@@ -13,6 +13,8 @@ function appErrorToTrpcCode(error: AppError): TRPCError["code"] {
       return "FORBIDDEN";
     case 400:
       return "BAD_REQUEST";
+    case 429:
+      return "TOO_MANY_REQUESTS";
     default:
       return "INTERNAL_SERVER_ERROR";
   }

@@ -38,6 +38,7 @@ describe("AppContainer", () => {
     expect(container.brandProfilesRepository).toBeDefined();
     expect(container.objectStorage).toBeDefined();
     expect(container.brandfetchClient).toBeDefined();
+    expect(container.logoIntegration).toBeDefined();
     expect(container.nounProjectClient).toBeDefined();
     expect(container.pexelsClient).toBeDefined();
   });

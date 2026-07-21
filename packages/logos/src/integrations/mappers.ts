@@ -5,10 +5,13 @@ import type {
   BrandfetchSearchResponse,
 } from "@deck-pack/integrations/brandfetch";
 
-import type { AssetDetailsResponse, AssetSearchResponse } from "../assets/types";
-import { capitalize } from "../../utils/strings";
+import type { LogoDetailsResponse, LogoSearchResponse, LogoVariantItem } from "../domain/logo";
 
 const FORMAT_PREFERENCE = ["svg", "png", "webp", "jpeg"] as const;
+
+function capitalize(value: string): string {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
 
 function pickBestFormat(formats: BrandfetchLogoFormat[]): BrandfetchLogoFormat | undefined {
   for (const preferred of FORMAT_PREFERENCE) {
@@ -30,7 +33,7 @@ function variantName(logo: BrandfetchLogo): string {
   return typeLabel;
 }
 
-export function mapLogoSearchResponse(response: BrandfetchSearchResponse): AssetSearchResponse {
+export function mapLogoSearchResponse(response: BrandfetchSearchResponse): LogoSearchResponse {
   return {
     results: response.results.map((brand) => ({
       // Domain is the preferred Brand API identifier for getDetails.
@@ -41,9 +44,9 @@ export function mapLogoSearchResponse(response: BrandfetchSearchResponse): Asset
   };
 }
 
-export function mapLogoDetailsResponse(response: BrandfetchDetailsResponse): AssetDetailsResponse {
+export function mapLogoDetailsResponse(response: BrandfetchDetailsResponse): LogoDetailsResponse {
   const variants = (response.logos ?? [])
-    .map((logo, index) => {
+    .map((logo, index): LogoVariantItem | null => {
       const imageUrl = logoImageUrl(logo);
       if (!imageUrl) return null;
       return {
@@ -56,7 +59,7 @@ export function mapLogoDetailsResponse(response: BrandfetchDetailsResponse): Ass
         },
       };
     })
-    .filter((variant): variant is NonNullable<typeof variant> => variant != null);
+    .filter((variant): variant is LogoVariantItem => variant != null);
 
   return {
     id: response.domain || response.brandId,

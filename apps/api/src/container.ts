@@ -12,6 +12,9 @@ import { DrizzleGalleryRepository } from "@deck-pack/gallery/repositories/galler
 import { BrandfetchClient } from "@deck-pack/integrations/brandfetch";
 import { NounProjectClient } from "@deck-pack/integrations/noun-project";
 import { PexelsClient } from "@deck-pack/integrations/pexels";
+import type { LogoIntegrationPort } from "@deck-pack/logos";
+import { BrandfetchLogoIntegration } from "@deck-pack/logos/integrations/brandfetch-logo-integration";
+import { InMemoryLogoIntegration } from "@deck-pack/logos/integrations/in-memory-logo-integration";
 import type { InvitationPort, MembersRepository } from "@deck-pack/members";
 import { InMemoryInvitationPort } from "@deck-pack/members/integrations/in-memory-invitation-port";
 import { InMemoryMembersRepository } from "@deck-pack/members/repositories/in-memory-members-repository";
@@ -50,6 +53,7 @@ export type AppContainerOverrides = Partial<{
   brandProfilesRepository: BrandProfilesRepository;
   objectStorage: ObjectStorage;
   brandfetchClient: BrandfetchClient;
+  logoIntegration: LogoIntegrationPort;
   nounProjectClient: NounProjectClient;
   pexelsClient: PexelsClient;
 }>;
@@ -111,12 +115,17 @@ export class AppContainer {
     public readonly brandProfilesRepository: BrandProfilesRepository,
     public readonly objectStorage: ObjectStorage,
     public readonly brandfetchClient: BrandfetchClient,
+    public readonly logoIntegration: LogoIntegrationPort,
     public readonly nounProjectClient: NounProjectClient,
     public readonly pexelsClient: PexelsClient,
   ) {}
 
   static production(): AppContainer {
     const storage = resolveObjectStorage();
+    const brandfetchClient = new BrandfetchClient({
+      apiKey: env.BRANDFETCH_API_KEY,
+      clientId: env.BRANDFETCH_CLIENT_ID,
+    });
     return new AppContainer(
       unitOfWork,
       new DrizzleOrganizationRepository(unitOfWork),
@@ -129,10 +138,8 @@ export class AppContainer {
       new DrizzleGalleryRepository(unitOfWork),
       new DrizzleBrandProfilesRepository(unitOfWork),
       storage,
-      new BrandfetchClient({
-        apiKey: env.BRANDFETCH_API_KEY,
-        clientId: env.BRANDFETCH_CLIENT_ID,
-      }),
+      brandfetchClient,
+      new BrandfetchLogoIntegration(brandfetchClient),
       new NounProjectClient({
         apiKey: env.NOUN_PROJECT_API_KEY,
         apiSecret: env.NOUN_PROJECT_API_SECRET,
@@ -156,6 +163,7 @@ export class AppContainer {
       new DrizzleBrandProfilesRepository(uow),
       createMemoryObjectStorage(),
       emptyBrandfetchClient,
+      new BrandfetchLogoIntegration(emptyBrandfetchClient),
       emptyNounProjectClient,
       emptyPexelsClient,
     );
@@ -176,6 +184,7 @@ export class AppContainer {
       overrides.brandProfilesRepository ?? new InMemoryBrandProfilesRepository(),
       overrides.objectStorage ?? createMemoryObjectStorage(),
       overrides.brandfetchClient ?? emptyBrandfetchClient,
+      overrides.logoIntegration ?? new InMemoryLogoIntegration(),
       overrides.nounProjectClient ?? emptyNounProjectClient,
       overrides.pexelsClient ?? emptyPexelsClient,
     );

@@ -256,6 +256,9 @@ importers:
       '@deck-pack/integrations':
         specifier: workspace:*
         version: link:../../packages/integrations
+      '@deck-pack/logos':
+        specifier: workspace:*
+        version: link:../../packages/logos
       '@deck-pack/members':
         specifier: workspace:*
         version: link:../../packages/members
@@ -837,6 +840,25 @@ importers:
       '@types/react':
         specifier: ^19.2.14
         version: 19.2.14
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+
+  packages/logos:
+    dependencies:
+      '@deck-pack/errors':
+        specifier: workspace:*
+        version: link:../errors
+      '@deck-pack/integrations':
+        specifier: workspace:*
+        version: link:../integrations
+    devDependencies:
+      '@deck-pack/config':
+        specifier: workspace:*
+        version: link:../config
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.19.17
       typescript:
         specifier: 'catalog:'
         version: 6.0.3

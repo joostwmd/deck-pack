@@ -18,11 +18,10 @@ import { createFlagRoutes } from "../domains/flags/routes";
 import { createFlagService } from "../domains/flags/service";
 import { createIconRoutes } from "../domains/icons/routes";
 import { createIconService } from "../domains/icons/service";
-import { createLogoRoutes } from "../domains/logos/routes";
-import { createLogoService } from "../domains/logos/service";
 import { billingRouter } from "../routers/billing-router";
 import { brandProfilesRouter } from "../routers/brand-profiles-router";
 import { galleryRouter } from "../routers/gallery-router";
+import { logosRouter } from "../routers/logos-router";
 import { membersRouter } from "../routers/members-router";
 import { organizationRouter } from "../routers/organization-router";
 import { usersRouter } from "../routers/users-router";
@@ -69,14 +68,6 @@ export function createAppRouter(deps: AddinRouterDeps, container: AppContainer) 
         apiSecret: deps.nounProjectApiSecret,
       }),
   });
-  const logoService = createLogoService({
-    brandfetch:
-      deps.brandfetch ??
-      new BrandfetchClient({
-        apiKey: deps.brandfetchApiKey,
-        clientId: deps.brandfetchClientId,
-      }),
-  });
   const flagService = createFlagService({ storage });
   const addinService = createAddinService({ insertAssetInsertion, assertInsertAllowed });
 
@@ -106,7 +97,7 @@ export function createAppRouter(deps: AddinRouterDeps, container: AppContainer) 
       slides: router(createSlideRoutes(slideService)),
       shapes: router(createShapeRoutes(shapeService)),
       icons: router(createIconRoutes(iconService)),
-      logos: router(createLogoRoutes(logoService)),
+      logos: logosRouter(container),
       flags: router(createFlagRoutes(flagService)),
     }),
     addin: router(createAddinRoutes(addinService)),
