@@ -29,6 +29,7 @@ describe("AppContainer", () => {
     expect(container.unitOfWork).toBeInstanceOf(UnitOfWork);
     expect(container.organizationRepository).toBeDefined();
     expect(container.usersRepository).toBeDefined();
+    expect(container.seatsRepository).toBeDefined();
     expect(container.brandfetchClient).toBeDefined();
     expect(container.nounProjectClient).toBeDefined();
     expect(container.pexelsClient).toBeDefined();

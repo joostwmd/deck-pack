@@ -6,6 +6,9 @@ import { PexelsClient } from "@deck-pack/integrations/pexels";
 import type { OrganizationRepository } from "@deck-pack/organization";
 import { InMemoryOrganizationRepository } from "@deck-pack/organization/repositories/in-memory-organization-repository";
 import { DrizzleOrganizationRepository } from "@deck-pack/organization/repositories/organization-repository";
+import type { SeatsRepository } from "@deck-pack/seats";
+import { InMemorySeatsRepository } from "@deck-pack/seats/repositories/in-memory-seats-repository";
+import { DrizzleSeatsRepository } from "@deck-pack/seats/repositories/seats-repository";
 import type { UsersRepository } from "@deck-pack/users";
 import { InMemoryUsersRepository } from "@deck-pack/users/repositories/in-memory-users-repository";
 import { DrizzleUsersRepository } from "@deck-pack/users/repositories/users-repository";
@@ -16,6 +19,7 @@ export type AppContainerOverrides = Partial<{
   unitOfWork: UnitOfWork;
   organizationRepository: OrganizationRepository;
   usersRepository: UsersRepository;
+  seatsRepository: SeatsRepository;
   brandfetchClient: BrandfetchClient;
   nounProjectClient: NounProjectClient;
   pexelsClient: PexelsClient;
@@ -58,6 +62,7 @@ export class AppContainer {
     public readonly unitOfWork: UnitOfWork,
     public readonly organizationRepository: OrganizationRepository,
     public readonly usersRepository: UsersRepository,
+    public readonly seatsRepository: SeatsRepository,
     public readonly brandfetchClient: BrandfetchClient,
     public readonly nounProjectClient: NounProjectClient,
     public readonly pexelsClient: PexelsClient,
@@ -68,6 +73,7 @@ export class AppContainer {
       unitOfWork,
       new DrizzleOrganizationRepository(unitOfWork),
       new DrizzleUsersRepository(unitOfWork),
+      new DrizzleSeatsRepository(unitOfWork),
       new BrandfetchClient({
         apiKey: env.BRANDFETCH_API_KEY,
         clientId: env.BRANDFETCH_CLIENT_ID,
@@ -86,6 +92,7 @@ export class AppContainer {
       uow,
       new DrizzleOrganizationRepository(uow),
       new DrizzleUsersRepository(uow),
+      new DrizzleSeatsRepository(uow),
       emptyBrandfetchClient,
       emptyNounProjectClient,
       emptyPexelsClient,
@@ -98,6 +105,7 @@ export class AppContainer {
       uow,
       overrides.organizationRepository ?? new InMemoryOrganizationRepository(),
       overrides.usersRepository ?? new InMemoryUsersRepository(),
+      overrides.seatsRepository ?? new InMemorySeatsRepository(),
       overrides.brandfetchClient ?? emptyBrandfetchClient,
       overrides.nounProjectClient ?? emptyNounProjectClient,
       overrides.pexelsClient ?? emptyPexelsClient,
