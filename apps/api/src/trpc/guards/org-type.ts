@@ -1,10 +1,7 @@
 import { TRPCError } from "@trpc/server";
 
 import { getOrganizationMetadataById } from "@deck-pack/db/queries/getOrganizationMetadataById";
-import {
-  isIndividualOrganization,
-  isTeamOrganization,
-} from "@deck-pack/db/org-metadata";
+import { isIndividualOrganization, isTeamOrganization } from "@deck-pack/db/org-metadata";
 import {
   isWorkspaceKind,
   workspaceFromOrganizationMetadata,

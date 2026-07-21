@@ -1,5 +1,9 @@
 import { TRPCError } from "@trpc/server";
-import { assertHasPermission, type HasPermissionApi, type Permissions } from "@deck-pack/auth/permissions";
+import {
+  assertHasPermission,
+  type HasPermissionApi,
+  type Permissions,
+} from "@deck-pack/auth/permissions";
 import { middleware } from "../setup";
 import type { Context } from "../context";
 

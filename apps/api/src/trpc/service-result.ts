@@ -37,10 +37,7 @@ export function serviceFail(
   };
 }
 
-const SERVICE_ERROR_TO_TRPC: Record<
-  ServiceErrorCode,
-  TRPCError["code"]
-> = {
+const SERVICE_ERROR_TO_TRPC: Record<ServiceErrorCode, TRPCError["code"]> = {
   not_found: "NOT_FOUND",
   conflict: "CONFLICT",
   forbidden: "FORBIDDEN",

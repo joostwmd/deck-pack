@@ -30,9 +30,7 @@ describe("hasPermission", () => {
   it("throws FORBIDDEN when Better Auth denies permission", async () => {
     vi.mocked(assertHasPermission).mockResolvedValue({ ok: false });
 
-    await expect(
-      hasPermission(new Headers(), { member: ["create"] }),
-    ).rejects.toMatchObject({
+    await expect(hasPermission(new Headers(), { member: ["create"] })).rejects.toMatchObject({
       code: "FORBIDDEN",
     });
   });
@@ -40,9 +38,7 @@ describe("hasPermission", () => {
   it("resolves when Better Auth grants permission", async () => {
     vi.mocked(assertHasPermission).mockResolvedValue({ ok: true });
 
-    await expect(
-      hasPermission(new Headers(), { billing: ["view"] }),
-    ).resolves.toBeUndefined();
+    await expect(hasPermission(new Headers(), { billing: ["view"] })).resolves.toBeUndefined();
   });
 });
 
