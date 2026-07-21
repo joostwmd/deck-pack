@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { GalleryNewPanel } from "@/features/library-gallery/gallery-new-panel";
+import { GalleryNewPanel } from "@/domains/gallery/gallery-new-panel";
 
 export const Route = createFileRoute("/_protected/org/library/flags/new")({
   component: FlagsNewPage,

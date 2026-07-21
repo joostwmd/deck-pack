@@ -1,4 +1,5 @@
 import type { AuthClient } from "@deck-pack/auth/client";
+import type { GalleryStore } from "@deck-pack/hooks/gallery";
 import type { createTrpcBrowserBundle } from "@deck-pack/trpc-client";
 import type { AppRouter } from "@deck-pack/api/routers/index";
 
@@ -170,125 +171,12 @@ export interface BillingStore {
   }>;
 }
 
-export type GalleryAssetClass = "flag" | "shape" | "slide";
-export type GalleryItemStatus = "pending" | "ready" | "archived";
-export type LibraryUploadRole =
-  | "svg"
-  | "presentation"
-  | "thumbnail"
-  | "rectangle"
-  | "square"
-  | "circle";
-export type LibraryShapeCategory =
-  | "Arrows"
-  | "Banners & Ribbons"
-  | "Callouts"
-  | "Brackets & Dividers"
-  | "Frames & Badges"
-  | "Lines & Connectors";
-export type LibrarySlideCategory = "Intro" | "Agenda" | "Content" | "Data" | "People" | "Closing";
-export type LibrarySlideAspectRatio = "16:9" | "4:3";
-
-export type GalleryFileRef = {
-  id: string;
-  blobPath: string;
-  contentType: string;
-  byteSize: number;
-};
-
-export type GalleryListItem = {
-  id: string;
-  assetClass: GalleryAssetClass;
-  status: GalleryItemStatus;
-  displayName: string;
-  updatedAt: Date;
-  createdAt: Date;
-  category: string | null;
-  code: string | null;
-  aspectRatio: string | null;
-  previewUrl: string | null;
-  previewContentType: string | null;
-};
-
-export type GalleryItemDetail = {
-  id: string;
-  assetClass: GalleryAssetClass;
-  scope: "global" | "org";
-  status: GalleryItemStatus;
-  displayName: string;
-  aliases: string[];
-  createdAt: Date;
-  updatedAt: Date;
-  flag: {
-    code: string;
-    variants: Array<{ role: "rectangle" | "square" | "circle"; file: GalleryFileRef }>;
-  } | null;
-  shape: { category: LibraryShapeCategory; svgFile: GalleryFileRef | null } | null;
-  slide: {
-    category: LibrarySlideCategory;
-    aspectRatio: LibrarySlideAspectRatio;
-    presentationFile: GalleryFileRef | null;
-    thumbnailFile: GalleryFileRef | null;
-  } | null;
-};
-
-export interface LibraryStore {
-  list: (input: {
-    assetClass: GalleryAssetClass;
-    includeArchived?: boolean;
-  }) => Promise<GalleryListItem[]>;
-  get: (input: { id: string }) => Promise<GalleryItemDetail>;
-  create: (input: {
-    assetClass: GalleryAssetClass;
-    displayName: string;
-    aliases?: string[];
-    flagCode?: string;
-    category?: string;
-    aspectRatio?: string;
-  }) => Promise<{ id: string }>;
-  update: (input: {
-    id: string;
-    displayName: string;
-    aliases: string[];
-    flagCode?: string;
-    category?: string;
-    aspectRatio?: string;
-  }) => Promise<GalleryItemDetail>;
-  publish: (input: { id: string }) => Promise<GalleryItemDetail>;
-  unpublish: (input: { id: string }) => Promise<GalleryItemDetail>;
-  archive: (input: { id: string }) => Promise<GalleryItemDetail>;
-  createUploadTarget: (input: {
-    id: string;
-    role: LibraryUploadRole;
-    contentType: string;
-    byteSize: number;
-  }) => Promise<{
-    key: string;
-    uploadUrl: string;
-    method: "PUT" | "POST";
-    headers: Record<string, string>;
-    expiresAt: Date;
-    mode: "direct" | "proxy";
-  }>;
-  finalizeUpload: (input: {
-    id: string;
-    role: LibraryUploadRole;
-    key: string;
-    contentType: string;
-  }) => Promise<GalleryItemDetail>;
-  putAndFinalize: (input: {
-    id: string;
-    role: LibraryUploadRole;
-    key: string;
-    contentType: string;
-    dataBase64: string;
-  }) => Promise<GalleryItemDetail>;
-}
+export type { GalleryStore };
 
 export interface OpsAppServices {
   auth: AuthService;
   organization: OrganizationStore;
   users: UsersStore;
   billing: BillingStore;
-  library: LibraryStore;
+  gallery: GalleryStore;
 }

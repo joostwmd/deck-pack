@@ -343,7 +343,7 @@ export function MembersPanel() {
             <Select
               value={roleEdit?.role}
               onValueChange={(value) => {
-                if (!roleEdit || !isAssignableRole(value)) return;
+                if (!roleEdit || value == null || !isAssignableRole(value)) return;
                 setRoleEdit({ ...roleEdit, role: value });
               }}
             >

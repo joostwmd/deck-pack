@@ -383,9 +383,9 @@ importers:
       '@deck-pack/env':
         specifier: workspace:*
         version: link:../../packages/env
-      '@deck-pack/library-admin':
+      '@deck-pack/hooks':
         specifier: workspace:*
-        version: link:../../packages/library-admin
+        version: link:../../packages/hooks
       '@deck-pack/observability':
         specifier: workspace:*
         version: link:../../packages/observability
@@ -498,9 +498,9 @@ importers:
       '@deck-pack/env':
         specifier: workspace:*
         version: link:../../packages/env
-      '@deck-pack/library-admin':
+      '@deck-pack/hooks':
         specifier: workspace:*
-        version: link:../../packages/library-admin
+        version: link:../../packages/hooks
       '@deck-pack/observability':
         specifier: workspace:*
         version: link:../../packages/observability
@@ -831,6 +831,28 @@ importers:
         specifier: 'catalog:'
         version: 6.0.3
 
+  packages/hooks:
+    dependencies:
+      '@deck-pack/db':
+        specifier: workspace:*
+        version: link:../db
+      '@tanstack/react-query':
+        specifier: ^5.90.12
+        version: 5.99.2(react@19.2.5)
+      react:
+        specifier: ^19.2.3
+        version: 19.2.5
+    devDependencies:
+      '@deck-pack/config':
+        specifier: workspace:*
+        version: link:../config
+      '@types/react':
+        specifier: ^19.2.10
+        version: 19.2.14
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+
   packages/icons:
     dependencies:
       '@deck-pack/errors':
@@ -871,34 +893,6 @@ importers:
       vitest:
         specifier: 'catalog:'
         version: 3.2.4(@types/node@22.19.17)(jiti@2.6.1)(jsdom@26.1.0)(lightningcss@1.32.0)(msw@2.13.4(@types/node@22.19.17)(typescript@6.0.3))(terser@5.49.0)(tsx@4.21.0)(yaml@2.9.0)
-
-  packages/library-admin:
-    dependencies:
-      '@deck-pack/db':
-        specifier: workspace:*
-        version: link:../db
-      '@deck-pack/ui':
-        specifier: workspace:*
-        version: link:../ui
-      '@phosphor-icons/react':
-        specifier: ^2.1.10
-        version: 2.1.10(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
-      '@tanstack/react-router':
-        specifier: ^1.168.22
-        version: 1.168.23(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
-      react:
-        specifier: ^19.2.5
-        version: 19.2.5
-    devDependencies:
-      '@deck-pack/config':
-        specifier: workspace:*
-        version: link:../config
-      '@types/react':
-        specifier: ^19.2.14
-        version: 19.2.14
-      typescript:
-        specifier: 'catalog:'
-        version: 6.0.3
 
   packages/logos:
     dependencies:
@@ -1205,6 +1199,9 @@ importers:
       '@base-ui/react':
         specifier: ^1.0.0
         version: 1.4.0(@date-fns/tz@1.4.1)(@types/react@19.2.14)(date-fns@4.4.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      '@deck-pack/db':
+        specifier: workspace:*
+        version: link:../db
       '@diceui/tags-input':
         specifier: ^0.7.2
         version: 0.7.2(@floating-ui/react@0.27.20(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
@@ -1226,6 +1223,9 @@ importers:
       '@phosphor-icons/react':
         specifier: ^2.1.10
         version: 2.1.10(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      '@tanstack/react-router':
+        specifier: ^1.168.22
+        version: 1.168.23(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@tanstack/react-table':
         specifier: ^8.21.3
         version: 8.21.3(react-dom@19.2.5(react@19.2.5))(react@19.2.5)

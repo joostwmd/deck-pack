@@ -1,10 +1,11 @@
 import { authClient } from "@/utils/auth";
 import { trpcClient } from "@/utils/trpc";
 
+import { createTrpcGalleryStore } from "@deck-pack/hooks/gallery";
+
 import type {
   AuthService,
   BillingStore,
-  LibraryStore,
   OpsAppServices,
   OrganizationStore,
   UsersStore,
@@ -64,28 +65,12 @@ function createBillingStore(): BillingStore {
   };
 }
 
-function createGalleryStore(): LibraryStore {
-  const api = trpcClient.gallery;
-  return {
-    list: (input) => api.list.query(input),
-    get: (input) => api.get.query(input),
-    create: (input) => api.create.mutate(input as Parameters<typeof api.create.mutate>[0]),
-    update: (input) => api.update.mutate(input as Parameters<typeof api.update.mutate>[0]),
-    publish: (input) => api.publish.mutate(input),
-    unpublish: (input) => api.unpublish.mutate(input),
-    archive: (input) => api.archive.mutate(input),
-    createUploadTarget: (input) => api.createUploadTarget.mutate(input),
-    finalizeUpload: (input) => api.finalizeUpload.mutate(input),
-    putAndFinalize: (input) => api.putAndFinalize.mutate(input),
-  };
-}
-
 export function createAppServices(): OpsAppServices {
   return {
     auth: createAuthService(),
     organization: createOrganizationStore(),
     users: createUsersStore(),
     billing: createBillingStore(),
-    library: createGalleryStore(),
+    gallery: createTrpcGalleryStore(trpcClient.gallery as never),
   };
 }

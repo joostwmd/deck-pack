@@ -1,0 +1,33 @@
+{
+  "name": "@deck-pack/hooks",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./gallery": {
+      "default": "./src/gallery/index.ts"
+    },
+    "./gallery/*": {
+      "default": "./src/gallery/*.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@deck-pack/db": "workspace:*",
+    "@tanstack/react-query": "^5.90.12",
+    "react": "^19.2.3"
+  },
+  "devDependencies": {
+    "@deck-pack/config": "workspace:*",
+    "@types/react": "^19.2.10",
+    "typescript": "catalog:"
+  }
+}

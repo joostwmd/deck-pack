@@ -13,9 +13,9 @@
   "dependencies": {
     "@deck-pack/api": "workspace:*",
     "@deck-pack/auth": "workspace:*",
-    "@deck-pack/library-admin": "workspace:*",
     "@deck-pack/db": "workspace:*",
     "@deck-pack/env": "workspace:*",
+    "@deck-pack/hooks": "workspace:*",
     "@deck-pack/observability": "workspace:*",
     "@deck-pack/trpc-client": "workspace:*",
     "@deck-pack/ui": "workspace:*",

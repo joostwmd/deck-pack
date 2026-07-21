@@ -1,5 +1,7 @@
-import { createOrgLibraryStore } from "@/features/library-gallery/org-library-store";
+import { createTrpcGalleryStore } from "@deck-pack/hooks/gallery";
+
 import { getAuthClient } from "@/utils/auth";
+import { trpcClient } from "@/utils/trpc";
 
 import type { AuthService, PortalAppServices } from "./types";
 
@@ -21,6 +23,6 @@ function createAuthService(): AuthService {
 export function createAppServices(): PortalAppServices {
   return {
     auth: createAuthService(),
-    library: createOrgLibraryStore(),
+    gallery: createTrpcGalleryStore(trpcClient.gallery.org as never),
   };
 }
