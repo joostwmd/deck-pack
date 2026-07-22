@@ -11,10 +11,14 @@ import {
   SeatEmailAlreadyAssignedError,
   SeatNotFoundError,
 } from "@deck-pack/seats";
+import { InMemoryBillingRepository } from "@deck-pack/billing/repositories/in-memory-billing-repository";
+import { InMemoryOrganizationRepository } from "@deck-pack/organization/repositories/in-memory-organization-repository";
 import { InMemorySeatsRepository } from "@deck-pack/seats/repositories/in-memory-seats-repository";
 
 function createSeededRepo() {
-  const repo = new InMemorySeatsRepository();
+  const billing = new InMemoryBillingRepository();
+  const organization = new InMemoryOrganizationRepository(billing);
+  const repo = new InMemorySeatsRepository(billing, organization);
   repo.seed({
     organizations: [{ organizationId: "org-1", purchased: 2 }],
     users: [
@@ -78,7 +82,9 @@ describe("AssignSeat", () => {
   });
 
   it("throws NoSubscriptionError when org has no subscription", async () => {
-    const repo = new InMemorySeatsRepository();
+    const billing = new InMemoryBillingRepository();
+    const organization = new InMemoryOrganizationRepository(billing);
+    const repo = new InMemorySeatsRepository(billing, organization);
     await expect(
       new AssignSeat(repo).execute({
         organizationId: "missing",

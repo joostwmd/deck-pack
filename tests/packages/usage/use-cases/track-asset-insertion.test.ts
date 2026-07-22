@@ -7,9 +7,10 @@ import {
   TrackAssetInsertion,
   UsageNoSubscriptionError,
 } from "@deck-pack/usage";
+import { InMemoryBillingRepository } from "@deck-pack/billing/repositories/in-memory-billing-repository";
 
 function createRepoWithPlan(limit: number | null) {
-  const repo = new InMemoryUsageRepository();
+  const repo = new InMemoryUsageRepository(new InMemoryBillingRepository());
   repo.seed({
     subscriptions: [
       {
@@ -78,7 +79,7 @@ describe("TrackAssetInsertion", () => {
   });
 
   it("throws UsageNoSubscriptionError without a subscription", async () => {
-    const repo = new InMemoryUsageRepository();
+    const repo = new InMemoryUsageRepository(new InMemoryBillingRepository());
 
     await expect(
       new TrackAssetInsertion(repo).execute({

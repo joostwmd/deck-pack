@@ -147,15 +147,20 @@ export class AppContainer {
       apiSecret: env.NOUN_PROJECT_API_SECRET,
     });
     const pexelsClient = new PexelsClient(env.PEXELS_API_KEY);
+    const billing = new DrizzleBillingRepository(unitOfWork);
+    const organization = new DrizzleOrganizationRepository(unitOfWork, billing);
+    const members = new DrizzleMembersRepository(unitOfWork, billing, organization);
+    const seats = new DrizzleSeatsRepository(unitOfWork, billing, organization);
+    const usage = new DrizzleUsageRepository(unitOfWork, billing);
     return new AppContainer(
       unitOfWork,
-      new DrizzleOrganizationRepository(unitOfWork),
+      organization,
       new DrizzleUsersRepository(unitOfWork),
-      new DrizzleSeatsRepository(unitOfWork),
-      new DrizzleMembersRepository(unitOfWork),
+      seats,
+      members,
       createBetterAuthInvitationPort(),
-      new DrizzleBillingRepository(unitOfWork),
-      new DrizzleUsageRepository(unitOfWork),
+      billing,
+      usage,
       new DrizzleGalleryRepository(unitOfWork),
       new DrizzleBrandProfilesRepository(unitOfWork),
       new DrizzleAgendaServiceRepository(unitOfWork),
@@ -172,15 +177,20 @@ export class AppContainer {
 
   static forIntegrationTest(db: Database): AppContainer {
     const uow = new UnitOfWork(db);
+    const billing = new DrizzleBillingRepository(uow);
+    const organization = new DrizzleOrganizationRepository(uow, billing);
+    const members = new DrizzleMembersRepository(uow, billing, organization);
+    const seats = new DrizzleSeatsRepository(uow, billing, organization);
+    const usage = new DrizzleUsageRepository(uow, billing);
     return new AppContainer(
       uow,
-      new DrizzleOrganizationRepository(uow),
+      organization,
       new DrizzleUsersRepository(uow),
-      new DrizzleSeatsRepository(uow),
-      new DrizzleMembersRepository(uow),
+      seats,
+      members,
       new InMemoryInvitationPort(),
-      new DrizzleBillingRepository(uow),
-      new DrizzleUsageRepository(uow),
+      billing,
+      usage,
       new DrizzleGalleryRepository(uow),
       new DrizzleBrandProfilesRepository(uow),
       new DrizzleAgendaServiceRepository(uow),
@@ -197,15 +207,22 @@ export class AppContainer {
 
   static forUnitTest(overrides: AppContainerOverrides = {}): AppContainer {
     const uow = overrides.unitOfWork ?? new UnitOfWork(createStubUnitOfWorkDb());
+    const billing = overrides.billingRepository ?? new InMemoryBillingRepository();
+    const organization =
+      overrides.organizationRepository ?? new InMemoryOrganizationRepository(billing);
+    const members =
+      overrides.membersRepository ?? new InMemoryMembersRepository(billing, organization);
+    const seats = overrides.seatsRepository ?? new InMemorySeatsRepository(billing, organization);
+    const usage = overrides.usageRepository ?? new InMemoryUsageRepository(billing);
     return new AppContainer(
       uow,
-      overrides.organizationRepository ?? new InMemoryOrganizationRepository(),
+      organization,
       overrides.usersRepository ?? new InMemoryUsersRepository(),
-      overrides.seatsRepository ?? new InMemorySeatsRepository(),
-      overrides.membersRepository ?? new InMemoryMembersRepository(),
+      seats,
+      members,
       overrides.invitationPort ?? new InMemoryInvitationPort(),
-      overrides.billingRepository ?? new InMemoryBillingRepository(),
-      overrides.usageRepository ?? new InMemoryUsageRepository(),
+      billing,
+      usage,
       overrides.galleryRepository ?? new InMemoryGalleryRepository(),
       overrides.brandProfilesRepository ?? new InMemoryBrandProfilesRepository(),
       overrides.agendaServiceRepository ?? new InMemoryAgendaServiceRepository(),

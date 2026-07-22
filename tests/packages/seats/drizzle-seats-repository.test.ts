@@ -5,14 +5,21 @@ import { organization, user } from "@deck-pack/db/schema/auth";
 import { plans } from "@deck-pack/db/schema/billing";
 import { UnitOfWork } from "@deck-pack/db/transaction";
 import { createPgliteTestDb } from "@deck-pack/db/test-utils/create-pglite-test-db";
+import { DrizzleOrganizationRepository } from "@deck-pack/organization/repositories/organization-repository";
 import { NoSubscriptionError, SeatAtCapacityError, SeatNotFoundError } from "@deck-pack/seats";
 import { DrizzleSeatsRepository } from "@deck-pack/seats/repositories/seats-repository";
+
+function createSeatsRepo(uow: UnitOfWork) {
+  const billing = new DrizzleBillingRepository(uow);
+  const organization = new DrizzleOrganizationRepository(uow, billing);
+  return new DrizzleSeatsRepository(uow, billing, organization);
+}
 
 describe("DrizzleSeatsRepository", () => {
   it("supports capacity, list, assign, and revoke against PGlite", async () => {
     const db = await createPgliteTestDb();
     const uow = new UnitOfWork(db);
-    const repo = new DrizzleSeatsRepository(uow);
+    const repo = createSeatsRepo(uow);
 
     const orgId = crypto.randomUUID();
     const adminId = crypto.randomUUID();
@@ -98,7 +105,7 @@ describe("DrizzleSeatsRepository", () => {
   it("assigns a pending seat for an unknown email and activates it on login", async () => {
     const db = await createPgliteTestDb();
     const uow = new UnitOfWork(db);
-    const repo = new DrizzleSeatsRepository(uow);
+    const repo = createSeatsRepo(uow);
 
     const orgId = crypto.randomUUID();
     const adminId = crypto.randomUUID();

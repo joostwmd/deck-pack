@@ -9,9 +9,10 @@ import {
   unlimitedPlanLimits,
 } from "@deck-pack/usage";
 import { NotFoundError } from "@deck-pack/errors";
+import { InMemoryBillingRepository } from "@deck-pack/billing/repositories/in-memory-billing-repository";
 
 function createRepo() {
-  const repo = new InMemoryUsageRepository();
+  const repo = new InMemoryUsageRepository(new InMemoryBillingRepository());
   const periodStart = new Date("2026-07-01T00:00:00.000Z");
   const periodEnd = new Date("2026-08-01T00:00:00.000Z");
   repo.seed({
@@ -86,7 +87,7 @@ describe("GetUsageQuota", () => {
   });
 
   it("throws NotFoundError when no subscription", async () => {
-    const repo = new InMemoryUsageRepository();
+    const repo = new InMemoryUsageRepository(new InMemoryBillingRepository());
     await expect(
       new GetUsageQuota(repo).execute({ organizationId: "missing" }),
     ).rejects.toMatchObject({ message: "No active subscription" });
@@ -96,7 +97,7 @@ describe("GetUsageQuota", () => {
   });
 
   it("throws NotFoundError when plan missing", async () => {
-    const repo = new InMemoryUsageRepository();
+    const repo = new InMemoryUsageRepository(new InMemoryBillingRepository());
     repo.seed({
       subscriptions: [
         {

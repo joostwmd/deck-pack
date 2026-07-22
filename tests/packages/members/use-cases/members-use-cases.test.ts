@@ -14,10 +14,14 @@ import {
 } from "@deck-pack/members";
 import { InMemoryInvitationPort } from "@deck-pack/members/integrations/in-memory-invitation-port";
 import { InMemoryMembersRepository } from "@deck-pack/members/repositories/in-memory-members-repository";
+import { InMemoryBillingRepository } from "@deck-pack/billing/repositories/in-memory-billing-repository";
+import { InMemoryOrganizationRepository } from "@deck-pack/organization/repositories/in-memory-organization-repository";
 import { ConflictError, ForbiddenError, InvalidStateError, NotFoundError } from "@deck-pack/errors";
 
 function createBase() {
-  const repo = new InMemoryMembersRepository();
+  const billing = new InMemoryBillingRepository();
+  const organization = new InMemoryOrganizationRepository(billing);
+  const repo = new InMemoryMembersRepository(billing, organization);
   const invitationPort = new InMemoryInvitationPort();
   const now = new Date();
   const later = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);

@@ -1,3 +1,6 @@
+import type { BillingRepository } from "@deck-pack/billing";
+import type { OrganizationRepository } from "@deck-pack/organization";
+
 import {
   NoSubscriptionError,
   SeatAlreadyRevokedError,
@@ -35,6 +38,14 @@ export class InMemorySeatsRepository implements SeatsRepository {
   private seats = new Map<string, OrganizationSeat>();
   private orgs = new Map<string, SeedOrg>();
   private users = new Map<string, SeedUser>();
+
+  constructor(
+    private readonly billing: BillingRepository,
+    private readonly organization: OrganizationRepository,
+  ) {
+    void this.billing;
+    void this.organization;
+  }
 
   seed(input: { organizations?: SeedOrg[]; users?: SeedUser[]; seats?: OrganizationSeat[] }): void {
     for (const org of input.organizations ?? []) {

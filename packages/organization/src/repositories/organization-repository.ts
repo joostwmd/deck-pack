@@ -8,15 +8,10 @@ import {
   type OrganizationType as DbOrganizationType,
 } from "@deck-pack/db/org-metadata";
 import { member, organization, session, user } from "@deck-pack/db/schema/auth";
-import {
-  organizationSeats,
-  organizationSubscriptions,
-  planLimits,
-  plans,
-  PLAN_LIMIT_ASSET_TYPES,
-} from "@deck-pack/db/schema/billing";
+import { organizationSeats, organizationSubscriptions } from "@deck-pack/db/schema/billing";
 import { calendarMonthEntitlementWindow } from "@deck-pack/db/usage-period";
 import type { UnitOfWork } from "@deck-pack/db";
+import type { BillingRepository } from "@deck-pack/billing";
 
 import {
   InvalidOrganizationTypeError,
@@ -39,7 +34,6 @@ import type {
 } from "../domain/organization";
 
 const OWNER_ROLE = "organizationOwner" as const;
-const FREE_PLAN_SLUG = "free" as const;
 
 function personalOrgSlug(userId: string): string {
   return `personal-${userId.replace(/-/g, "").slice(0, 12).toLowerCase()}`;
@@ -72,7 +66,10 @@ export interface OrganizationRepository {
 }
 
 export class DrizzleOrganizationRepository implements OrganizationRepository {
-  constructor(private readonly uow: UnitOfWork) {}
+  constructor(
+    private readonly uow: UnitOfWork,
+    private readonly billing: BillingRepository,
+  ) {}
 
   async findUserByEmail(email: string): Promise<UserLookup> {
     const db = this.uow.getDb();
@@ -100,6 +97,7 @@ export class DrizzleOrganizationRepository implements OrganizationRepository {
 
     return {
       found: true,
+      id: row.id,
       name: row.name,
       email: row.email,
       hasOrg: memberships.length > 0,
@@ -466,7 +464,7 @@ export class DrizzleOrganizationRepository implements OrganizationRepository {
       createdAt: now,
     });
 
-    const freePlan = await this.ensureFreePlanRow();
+    const freePlan = await this.billing.ensureFreePlan();
     if (!freePlan.ok) {
       return { ok: false, reason: "free_plan_failed" };
     }
@@ -508,42 +506,5 @@ export class DrizzleOrganizationRepository implements OrganizationRepository {
     }
 
     return { ok: true, organizationId, created: true };
-  }
-
-  private async ensureFreePlanRow(): Promise<
-    { ok: true; planId: string } | { ok: false; reason: "create_failed" }
-  > {
-    const db = this.uow.getDb();
-    const [existing] = await db
-      .select({ id: plans.id })
-      .from(plans)
-      .where(eq(plans.slug, FREE_PLAN_SLUG))
-      .limit(1);
-
-    if (existing) {
-      return { ok: true, planId: existing.id };
-    }
-
-    const [row] = await db
-      .insert(plans)
-      .values({
-        name: "Free",
-        slug: FREE_PLAN_SLUG,
-      })
-      .returning({ id: plans.id });
-
-    if (!row) {
-      return { ok: false, reason: "create_failed" };
-    }
-
-    await db.insert(planLimits).values(
-      PLAN_LIMIT_ASSET_TYPES.map((assetType) => ({
-        planId: row.id,
-        assetType,
-        insertsPerMonth: null,
-      })),
-    );
-
-    return { ok: true, planId: row.id };
   }
 }

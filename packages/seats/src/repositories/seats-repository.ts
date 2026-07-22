@@ -1,8 +1,10 @@
 import { and, asc, count, eq, inArray, sql } from "drizzle-orm";
 import { ORGANIZATION_ROLES } from "@deck-pack/auth/rbac";
+import type { BillingRepository } from "@deck-pack/billing";
 import { member, user } from "@deck-pack/db/schema/auth";
-import { organizationSeats, organizationSubscriptions } from "@deck-pack/db/schema/billing";
+import { organizationSeats } from "@deck-pack/db/schema/billing";
 import type { UnitOfWork } from "@deck-pack/db";
+import type { OrganizationRepository } from "@deck-pack/organization";
 
 import {
   NoSubscriptionError,
@@ -34,29 +36,11 @@ export interface SeatsRepository {
 }
 
 export class DrizzleSeatsRepository implements SeatsRepository {
-  constructor(private readonly uow: UnitOfWork) {}
-
-  /**
-   * Duplicated read of the active org subscription (also owned by billing/members/usage
-   * repos). Kept as an inline copy for now to avoid cross-domain DI churn.
-   */
-  private async findActiveSubscription(
-    organizationId: string,
-  ): Promise<{ quantity: number } | null> {
-    const db = this.uow.getDb();
-    const [row] = await db
-      .select({ quantity: organizationSubscriptions.quantity })
-      .from(organizationSubscriptions)
-      .where(
-        and(
-          eq(organizationSubscriptions.organizationId, organizationId),
-          eq(organizationSubscriptions.status, "active"),
-        ),
-      )
-      .limit(1);
-
-    return row ?? null;
-  }
+  constructor(
+    private readonly uow: UnitOfWork,
+    private readonly billing: BillingRepository,
+    private readonly organization: OrganizationRepository,
+  ) {}
 
   private async countAssignedSeats(organizationId: string): Promise<number> {
     const db = this.uow.getDb();
@@ -71,41 +55,6 @@ export class DrizzleSeatsRepository implements SeatsRepository {
       );
 
     return Number(row?.value ?? 0);
-  }
-
-  /** Duplicated read of user-by-email (also owned by members repo). */
-  private async findUserByEmail(
-    email: string,
-  ): Promise<{ id: string; name: string; email: string; hasOrg: boolean } | null> {
-    const db = this.uow.getDb();
-    const normalizedEmail = email.toLowerCase();
-
-    const [row] = await db
-      .select({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-      })
-      .from(user)
-      .where(sql`lower(${user.email}) = ${normalizedEmail}`)
-      .limit(1);
-
-    if (!row) {
-      return null;
-    }
-
-    const memberships = await db
-      .select({ id: member.id })
-      .from(member)
-      .where(eq(member.userId, row.id))
-      .limit(1);
-
-    return {
-      id: row.id,
-      name: row.name,
-      email: row.email,
-      hasOrg: memberships.length > 0,
-    };
   }
 
   /** Duplicated write of add-member (also owned by members repo). */
@@ -125,7 +74,8 @@ export class DrizzleSeatsRepository implements SeatsRepository {
   }
 
   async capacity(organizationId: string): Promise<SeatCapacity> {
-    const subscription = await this.findActiveSubscription(organizationId);
+    const subscription =
+      await this.billing.getActiveOrganizationSubscriptionByOrgId(organizationId);
     const purchased = subscription?.quantity ?? 0;
     const used = await this.countAssignedSeats(organizationId);
     return {
@@ -176,7 +126,9 @@ export class DrizzleSeatsRepository implements SeatsRepository {
     const db = this.uow.getDb();
     const normalizedEmail = input.email.toLowerCase().trim();
 
-    const subscription = await this.findActiveSubscription(input.organizationId);
+    const subscription = await this.billing.getActiveOrganizationSubscriptionByOrgId(
+      input.organizationId,
+    );
     if (!subscription) {
       throw new NoSubscriptionError();
     }
@@ -202,7 +154,15 @@ export class DrizzleSeatsRepository implements SeatsRepository {
       throw new SeatEmailAlreadyAssignedError();
     }
 
-    const existingUser = await this.findUserByEmail(normalizedEmail);
+    const lookup = await this.organization.findUserByEmail(normalizedEmail);
+    const existingUser = lookup.found
+      ? {
+          id: lookup.id,
+          name: lookup.name,
+          email: lookup.email,
+          hasOrg: lookup.hasOrg,
+        }
+      : null;
 
     if (existingUser) {
       const [otherMembership] = await db

@@ -25,8 +25,10 @@
   },
   "dependencies": {
     "@deck-pack/auth": "workspace:*",
+    "@deck-pack/billing": "workspace:*",
     "@deck-pack/db": "workspace:*",
     "@deck-pack/errors": "workspace:*",
+    "@deck-pack/organization": "workspace:*",
     "drizzle-orm": "^0.45.1",
     "zod": "catalog:"
   },

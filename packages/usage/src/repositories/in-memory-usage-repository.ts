@@ -1,3 +1,5 @@
+import type { BillingRepository } from "@deck-pack/billing";
+
 import type {
   ActiveSubscription,
   AssertInsertAllowedResult,
@@ -46,6 +48,10 @@ export class InMemoryUsageRepository implements UsageRepository {
   private plans = new Map<string, PlanSummary>();
   private insertions: SeedInsertion[] = [];
   private seats: SeedSeat[] = [];
+
+  constructor(private readonly billing: BillingRepository) {
+    void this.billing;
+  }
 
   seed(data: InMemoryUsageSeed): void {
     for (const sub of data.subscriptions ?? []) {

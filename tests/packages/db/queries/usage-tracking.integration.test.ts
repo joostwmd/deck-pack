@@ -10,8 +10,8 @@ import { planLimits } from "@deck-pack/db/schema/billing";
 import { DrizzleUsageRepository } from "@deck-pack/usage/repositories/usage-repository";
 
 describe("usage tracking (integration)", () => {
-  const usageRepo = new DrizzleUsageRepository(unitOfWork);
   const billingRepo = new DrizzleBillingRepository(unitOfWork);
+  const usageRepo = new DrizzleUsageRepository(unitOfWork, billingRepo);
 
   beforeAll(async () => {
     await ensureMigrationsApplied();

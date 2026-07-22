@@ -39,7 +39,7 @@ export type UpdateOrganizationInput = {
 };
 
 export type UserLookup =
-  | { found: true; name: string; email: string; hasOrg: boolean }
+  | { found: true; id: string; name: string; email: string; hasOrg: boolean }
   | { found: false };
 
 export type CreateOrganizationResult = {

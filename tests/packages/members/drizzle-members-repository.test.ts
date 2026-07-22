@@ -6,15 +6,27 @@ import { plans } from "@deck-pack/db/schema/billing";
 import { UnitOfWork } from "@deck-pack/db/transaction";
 import { createPgliteTestDb } from "@deck-pack/db/test-utils/create-pglite-test-db";
 import { DrizzleMembersRepository } from "@deck-pack/members/repositories/members-repository";
+import { DrizzleOrganizationRepository } from "@deck-pack/organization/repositories/organization-repository";
 import { DrizzleSeatsRepository } from "@deck-pack/seats/repositories/seats-repository";
 import { organizationSeats } from "@deck-pack/db/schema/billing";
 import { eq } from "drizzle-orm";
+
+function createMembersStack(uow: UnitOfWork) {
+  const billing = new DrizzleBillingRepository(uow);
+  const organizationRepo = new DrizzleOrganizationRepository(uow, billing);
+  return {
+    billing,
+    organization: organizationRepo,
+    members: new DrizzleMembersRepository(uow, billing, organizationRepo),
+    seats: new DrizzleSeatsRepository(uow, billing, organizationRepo),
+  };
+}
 
 describe("DrizzleMembersRepository", () => {
   it("supports list, role update, cancel invitation, invitation lookup, and session update", async () => {
     const db = await createPgliteTestDb();
     const uow = new UnitOfWork(db);
-    const repo = new DrizzleMembersRepository(uow);
+    const { members: repo } = createMembersStack(uow);
 
     const orgId = crypto.randomUUID();
     const ownerId = crypto.randomUUID();
@@ -161,8 +173,7 @@ describe("DrizzleMembersRepository", () => {
   it("removeMember revokes an active seat and rejects removing the last owner", async () => {
     const db = await createPgliteTestDb();
     const uow = new UnitOfWork(db);
-    const repo = new DrizzleMembersRepository(uow);
-    const seatsRepo = new DrizzleSeatsRepository(uow);
+    const { members: repo, seats: seatsRepo } = createMembersStack(uow);
 
     const orgId = crypto.randomUUID();
     const ownerId = crypto.randomUUID();

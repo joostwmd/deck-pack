@@ -16,8 +16,8 @@ import {
 } from "@deck-pack/billing/repositories/billing-repository";
 
 describe("bootstrapPersonalOrganization (integration)", () => {
-  const organizationRepo = new DrizzleOrganizationRepository(unitOfWork);
   const billingRepo = new DrizzleBillingRepository(unitOfWork);
+  const organizationRepo = new DrizzleOrganizationRepository(unitOfWork, billingRepo);
   const userId = crypto.randomUUID();
   const now = new Date();
 

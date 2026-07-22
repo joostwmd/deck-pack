@@ -1,9 +1,12 @@
 import { and, asc, count, eq, gt, sql } from "drizzle-orm";
 
+import type { BillingRepository } from "@deck-pack/billing";
 import { getOrganizationType } from "@deck-pack/db/org-metadata";
 import { invitation, member, organization, session, user } from "@deck-pack/db/schema/auth";
-import { organizationSeats, organizationSubscriptions, plans } from "@deck-pack/db/schema/billing";
+import { organizationSeats, organizationSubscriptions } from "@deck-pack/db/schema/billing";
 import type { UnitOfWork } from "@deck-pack/db";
+import { OrganizationNotFoundError } from "@deck-pack/organization";
+import type { OrganizationRepository } from "@deck-pack/organization";
 
 import type {
   AcceptInvitationForUserResult,
@@ -76,38 +79,23 @@ export interface MembersRepository {
 }
 
 export class DrizzleMembersRepository implements MembersRepository {
-  constructor(private readonly uow: UnitOfWork) {}
+  constructor(
+    private readonly uow: UnitOfWork,
+    private readonly billing: BillingRepository,
+    private readonly organization: OrganizationRepository,
+  ) {}
 
-  /** Duplicated read of user-by-email (also owned by seats repo). */
   async findUserByEmail(email: string): Promise<UserByEmail | null> {
-    const db = this.uow.getDb();
-    const normalizedEmail = email.toLowerCase();
-
-    const [row] = await db
-      .select({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-      })
-      .from(user)
-      .where(sql`lower(${user.email}) = ${normalizedEmail}`)
-      .limit(1);
-
-    if (!row) {
+    const lookup = await this.organization.findUserByEmail(email);
+    if (!lookup.found) {
       return null;
     }
 
-    const memberships = await db
-      .select({ id: member.id })
-      .from(member)
-      .where(eq(member.userId, row.id))
-      .limit(1);
-
     return {
-      id: row.id,
-      name: row.name,
-      email: row.email,
-      hasOrg: memberships.length > 0,
+      id: lookup.id,
+      name: lookup.name,
+      email: lookup.email,
+      hasOrg: lookup.hasOrg,
     };
   }
 
@@ -440,14 +428,9 @@ export class DrizzleMembersRepository implements MembersRepository {
   }
 
   async getPlan(planId: string): Promise<{ id: string; name: string; slug: string } | null> {
-    const db = this.uow.getDb();
-    const [plan] = await db
-      .select({ id: plans.id, name: plans.name, slug: plans.slug })
-      .from(plans)
-      .where(eq(plans.id, planId))
-      .limit(1);
-
-    return plan ?? null;
+    const plan = await this.billing.getPlan(planId);
+    if (!plan) return null;
+    return { id: plan.id, name: plan.name, slug: plan.slug };
   }
 
   async getInvitationById(invitationId: string): Promise<InvitationDetails | null> {
@@ -530,31 +513,6 @@ export class DrizzleMembersRepository implements MembersRepository {
     };
   }
 
-  /** Duplicated write of hard-delete-organization (also owned by organization repo). */
-  private async deleteOrganizationRow(
-    organizationId: string,
-  ): Promise<{ ok: true; organizationId: string } | { ok: false; reason: "not_found" }> {
-    const db = this.uow.getDb();
-    const [existing] = await db
-      .select({ id: organization.id })
-      .from(organization)
-      .where(eq(organization.id, organizationId))
-      .limit(1);
-
-    if (!existing) {
-      return { ok: false, reason: "not_found" };
-    }
-
-    await db
-      .update(session)
-      .set({ activeOrganizationId: null })
-      .where(eq(session.activeOrganizationId, organizationId));
-
-    await db.delete(organization).where(eq(organization.id, organizationId));
-
-    return { ok: true, organizationId };
-  }
-
   async vacateCurrentOrganization(userId: string): Promise<VacateResult> {
     const db = this.uow.getDb();
     const [membership] = await db
@@ -579,9 +537,13 @@ export class DrizzleMembersRepository implements MembersRepository {
     const memberCount = Number(memberCountRow?.value ?? 0);
 
     if (memberCount <= 1) {
-      const deleted = await this.deleteOrganizationRow(membership.organizationId);
-      if (!deleted.ok) {
-        return { ok: false, reason: "no_membership" };
+      try {
+        await this.organization.delete(membership.organizationId);
+      } catch (error) {
+        if (error instanceof OrganizationNotFoundError) {
+          return { ok: false, reason: "no_membership" };
+        }
+        throw error;
       }
       return {
         ok: true,

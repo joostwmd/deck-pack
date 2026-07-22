@@ -4,10 +4,14 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { db, unitOfWork } from "@deck-pack/db";
 import { serializeOrganizationMetadata } from "@deck-pack/db/org-metadata";
 import { invitation, member, organization, user } from "@deck-pack/db/schema/auth";
+import { DrizzleBillingRepository } from "@deck-pack/billing/repositories/billing-repository";
 import { DrizzleMembersRepository } from "@deck-pack/members/repositories/members-repository";
+import { DrizzleOrganizationRepository } from "@deck-pack/organization/repositories/organization-repository";
 
 describe("replace-on-join (integration)", () => {
-  const membersRepo = new DrizzleMembersRepository(unitOfWork);
+  const billingRepo = new DrizzleBillingRepository(unitOfWork);
+  const organizationRepo = new DrizzleOrganizationRepository(unitOfWork, billingRepo);
+  const membersRepo = new DrizzleMembersRepository(unitOfWork, billingRepo, organizationRepo);
   const now = new Date();
   const ownerId = crypto.randomUUID();
   const inviteeId = crypto.randomUUID();

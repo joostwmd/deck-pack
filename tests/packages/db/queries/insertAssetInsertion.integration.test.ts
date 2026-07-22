@@ -5,10 +5,14 @@ import { db, unitOfWork } from "@deck-pack/db";
 import { ensureMigrationsApplied } from "@deck-pack/db/test-utils/ensure-migrations";
 import { assetInsertions } from "@deck-pack/db/schema/asset-insertions";
 import { member, organization, user } from "@deck-pack/db/schema/auth";
+import { DrizzleBillingRepository } from "@deck-pack/billing/repositories/billing-repository";
 import { DrizzleUsageRepository } from "@deck-pack/usage/repositories/usage-repository";
 
 describe("insertAssetInsertion (integration)", () => {
-  const usageRepo = new DrizzleUsageRepository(unitOfWork);
+  const usageRepo = new DrizzleUsageRepository(
+    unitOfWork,
+    new DrizzleBillingRepository(unitOfWork),
+  );
 
   beforeAll(async () => {
     await ensureMigrationsApplied();

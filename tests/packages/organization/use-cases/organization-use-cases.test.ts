@@ -12,10 +12,11 @@ import {
   UpdateOrganization,
   UserAlreadyInOrganizationError,
 } from "@deck-pack/organization";
+import { InMemoryBillingRepository } from "@deck-pack/billing/repositories/in-memory-billing-repository";
 import { InMemoryOrganizationRepository } from "@deck-pack/organization/repositories/in-memory-organization-repository";
 
 function createSeededRepo() {
-  const repo = new InMemoryOrganizationRepository();
+  const repo = new InMemoryOrganizationRepository(new InMemoryBillingRepository());
   repo.seed({
     users: [
       { id: "user-1", name: "Alice", email: "alice@acme.com" },
@@ -55,6 +56,7 @@ describe("LookupUserByEmail", () => {
     const result = await new LookupUserByEmail(repo).execute({ email: "alice@acme.com" });
     expect(result).toEqual({
       found: true,
+      id: "user-1",
       name: "Alice",
       email: "alice@acme.com",
       hasOrg: true,
@@ -66,6 +68,7 @@ describe("LookupUserByEmail", () => {
     const result = await new LookupUserByEmail(repo).execute({ email: "bob@acme.com" });
     expect(result).toEqual({
       found: true,
+      id: "user-2",
       name: "Bob",
       email: "bob@acme.com",
       hasOrg: false,
@@ -119,7 +122,7 @@ describe("ListOrganizationMembers", () => {
 
 describe("CreateOrganization", () => {
   it("creates org with new user", async () => {
-    const repo = new InMemoryOrganizationRepository();
+    const repo = new InMemoryOrganizationRepository(new InMemoryBillingRepository());
     const result = await new CreateOrganization(repo).execute({
       name: "Beta",
       slug: "beta",

@@ -32,6 +32,7 @@ export function organizationRouter(container: AppContainer) {
         z.discriminatedUnion("found", [
           z.object({
             found: z.literal(true),
+            id: z.string(),
             name: z.string(),
             email: z.string(),
             hasOrg: z.boolean(),

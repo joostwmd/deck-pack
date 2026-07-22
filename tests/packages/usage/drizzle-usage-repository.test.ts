@@ -12,7 +12,7 @@ describe("DrizzleUsageRepository", () => {
   it("supports count/series/seat usage and entitlement window against PGlite", async () => {
     const db = await createPgliteTestDb();
     const uow = new UnitOfWork(db);
-    const repo = new DrizzleUsageRepository(uow);
+    const repo = new DrizzleUsageRepository(uow, new DrizzleBillingRepository(uow));
 
     const orgId = crypto.randomUUID();
     const userId = crypto.randomUUID();

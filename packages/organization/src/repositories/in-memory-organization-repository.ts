@@ -1,3 +1,5 @@
+import type { BillingRepository } from "@deck-pack/billing";
+
 import {
   InvalidOrganizationTypeError,
   OrganizationNotFoundError,
@@ -52,6 +54,8 @@ export class InMemoryOrganizationRepository implements OrganizationRepository {
   private organizations = new Map<string, SeedOrganization>();
   private members: SeedMember[] = [];
 
+  constructor(private readonly billing: BillingRepository) {}
+
   seed(input: {
     users?: SeedUser[];
     organizations?: Array<
@@ -95,6 +99,7 @@ export class InMemoryOrganizationRepository implements OrganizationRepository {
     const hasOrg = this.members.some((m) => m.userId === row.id);
     return {
       found: true,
+      id: row.id,
       name: row.name,
       email: row.email,
       hasOrg,
@@ -288,6 +293,11 @@ export class InMemoryOrganizationRepository implements OrganizationRepository {
 
     if (!user) {
       return { ok: false, reason: "user_not_found" };
+    }
+
+    const freePlan = await this.billing.ensureFreePlan();
+    if (!freePlan.ok) {
+      return { ok: false, reason: "free_plan_failed" };
     }
 
     const organizationId = crypto.randomUUID();

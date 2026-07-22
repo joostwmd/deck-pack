@@ -55,14 +55,17 @@ export interface AuthDeps {
 async function loadDbRuntime() {
   const [
     { unitOfWork },
+    { DrizzleBillingRepository },
     { DrizzleOrganizationRepository },
     { activateSeatForUser, findPendingOrgIntentByEmail },
   ] = await Promise.all([
     import("@deck-pack/db"),
+    import("@deck-pack/billing"),
     import("@deck-pack/organization"),
     import("./session-db"),
   ]);
-  const organizationRepository = new DrizzleOrganizationRepository(unitOfWork);
+  const billingRepository = new DrizzleBillingRepository(unitOfWork);
+  const organizationRepository = new DrizzleOrganizationRepository(unitOfWork, billingRepository);
   return { unitOfWork, organizationRepository, activateSeatForUser, findPendingOrgIntentByEmail };
 }
 

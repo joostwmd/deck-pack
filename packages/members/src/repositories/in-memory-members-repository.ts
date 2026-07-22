@@ -1,3 +1,6 @@
+import type { BillingRepository } from "@deck-pack/billing";
+import type { OrganizationRepository } from "@deck-pack/organization";
+
 import type {
   AcceptInvitationForUserResult,
   ActivateSeatResult,
@@ -90,6 +93,14 @@ export class InMemoryMembersRepository implements MembersRepository {
   private plans = new Map<string, SeedPlan>();
   private seats: SeedSeat[] = [];
   private sessions: SeedSession[] = [];
+
+  constructor(
+    private readonly billing: BillingRepository,
+    private readonly organization: OrganizationRepository,
+  ) {
+    void this.billing;
+    void this.organization;
+  }
 
   seed(data: InMemoryMembersSeed): void {
     for (const u of data.users ?? []) {

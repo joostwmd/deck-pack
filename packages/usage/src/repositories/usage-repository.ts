@@ -1,13 +1,9 @@
-import { and, asc, eq, gte, lt, sql } from "drizzle-orm";
+import { and, eq, gte, lt, sql } from "drizzle-orm";
 
+import type { BillingRepository } from "@deck-pack/billing";
 import { assetInsertions } from "@deck-pack/db/schema/asset-insertions";
 import { user } from "@deck-pack/db/schema/auth";
-import {
-  organizationSeats,
-  organizationSubscriptions,
-  planLimits,
-  plans,
-} from "@deck-pack/db/schema/billing";
+import { organizationSeats } from "@deck-pack/db/schema/billing";
 import { resolveEntitlementWindow } from "@deck-pack/db/usage-period";
 import type { UnitOfWork } from "@deck-pack/db";
 
@@ -20,17 +16,15 @@ import type {
   InsertionSeriesPoint,
   ListSeatUsageInput,
   ListSeriesInput,
-  PlanLimit,
-  PlanLimitAssetType,
   PlanSummary,
   SeatUsageRow,
   UsagePeriodContext,
 } from "../domain/usage";
 import { PLAN_LIMIT_ASSET_TYPES } from "../domain/usage";
 
-function asPlanLimitAssetType(value: string): PlanLimitAssetType | null {
+function asPlanLimitAssetType(value: string): (typeof PLAN_LIMIT_ASSET_TYPES)[number] | null {
   return (PLAN_LIMIT_ASSET_TYPES as readonly string[]).includes(value)
-    ? (value as PlanLimitAssetType)
+    ? (value as (typeof PLAN_LIMIT_ASSET_TYPES)[number])
     : null;
 }
 
@@ -45,19 +39,6 @@ export type InsertAssetInsertionRepoInput = {
 
 export type InsertAssetInsertionResult = {
   id: string;
-};
-
-type ActiveSubscriptionRow = {
-  id: string;
-  organizationId: string;
-  planId: string;
-  quantity: number;
-  status: string;
-  provider: string;
-  externalCustomerId: string | null;
-  externalSubscriptionId: string | null;
-  currentPeriodStart: Date | null;
-  currentPeriodEnd: Date | null;
 };
 
 export interface UsageRepository {
@@ -78,40 +59,10 @@ export interface UsageRepository {
 }
 
 export class DrizzleUsageRepository implements UsageRepository {
-  constructor(private readonly uow: UnitOfWork) {}
-
-  /**
-   * Duplicated read of the active org subscription (also owned by billing/members/seats
-   * repos). Kept as an inline copy for now to avoid cross-domain DI churn.
-   */
-  private async findActiveSubscription(
-    organizationId: string,
-  ): Promise<ActiveSubscriptionRow | null> {
-    const db = this.uow.getDb();
-    const [row] = await db
-      .select({
-        id: organizationSubscriptions.id,
-        organizationId: organizationSubscriptions.organizationId,
-        planId: organizationSubscriptions.planId,
-        quantity: organizationSubscriptions.quantity,
-        status: organizationSubscriptions.status,
-        provider: organizationSubscriptions.provider,
-        externalCustomerId: organizationSubscriptions.externalCustomerId,
-        externalSubscriptionId: organizationSubscriptions.externalSubscriptionId,
-        currentPeriodStart: organizationSubscriptions.currentPeriodStart,
-        currentPeriodEnd: organizationSubscriptions.currentPeriodEnd,
-      })
-      .from(organizationSubscriptions)
-      .where(
-        and(
-          eq(organizationSubscriptions.organizationId, organizationId),
-          eq(organizationSubscriptions.status, "active"),
-        ),
-      )
-      .limit(1);
-
-    return row ?? null;
-  }
+  constructor(
+    private readonly uow: UnitOfWork,
+    private readonly billing: BillingRepository,
+  ) {}
 
   private async countInsertions(input: {
     organizationId: string;
@@ -136,7 +87,8 @@ export class DrizzleUsageRepository implements UsageRepository {
   }
 
   async getActiveSubscription(organizationId: string): Promise<ActiveSubscription | null> {
-    const subscription = await this.findActiveSubscription(organizationId);
+    const subscription =
+      await this.billing.getActiveOrganizationSubscriptionByOrgId(organizationId);
     if (!subscription) return null;
     return {
       planId: subscription.planId,
@@ -147,44 +99,23 @@ export class DrizzleUsageRepository implements UsageRepository {
   }
 
   async getPlan(planId: string): Promise<PlanSummary | null> {
-    const db = this.uow.getDb();
-    const [plan] = await db
-      .select({
-        id: plans.id,
-        name: plans.name,
-        slug: plans.slug,
-      })
-      .from(plans)
-      .where(eq(plans.id, planId))
-      .limit(1);
-
+    const plan = await this.billing.getPlan(planId);
     if (!plan) return null;
-
-    const limitRows = await db
-      .select({
-        assetType: planLimits.assetType,
-        insertsPerMonth: planLimits.insertsPerMonth,
-      })
-      .from(planLimits)
-      .where(eq(planLimits.planId, planId))
-      .orderBy(asc(planLimits.assetType));
-
-    const limits: PlanLimit[] = limitRows.flatMap((limit) => {
-      const assetType = asPlanLimitAssetType(limit.assetType);
-      if (!assetType) return [];
-      return [{ assetType, insertsPerMonth: limit.insertsPerMonth }];
-    });
 
     return {
       id: plan.id,
       name: plan.name,
       slug: plan.slug,
-      limits,
+      limits: plan.limits.flatMap((limit) => {
+        const assetType = asPlanLimitAssetType(limit.assetType);
+        if (!assetType) return [];
+        return [{ assetType, insertsPerMonth: limit.insertsPerMonth }];
+      }),
     };
   }
 
   async getEntitlementWindow(organizationId: string): Promise<EntitlementWindow> {
-    const subscription = await this.findActiveSubscription(organizationId);
+    const subscription = await this.getActiveSubscription(organizationId);
     return resolveEntitlementWindow({
       now: new Date(),
       billingPeriodStart: subscription?.currentPeriodStart ?? null,
@@ -193,7 +124,7 @@ export class DrizzleUsageRepository implements UsageRepository {
   }
 
   async getUsagePeriodContext(organizationId: string): Promise<UsagePeriodContext> {
-    const subscription = await this.findActiveSubscription(organizationId);
+    const subscription = await this.getActiveSubscription(organizationId);
     return {
       now: new Date(),
       billingPeriodStart: subscription?.currentPeriodStart ?? null,
@@ -320,7 +251,7 @@ export class DrizzleUsageRepository implements UsageRepository {
   }): Promise<AssertInsertAllowedResult> {
     const { organizationId, assetType } = input;
 
-    const subscription = await this.findActiveSubscription(organizationId);
+    const subscription = await this.getActiveSubscription(organizationId);
     if (!subscription) {
       return { ok: false, reason: "no_subscription", assetType };
     }

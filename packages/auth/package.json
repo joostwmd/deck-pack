@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@azure/msal-browser": "^4.28.1",
+    "@deck-pack/billing": "workspace:*",
     "@deck-pack/db": "workspace:*",
     "@deck-pack/env": "workspace:*",
     "@deck-pack/organization": "workspace:*",

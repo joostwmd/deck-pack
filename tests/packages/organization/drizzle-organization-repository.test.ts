@@ -1,15 +1,20 @@
 import { describe, expect, it } from "vitest";
 
+import { DrizzleBillingRepository } from "@deck-pack/billing/repositories/billing-repository";
 import { UnitOfWork } from "@deck-pack/db/transaction";
 import { createPgliteTestDb } from "@deck-pack/db/test-utils/create-pglite-test-db";
 import { OrganizationNotFoundError, OrganizationSlugConflictError } from "@deck-pack/organization";
 import { DrizzleOrganizationRepository } from "@deck-pack/organization/repositories/organization-repository";
 
+function createOrgRepo(uow: UnitOfWork) {
+  return new DrizzleOrganizationRepository(uow, new DrizzleBillingRepository(uow));
+}
+
 describe("DrizzleOrganizationRepository", () => {
   it("supports create, read, update, and delete against PGlite", async () => {
     const db = await createPgliteTestDb();
     const uow = new UnitOfWork(db);
-    const repo = new DrizzleOrganizationRepository(uow);
+    const repo = createOrgRepo(uow);
 
     const created = await repo.create({
       name: "Acme",
@@ -41,6 +46,7 @@ describe("DrizzleOrganizationRepository", () => {
     const lookup = await repo.findUserByEmail("owner@acme.com");
     expect(lookup).toEqual({
       found: true,
+      id: created.userId,
       name: "owner",
       email: "owner@acme.com",
       hasOrg: true,
@@ -82,7 +88,7 @@ describe("DrizzleOrganizationRepository", () => {
   it("isMember detects membership for user and organization", async () => {
     const db = await createPgliteTestDb();
     const uow = new UnitOfWork(db);
-    const repo = new DrizzleOrganizationRepository(uow);
+    const repo = createOrgRepo(uow);
 
     const created = await repo.create({
       name: "Acme",
