@@ -99,6 +99,8 @@ jobs:
         run: pnpm exec turbo build --filter=@deck-pack/ops
         env:
           VITE_SERVER_URL: ${{ vars.VITE_SERVER_URL_STAGING || 'http://localhost:3000' }}
+          VITE_PORTAL_URL: ${{ vars.VITE_PORTAL_URL_STAGING || 'http://localhost:3002' }}
+          VITE_OPS_URL: ${{ vars.VITE_OPS_URL_STAGING || 'http://localhost:3001' }}
 
       - uses: actions/upload-artifact@v4
         with:
@@ -128,6 +130,8 @@ jobs:
         run: pnpm exec turbo build --filter=@deck-pack/portal
         env:
           VITE_SERVER_URL: ${{ vars.VITE_SERVER_URL_STAGING || 'http://localhost:3000' }}
+          VITE_PORTAL_URL: ${{ vars.VITE_PORTAL_URL_STAGING || 'http://localhost:3002' }}
+          VITE_OPS_URL: ${{ vars.VITE_OPS_URL_STAGING || 'http://localhost:3001' }}
 
       - uses: actions/upload-artifact@v4
         with:
@@ -157,6 +161,8 @@ jobs:
         run: pnpm exec turbo build --filter=@deck-pack/assets
         env:
           VITE_SERVER_URL: ${{ vars.VITE_SERVER_URL_STAGING || 'http://localhost:3000' }}
+          VITE_PORTAL_URL: ${{ vars.VITE_PORTAL_URL_STAGING || 'http://localhost:3002' }}
+          VITE_OPS_URL: ${{ vars.VITE_OPS_URL_STAGING || 'http://localhost:3001' }}
           VITE_MICROSOFT_CLIENT_ID: ${{ vars.VITE_MICROSOFT_CLIENT_ID_STAGING || vars.MICROSOFT_CLIENT_ID || '' }}
 
       - uses: actions/upload-artifact@v4

@@ -47,6 +47,8 @@ export default defineConfig({
     // Required by `@deck-pack/env/web` when add-in modules import createEnv at load time.
     env: {
       VITE_SERVER_URL: "http://localhost:3000",
+      VITE_PORTAL_URL: "http://localhost:3002",
+      VITE_OPS_URL: "http://localhost:3001",
     },
     include: [
       "tests/addins/**/*.test.ts",

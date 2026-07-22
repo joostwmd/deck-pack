@@ -1,3 +1,4 @@
+import { env } from "@deck-pack/env/web";
 import { Avatar, AvatarFallback, AvatarImage } from "@deck-pack/ui/components/system/avatar";
 import {
   DropdownMenu,
@@ -19,8 +20,6 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 
 import { useServices } from "@/services/services-context";
-
-const OPS_URL = "http://localhost:3001";
 
 function initialsFromName(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -97,7 +96,7 @@ export function SidebarUserMenu() {
                         return;
                       }
                       toast.success("Stopped impersonating");
-                      window.location.assign(`${OPS_URL}/users`);
+                      window.location.assign(`${env.VITE_OPS_URL}/users`);
                     })();
                   }}
                 >

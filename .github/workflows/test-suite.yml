@@ -14,6 +14,8 @@ jobs:
     env:
       # Also set in vitest unit-jsdom config; keep here so any Node-side env reads work in CI.
       VITE_SERVER_URL: http://localhost:3000
+      VITE_PORTAL_URL: http://localhost:3002
+      VITE_OPS_URL: http://localhost:3001
     steps:
       - uses: actions/checkout@v4
 
@@ -92,6 +94,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       VITE_SERVER_URL: http://localhost:3000
+      VITE_PORTAL_URL: http://localhost:3002
+      VITE_OPS_URL: http://localhost:3001
     steps:
       - uses: actions/checkout@v4
 
@@ -145,6 +149,8 @@ jobs:
       NOUN_PROJECT_API_KEY: test-ci-noun-key
       NOUN_PROJECT_API_SECRET: test-ci-noun-secret
       VITE_SERVER_URL: http://127.0.0.1:3000
+      VITE_PORTAL_URL: http://127.0.0.1:3002
+      VITE_OPS_URL: http://127.0.0.1:3001
       E2E_API_URL: http://127.0.0.1:3000
       E2E_OPS_URL: http://127.0.0.1:3001
       E2E_PORTAL_URL: http://127.0.0.1:3002
