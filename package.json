@@ -96,9 +96,7 @@
     "oxlint": "oxlint",
     "oxlint:strict": "oxlint --type-aware --type-check",
     "check": "pnpm oxlint && oxfmt --write",
-    "agent:install": "bash external/agent-stack/scripts/install-plugin.sh",
-    "steno:ingest": "steno ingest",
-    "steno:dev": "steno dev"
+    "agent:install": "bash external/agent-stack/scripts/install-plugin.sh"
   },
   "dependencies": {
     "@deck-pack/env": "workspace:*",

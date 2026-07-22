@@ -35,9 +35,6 @@ yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
 
-# Steno (Cursor hook telemetry: local DB + NDJSON; do not commit)
-steno/
-
 # Turbo
 .turbo
 .nx
