@@ -1,4 +1,4 @@
-import { alignLeftCommand, gapIncreaseHorizontalCommand } from "@deck-pack/presentation-formatting";
+import { alignLeftCommand, gapIncreaseHorizontalCommand } from "@deck-pack/shape-commands";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { executeFormattingCommand, runPowerPoint } = vi.hoisted(() => ({
@@ -20,7 +20,7 @@ vi.mock("@deck-pack/office-js", () => ({
 }));
 
 import { FormattingUnavailableError } from "@deck-pack/office-js";
-import { runFormattingCommand } from "@/lib/run-formatting-command";
+import { runFormattingCommand } from "@/utils/run-formatting-command";
 
 const office = {
   executeFormattingCommand,
@@ -41,11 +41,18 @@ describe("runFormattingCommand", () => {
       mutationCount: 1,
     });
 
-    expect(executeFormattingCommand).toHaveBeenCalledWith(runPowerPoint, alignLeftCommand, undefined);
+    expect(executeFormattingCommand).toHaveBeenCalledWith(
+      runPowerPoint,
+      alignLeftCommand,
+      undefined,
+    );
   });
 
   it("resolves default gap params when none are supplied", async () => {
-    executeFormattingCommand.mockResolvedValue({ commandId: "gap-increase-horizontal", mutationCount: 1 });
+    executeFormattingCommand.mockResolvedValue({
+      commandId: "gap-increase-horizontal",
+      mutationCount: 1,
+    });
 
     await expect(runFormattingCommand(office, "gap-increase-horizontal")).resolves.toEqual({
       ok: true,
@@ -61,7 +68,9 @@ describe("runFormattingCommand", () => {
   });
 
   it("translates unavailable errors into stable UI results", async () => {
-    executeFormattingCommand.mockRejectedValue(new FormattingUnavailableError("exact-shape-count", "Select exactly 2 objects"));
+    executeFormattingCommand.mockRejectedValue(
+      new FormattingUnavailableError("exact-shape-count", "Select exactly 2 objects"),
+    );
 
     await expect(runFormattingCommand(office, "swap-positions", undefined)).resolves.toEqual({
       ok: false,

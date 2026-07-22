@@ -36,9 +36,9 @@ function formatGaugeText(used: number, limit: number | null) {
 }
 
 function UsageGaugeListItem({ item }: { item: UsageGaugeItem }) {
-  const unlimited = item.limit === null;
-  const usedPercent =
-    !unlimited && item.limit > 0 ? Math.min(100, (item.used / item.limit) * 100) : 0;
+  const limit = item.limit;
+  const unlimited = limit === null;
+  const usedPercent = !unlimited && limit > 0 ? Math.min(100, (item.used / limit) * 100) : 0;
 
   return (
     <div className="rounded-md border border-border/70 bg-muted/10 px-3 py-2.5">

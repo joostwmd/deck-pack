@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
@@ -5,11 +6,19 @@ import { describe, expect, it, vi } from "vitest";
 import { ServicesProvider } from "@/services/services-context";
 import { createTestServices } from "@fixtures/test-services";
 
-import { useBrandProfiles } from "@/hooks/use-brand-profiles";
+import { useBrandProfiles } from "@/hooks/shared/use-brand-profiles";
 
 function createWrapper(services = createTestServices()) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+
   return function Wrapper({ children }: { children: ReactNode }) {
-    return <ServicesProvider services={services}>{children}</ServicesProvider>;
+    return (
+      <QueryClientProvider client={queryClient}>
+        <ServicesProvider services={services}>{children}</ServicesProvider>
+      </QueryClientProvider>
+    );
   };
 }
 

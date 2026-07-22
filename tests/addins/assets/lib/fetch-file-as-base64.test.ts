@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { fetchFileAsBase64 } from "@/lib/fetch-file-as-base64";
+import { fetchFileAsBase64 } from "@/utils/fetch-file-as-base64";
 
 describe("fetchFileAsBase64", () => {
   it("returns raw base64 without a data URL prefix", async () => {

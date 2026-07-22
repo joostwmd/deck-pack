@@ -14,6 +14,7 @@ export default function seedIntegrationTestEnv(): void {
   process.env.OPS_SIGNUP_EMAIL_DOMAIN ??= "code.berlin";
   process.env.EMAIL_API_KEY ??= "test-integration-key";
   process.env.EMAIL_FROM ??= "integration@test.local";
+  process.env.PORTAL_APP_URL ??= "http://127.0.0.1:5174";
   process.env.PEXELS_API_KEY ??= "test-integration-pexels-key";
   process.env.BRANDFETCH_API_KEY ??= "test-integration-brandfetch-key";
   process.env.BRANDFETCH_CLIENT_ID ??= "test-integration-brandfetch-client";

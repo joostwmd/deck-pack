@@ -78,6 +78,13 @@
       "when": 1784416100000,
       "tag": "0010_usage_tracking",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1784416200000,
+      "tag": "0011_rename_library_to_gallery",
+      "breakpoints": true
     }
   ]
 }

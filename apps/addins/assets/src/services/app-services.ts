@@ -1,3 +1,5 @@
+import { createTrpcBrandProfilesStore } from "@deck-pack/hooks/brand-profiles";
+import { createTrpcShortcutOverridesStore } from "@deck-pack/hooks/shortcut-overrides";
 import {
   executeFormattingCommand,
   officeClient,
@@ -6,28 +8,15 @@ import {
   subscribeToSelectionChanges,
 } from "@deck-pack/office-js";
 
-import { createCanvasStrategy, officeInsertionStrategyWithTracker } from "@/lib/insertion-strategy";
+import {
+  createCanvasStrategy,
+  officeInsertionStrategyWithTracker,
+} from "@/utils/insertion-strategy";
 import { createAddinSignOutStrategy } from "@/auth/create-addin-sign-out-strategy";
 import { getAuthClient } from "@/utils/auth";
 import { getTrpcClient } from "@/utils/trpc";
 
-import type {
-  AppServices,
-  AssetStores,
-  AgendaStore,
-  BrandProfileStore,
-  InsertionStore,
-  ShortcutStore,
-} from "./types";
-
-function createShortcutStore(api: ReturnType<typeof getTrpcClient>): ShortcutStore {
-  return {
-    list: () => api.shortcuts.list.query(),
-    setOverride: (input) => api.shortcuts.setOverride.mutate(input),
-    resetOverride: (input) => api.shortcuts.resetOverride.mutate(input),
-    resetAll: () => api.shortcuts.resetAll.mutate(),
-  };
-}
+import type { AppServices, AssetStores, AgendaStore, InsertionStore } from "./types";
 
 function createAssetStores(api: ReturnType<typeof getTrpcClient>): AssetStores {
   const externalListSearch = (asset: "logos" | "icons") => ({
@@ -60,18 +49,6 @@ function createAssetStores(api: ReturnType<typeof getTrpcClient>): AssetStores {
     shapes: {
       search: (input) => api.assets.shapes.search.query(input),
     },
-  };
-}
-
-function createBrandProfileStore(api: ReturnType<typeof getTrpcClient>): BrandProfileStore {
-  return {
-    list: () => api.brandProfiles.list.query(),
-    get: (profileId, versionId) => api.brandProfiles.get.query({ profileId, versionId }),
-    create: (input) => api.brandProfiles.create.mutate(input),
-    update: (input) => api.brandProfiles.update.mutate(input),
-    duplicate: (input) => api.brandProfiles.duplicate.mutate(input),
-    setDefault: (profileId) => api.brandProfiles.setDefault.mutate({ profileId }),
-    archive: (profileId) => api.brandProfiles.archive.mutate({ profileId }),
   };
 }
 
@@ -113,7 +90,7 @@ export function createAppServices(): AppServices {
     auth: getAuthClient(),
     signOut: createAddinSignOutStrategy(),
     assets: createAssetStores(api),
-    brandProfiles: createBrandProfileStore(api),
+    brandProfiles: createTrpcBrandProfilesStore(api.brandProfiles as never),
     agenda: createAgendaStore(api),
     insertions: createInsertionStore(api),
     office,
@@ -122,6 +99,6 @@ export function createAppServices(): AppServices {
         officeInsertionStrategyWithTracker(officeDeps, tracker),
       createCanvasStrategy: (webCanvas, tracker) => createCanvasStrategy(webCanvas, tracker),
     },
-    shortcutStore: createShortcutStore(api),
+    shortcutStore: createTrpcShortcutOverridesStore(api.shortcuts as never),
   };
 }

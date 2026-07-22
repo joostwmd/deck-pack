@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { PlanDetailPanel } from "@/features/plans/plan-detail-panel";
+import { PlanDetailPanel } from "@/domains/billing/plan-detail-panel";
 
 export const Route = createFileRoute("/_protected/plans/$planId")({
   component: PlanDetailPage,

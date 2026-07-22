@@ -10,6 +10,7 @@ vi.hoisted(() => {
   process.env.OPS_SIGNUP_EMAIL_DOMAIN ??= "code.berlin";
   process.env.EMAIL_API_KEY ??= "test-integration-key";
   process.env.EMAIL_FROM ??= "integration@test.local";
+  process.env.PORTAL_APP_URL ??= "http://127.0.0.1:5174";
   process.env.PEXELS_API_KEY ??= "test-integration-pexels-key";
   process.env.BRANDFETCH_API_KEY ??= "test-integration-brandfetch-key";
   process.env.BRANDFETCH_CLIENT_ID ??= "test-integration-brandfetch-client";
@@ -40,11 +41,13 @@ describe("corsMiddleware", () => {
     const origin = process.env.CORS_ORIGINS!.split(",")[0]!.trim();
     const app = new Hono();
     app.use("*", corsMiddleware);
-    app.get("/raw", () =>
-      new Response(JSON.stringify({ ok: true }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }),
+    app.get(
+      "/raw",
+      () =>
+        new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
     );
 
     const response = await app.request("/raw", {

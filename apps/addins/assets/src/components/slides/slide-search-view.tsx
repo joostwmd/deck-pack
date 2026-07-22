@@ -7,7 +7,7 @@ import { InsertSection } from "@/components/asset-browser/insert-section";
 import { ScreenHeader } from "@/components/asset-browser/screen-header";
 import { SearchBar } from "@/components/asset-browser/search-bar";
 import { ShortcutKeys } from "@/components/shortcuts/shortcut-hint";
-import type { SlideSearchController } from "@/hooks/use-slide-search-controller";
+import type { SlideSearchController } from "@/hooks/slides/use-slide-search-controller";
 
 import { SlideFiltersBar } from "./slide-filters";
 import { SlideGrid } from "./slide-grid";

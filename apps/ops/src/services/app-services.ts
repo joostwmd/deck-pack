@@ -1,14 +1,12 @@
 import { authClient } from "@/utils/auth";
 import { trpcClient } from "@/utils/trpc";
 
-import type {
-  AuthService,
-  BillingStore,
-  LibraryStore,
-  OpsAppServices,
-  OrganizationStore,
-  UsersStore,
-} from "./types";
+import { createTrpcBillingStore } from "@deck-pack/hooks/billing";
+import { createTrpcGalleryStore } from "@deck-pack/hooks/gallery";
+import { createTrpcOrganizationStore } from "@deck-pack/hooks/organization";
+import { createTrpcUsersStore } from "@deck-pack/hooks/users";
+
+import type { AuthService, OpsAppServices } from "./types";
 
 function createAuthService(): AuthService {
   const auth = authClient;
@@ -26,68 +24,12 @@ function createAuthService(): AuthService {
   };
 }
 
-function createOrganizationStore(): OrganizationStore {
-  const api = trpcClient;
-
-  return {
-    lookupUser: (email) => api.organization.lookupUser.query({ email }),
-    listOrganizations: () => api.organization.listOrganizations.query(),
-    getOrganization: (organizationId) =>
-      api.organization.getOrganization.query({ organizationId }),
-    listMembers: (organizationId) => api.organization.listMembers.query({ organizationId }),
-    createOrganization: (input) => api.organization.createOrganization.mutate(input),
-    updateOrganization: (input) => api.organization.updateOrganization.mutate(input),
-    deleteOrganization: (organizationId) =>
-      api.organization.deleteOrganization.mutate({ organizationId }),
-  };
-}
-
-function createUsersStore(): UsersStore {
-  return {
-    listUsers: () => trpcClient.users.listUsers.query(),
-    deleteUser: (userId) => trpcClient.users.deleteUser.mutate({ userId }),
-  };
-}
-
-function createBillingStore(): BillingStore {
-  return {
-    listPlans: () => trpcClient.billing.listPlans.query(),
-    getPlan: (planId) => trpcClient.billing.getPlan.query({ planId }),
-    createPlan: (input) => trpcClient.billing.createPlan.mutate(input),
-    updatePlan: (input) => trpcClient.billing.updatePlan.mutate(input),
-    listOrganizationSubscriptions: () =>
-      trpcClient.billing.listOrganizationSubscriptions.query(),
-    getOrganizationSubscription: (subscriptionId) =>
-      trpcClient.billing.getOrganizationSubscription.query({ subscriptionId }),
-    createOrganizationSubscription: (input) =>
-      trpcClient.billing.createOrganizationSubscription.mutate(input),
-    updateOrganizationSubscription: (input) =>
-      trpcClient.billing.updateOrganizationSubscription.mutate(input),
-  };
-}
-
-function createLibraryStore(): LibraryStore {
-  const api = trpcClient.library;
-  return {
-    list: (input) => api.list.query(input),
-    get: (input) => api.get.query(input),
-    create: (input) => api.create.mutate(input),
-    update: (input) => api.update.mutate(input),
-    publish: (input) => api.publish.mutate(input),
-    unpublish: (input) => api.unpublish.mutate(input),
-    archive: (input) => api.archive.mutate(input),
-    createUploadTarget: (input) => api.createUploadTarget.mutate(input),
-    finalizeUpload: (input) => api.finalizeUpload.mutate(input),
-    putAndFinalize: (input) => api.putAndFinalize.mutate(input),
-  };
-}
-
 export function createAppServices(): OpsAppServices {
   return {
     auth: createAuthService(),
-    organization: createOrganizationStore(),
-    users: createUsersStore(),
-    billing: createBillingStore(),
-    library: createLibraryStore(),
+    organization: createTrpcOrganizationStore(trpcClient.organization as never),
+    users: createTrpcUsersStore(trpcClient.users as never),
+    billing: createTrpcBillingStore(trpcClient.billing as never),
+    gallery: createTrpcGalleryStore(trpcClient.gallery as never),
   };
 }

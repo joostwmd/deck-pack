@@ -1,4 +1,4 @@
-import type { ShapeMutation } from "@deck-pack/presentation-formatting";
+import type { ShapeMutation } from "@deck-pack/shape-commands";
 
 import {
   mapDomainAutoSizeToOffice,
@@ -113,7 +113,9 @@ export async function applyShapeMutationsInContext(
     if (hasTextMutation) {
       const textFrame = shape.textFrame;
       if (mutation.autoSizeSetting != null) {
-        textFrame.autoSizeSetting = mapDomainAutoSizeToOffice(mutation.autoSizeSetting) as PowerPoint.ShapeAutoSize;
+        textFrame.autoSizeSetting = mapDomainAutoSizeToOffice(
+          mutation.autoSizeSetting,
+        ) as PowerPoint.ShapeAutoSize;
       }
       if (mutation.leftMargin != null) textFrame.leftMargin = mutation.leftMargin;
       if (mutation.rightMargin != null) textFrame.rightMargin = mutation.rightMargin;

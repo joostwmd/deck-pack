@@ -1,18 +1,18 @@
 import { eq, sql } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import { db } from "@deck-pack/db";
+import { db, unitOfWork } from "@deck-pack/db";
 import { ensureMigrationsApplied } from "@deck-pack/db/test-utils/ensure-migrations";
-import { insertAssetInsertion } from "@deck-pack/db/queries/insertAssetInsertion";
-import { assertInsertAllowed } from "@deck-pack/db/queries/usage-entitlements";
-import { createOrganizationSubscription } from "@deck-pack/db/queries/createOrganizationSubscription";
-import { ensureFreePlan } from "@deck-pack/db/queries/ensureFreePlan";
+import { DrizzleBillingRepository } from "@deck-pack/billing/repositories/billing-repository";
 import { assetInsertions } from "@deck-pack/db/schema/asset-insertions";
 import { member, organization, user } from "@deck-pack/db/schema/auth";
 import { planLimits } from "@deck-pack/db/schema/billing";
-import { tx } from "@deck-pack/db/transaction";
+import { DrizzleUsageRepository } from "@deck-pack/usage/repositories/usage-repository";
 
 describe("usage tracking (integration)", () => {
+  const billingRepo = new DrizzleBillingRepository(unitOfWork);
+  const usageRepo = new DrizzleUsageRepository(unitOfWork, billingRepo);
+
   beforeAll(async () => {
     await ensureMigrationsApplied();
   });
@@ -57,7 +57,7 @@ describe("usage tracking (integration)", () => {
       createdAt: now,
     });
 
-    const freePlan = await ensureFreePlan({ tx });
+    const freePlan = await billingRepo.ensureFreePlan();
     expect(freePlan.ok).toBe(true);
     if (!freePlan.ok) {
       throw new Error("free plan failed");
@@ -68,13 +68,10 @@ describe("usage tracking (integration)", () => {
       .set({ insertsPerMonth: limit })
       .where(eq(planLimits.planId, freePlan.planId));
 
-    const subscription = await createOrganizationSubscription({
-      tx,
-      input: {
-        organizationId,
-        planId: freePlan.planId,
-        quantity: 1,
-      },
+    const subscription = await billingRepo.createOrganizationSubscription({
+      organizationId,
+      planId: freePlan.planId,
+      quantity: 1,
     });
 
     expect(subscription.ok).toBe(true);
@@ -85,36 +82,34 @@ describe("usage tracking (integration)", () => {
   it("persists organizationId on insertions", async () => {
     const { userId, organizationId } = await seedOrgWithLimitedPlan(null);
 
-    const row = await insertAssetInsertion({
-      tx,
-      input: {
-        organizationId,
-        userId,
-        assetType: "logo",
-        externalId: "brand-123",
-        client: "office",
-      },
+    const result = await usageRepo.insertAssetInsertion({
+      organizationId,
+      userId,
+      assetType: "logo",
+      externalId: "brand-123",
+      client: "office",
     });
 
+    expect(result?.id).toBeTruthy();
+    const [row] = await db
+      .select({ organizationId: assetInsertions.organizationId })
+      .from(assetInsertions)
+      .where(eq(assetInsertions.id, result!.id));
     expect(row?.organizationId).toBe(organizationId);
   });
 
   it("blocks inserts when quota is exceeded", async () => {
     const { userId, organizationId } = await seedOrgWithLimitedPlan(1);
 
-    await insertAssetInsertion({
-      tx,
-      input: {
-        organizationId,
-        userId,
-        assetType: "icon",
-        externalId: "icon-1",
-        client: "office",
-      },
+    await usageRepo.insertAssetInsertion({
+      organizationId,
+      userId,
+      assetType: "icon",
+      externalId: "icon-1",
+      client: "office",
     });
 
-    const blocked = await assertInsertAllowed({
-      tx,
+    const blocked = await usageRepo.assertInsertAllowed({
       organizationId,
       assetType: "icon",
     });

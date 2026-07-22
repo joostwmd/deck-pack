@@ -4,7 +4,7 @@ import type { TagsInputViewProps } from "../components/composite/tags-input-view
 
 /**
  * Host-injected API for tags. Keep `@deck-pack/ui` free of tRPC — the app
- * passes functions that call the API (e.g. `trpcClient.library.suggestAliases.query`).
+ * passes functions that call the API (e.g. `trpcClient.gallery.suggestAliases.query`).
  */
 export type TagsInputApi = {
   /**
@@ -89,9 +89,7 @@ export function useTagsInputController(
         options.onInvalid?.(tag, "too_long");
         return false;
       }
-      const duplicate = value.some(
-        (existing) => existing.toLowerCase() === tag.toLowerCase(),
-      );
+      const duplicate = value.some((existing) => existing.toLowerCase() === tag.toLowerCase());
       if (duplicate) {
         options.onInvalid?.(tag, "duplicate");
         return false;

@@ -1,13 +1,18 @@
 import type { AuthClient } from "@deck-pack/auth/client";
-import type { LibraryStore } from "@deck-pack/library-admin/types";
+import type { OrganizationProfileStore } from "@deck-pack/hooks/billing";
+import type { GalleryStore } from "@deck-pack/hooks/gallery";
+import type { MembersStore } from "@deck-pack/hooks/members";
+import type { SeatsStore } from "@deck-pack/hooks/seats";
+import type { UsageStore } from "@deck-pack/hooks/usage";
 
 export interface AuthService {
   getSession: AuthClient["getSession"];
   useSession: AuthClient["useSession"];
   signOut: AuthClient["signOut"];
-  sendVerificationOtp: (input: { email: string; type: "sign-in" }) => ReturnType<
-    AuthClient["emailOtp"]["sendVerificationOtp"]
-  >;
+  sendVerificationOtp: (input: {
+    email: string;
+    type: "sign-in";
+  }) => ReturnType<AuthClient["emailOtp"]["sendVerificationOtp"]>;
   signInWithEmailOtp: (input: {
     email: string;
     otp: string;
@@ -26,5 +31,9 @@ export interface AuthService {
 
 export interface PortalAppServices {
   auth: AuthService;
-  library: LibraryStore;
+  gallery: GalleryStore;
+  members: MembersStore;
+  seats: SeatsStore;
+  billing: OrganizationProfileStore;
+  usage: UsageStore;
 }

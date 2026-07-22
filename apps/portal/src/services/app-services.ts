@@ -1,5 +1,11 @@
-import { createOrgLibraryStore } from "@/features/library-gallery/org-library-store";
+import { createTrpcOrganizationProfileStore } from "@deck-pack/hooks/billing";
+import { createTrpcGalleryStore } from "@deck-pack/hooks/gallery";
+import { createTrpcMembersStore } from "@deck-pack/hooks/members";
+import { createTrpcSeatsStore } from "@deck-pack/hooks/seats";
+import { createTrpcUsageStore } from "@deck-pack/hooks/usage";
+
 import { getAuthClient } from "@/utils/auth";
+import { trpcClient } from "@/utils/trpc";
 
 import type { AuthService, PortalAppServices } from "./types";
 
@@ -21,6 +27,10 @@ function createAuthService(): AuthService {
 export function createAppServices(): PortalAppServices {
   return {
     auth: createAuthService(),
-    library: createOrgLibraryStore(),
+    gallery: createTrpcGalleryStore(trpcClient.gallery.org as never),
+    members: createTrpcMembersStore(trpcClient.members as never),
+    seats: createTrpcSeatsStore(trpcClient.seats as never),
+    billing: createTrpcOrganizationProfileStore(trpcClient.members as never),
+    usage: createTrpcUsageStore(trpcClient.usage as never),
   };
 }

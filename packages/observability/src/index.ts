@@ -1,3 +1,2 @@
-export { AppErrorBoundary } from "./app-error-boundary";
-export { captureClientException, type CaptureClientExceptionContext } from "./capture";
-export { initBrowserSentry, type BrowserApp, type InitBrowserSentryOptions } from "./init";
+/** Browser entry (default). Prefer `@deck-pack/observability/browser` or `/server` explicitly. */
+export * from "./browser";

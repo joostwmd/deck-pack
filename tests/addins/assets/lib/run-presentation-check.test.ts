@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { DEFAULT_BRAND_PROFILE_CONFIGURATION } from "@deck-pack/presentation-check";
+import { DEFAULT_BRAND_PROFILE_CONFIGURATION } from "@deck-pack/brand-compliance";
 
-import { filterFindings, getSafeFixableFindings, getUniversalProfile } from "@/lib/run-presentation-check";
+import {
+  filterFindings,
+  getSafeFixableFindings,
+  getUniversalProfile,
+} from "@/utils/run-presentation-check";
 
 const sampleResult = {
   findings: [

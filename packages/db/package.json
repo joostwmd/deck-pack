@@ -5,14 +5,11 @@
     ".": {
       "default": "./src/index.ts"
     },
-    "./library-catalog": {
-      "default": "./src/library-catalog.ts"
+    "./gallery-catalog": {
+      "default": "./src/gallery-catalog.ts"
     },
     "./schema/*": {
       "default": "./src/schema/*.ts"
-    },
-    "./queries/*": {
-      "default": "./src/queries/*.ts"
     },
     "./test-utils/*": {
       "default": "./src/test-utils/*.ts"
@@ -41,6 +38,7 @@
   "devDependencies": {
     "@deck-pack/agenda": "workspace:*",
     "@deck-pack/config": "workspace:*",
+    "@electric-sql/pglite": "^0.5.4",
     "@types/pg": "^8.16.0",
     "drizzle-kit": "^0.31.8",
     "typescript": "catalog:"

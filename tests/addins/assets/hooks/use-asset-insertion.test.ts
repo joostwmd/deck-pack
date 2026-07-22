@@ -2,7 +2,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import { useAssetInsertion } from "@/hooks/use-asset-insertion";
+import { useAssetInsertion } from "@/hooks/asset-browser/use-asset-insertion";
 
 describe("useAssetInsertion", () => {
   it("runs the insertion action and toggles isInserting", async () => {

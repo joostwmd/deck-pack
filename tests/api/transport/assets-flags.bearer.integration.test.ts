@@ -1,21 +1,21 @@
-import { createAppRouter } from "@deck-pack/api/api/router";
+import { createAppRouter } from "@deck-pack/api/trpc/router";
+import { AppContainer } from "@deck-pack/api/container";
 import { createApp } from "@deck-pack/api/server";
-import { createDb } from "@deck-pack/db";
+import { createDb, unitOfWork } from "@deck-pack/db";
 import { session, user } from "@deck-pack/db/schema/auth";
 import { ensureMigrationsApplied } from "@deck-pack/db/test-utils/ensure-migrations";
-import { tx } from "@deck-pack/db/transaction";
-import { createMemoryObjectStorage } from "@deck-pack/storage";
+import { InMemoryObjectStorage } from "@deck-pack/storage";
 import { eq, sql } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { createSignedSessionFixture } from "../test-utils/create-signed-session-fixture";
-import { seedReadyFlag } from "../test-utils/seed-ready-library-fixture";
+import { seedReadyFlag } from "../test-utils/seed-ready-gallery-fixture";
 import { trpcQuery } from "../test-utils/trpc-request";
 
 describe("assets flags bearer transport", () => {
   const db = createDb();
   const createdUserIds: string[] = [];
-  const storage = createMemoryObjectStorage();
+  const storage = new InMemoryObjectStorage();
   let seededFlagId = "";
 
   beforeAll(async () => {
@@ -23,12 +23,12 @@ describe("assets flags bearer transport", () => {
   });
 
   beforeEach(async () => {
-    await tx.execute(
+    await db.execute(
       sql.raw(
-        `TRUNCATE TABLE flag_variants, flag_items, shape_items, slide_items, library_item_names, library_items, files RESTART IDENTITY CASCADE`,
+        `TRUNCATE TABLE flag_variants, flag_items, shape_items, slide_items, gallery_item_names, gallery_items, files RESTART IDENTITY CASCADE`,
       ),
     );
-    const seeded = await seedReadyFlag(tx, storage, {
+    const seeded = await seedReadyFlag(unitOfWork, storage, {
       displayName: "Germany",
       code: "DE",
       aliases: ["deutschland"],
@@ -45,14 +45,17 @@ describe("assets flags bearer transport", () => {
 
   function createTestApp() {
     return createApp({
-      router: createAppRouter({
-        brandfetchApiKey: "dummy-key-for-now",
-        brandfetchClientId: "dummy-client-id-for-now",
-        nounProjectApiKey: "dummy-key-for-now",
-        nounProjectApiSecret: "dummy-secret-for-now",
-        pexelsApiKey: "dummy-key-for-now",
-        storage,
-      }),
+      router: createAppRouter(
+        {
+          brandfetchApiKey: "dummy-key-for-now",
+          brandfetchClientId: "dummy-client-id-for-now",
+          nounProjectApiKey: "dummy-key-for-now",
+          nounProjectApiSecret: "dummy-secret-for-now",
+          pexelsApiKey: "dummy-key-for-now",
+          storage,
+        },
+        AppContainer.forUnitTest(),
+      ),
     });
   }
 

@@ -1,5 +1,5 @@
-import type { ShapeSelection } from "@deck-pack/presentation-formatting";
-import { GEOMETRY_EPSILON } from "@deck-pack/presentation-formatting";
+import type { ShapeSelection } from "@deck-pack/shape-commands";
+import { GEOMETRY_EPSILON } from "@deck-pack/shape-commands";
 import { CircleNotch } from "@phosphor-icons/react";
 
 interface SelectionSummaryProps {
@@ -28,7 +28,9 @@ export function SelectionSummary({ selection, isRefreshing, onRefresh }: Selecti
     <div className="flex items-start justify-between gap-3 rounded-lg border bg-muted/30 px-3 py-2">
       <div className="min-w-0">
         <p className="text-sm font-medium">
-          {count === 0 ? "No objects selected" : `${count} object${count === 1 ? "" : "s"} selected`}
+          {count === 0
+            ? "No objects selected"
+            : `${count} object${count === 1 ? "" : "s"} selected`}
         </p>
         {selection && count > 0 ? (
           <p className="truncate text-xs text-muted-foreground">{summarizeTypes(selection)}</p>
@@ -55,5 +57,7 @@ export function SelectionSummary({ selection, isRefreshing, onRefresh }: Selecti
 export function getSharedNumericValue(values: number[]): string {
   if (values.length === 0) return "";
   const [first, ...rest] = values;
-  return rest.every((value) => Math.abs(value - first!) <= GEOMETRY_EPSILON) ? String(Math.round(first! * 100) / 100) : "";
+  return rest.every((value) => Math.abs(value - first!) <= GEOMETRY_EPSILON)
+    ? String(Math.round(first! * 100) / 100)
+    : "";
 }

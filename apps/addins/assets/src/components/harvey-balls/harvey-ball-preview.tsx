@@ -1,4 +1,4 @@
-import { createHarveyBallGeometry, type HarveyBallConfig } from "@/lib/harvey-ball-svg";
+import { createHarveyBallGeometry, type HarveyBallConfig } from "@/utils/harvey-ball-svg";
 
 interface HarveyBallPreviewProps {
   config: HarveyBallConfig;

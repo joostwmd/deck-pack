@@ -2,8 +2,8 @@ import { CircleNotch, type Icon } from "@phosphor-icons/react";
 import type { RefObject } from "react";
 
 import { ShortcutKeys } from "@/components/shortcuts/shortcut-hint";
-import type { useAssetSearchFlow } from "@/hooks/use-asset-search-flow";
-import type { KeyToken, ShortcutDef } from "@/lib/shortcuts";
+import type { useAssetSearchFlow } from "@/hooks/asset-browser/use-asset-search-flow";
+import type { KeyToken, ShortcutDef } from "@/utils/shortcuts";
 
 import { FiltersPopover } from "@/components/asset-browser/filters-popover";
 import { InternalOnlyFilterField } from "@/components/asset-browser/internal-only-filter-field";

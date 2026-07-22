@@ -9,7 +9,7 @@ import {
 } from "@deck-pack/ui/components/system/dialog";
 import { Input } from "@deck-pack/ui/components/system/input";
 import { Label } from "@deck-pack/ui/components/system/label";
-import { DEFAULT_BRAND_PROFILE_CONFIGURATION } from "@deck-pack/presentation-check";
+import { DEFAULT_BRAND_PROFILE_CONFIGURATION } from "@deck-pack/brand-compliance";
 import { extractThemeDraftFromPresentation } from "@deck-pack/office-js";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -107,7 +107,11 @@ export function ThemeImportReview({
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
         <Label htmlFor="import-name">Theme name</Label>
-        <Input id="import-name" value={name} onChange={(event) => onNameChange(event.target.value)} />
+        <Input
+          id="import-name"
+          value={name}
+          onChange={(event) => onNameChange(event.target.value)}
+        />
       </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor="import-heading">Detected heading fonts</Label>

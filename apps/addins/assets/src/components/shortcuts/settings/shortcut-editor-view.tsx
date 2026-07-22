@@ -6,7 +6,7 @@ import { ShortcutKeys } from "@/components/shortcuts/shortcut-hint";
 import { ShortcutConflictNotice } from "@/components/shortcuts/settings/shortcut-conflict-notice";
 import { ShortcutListHeader } from "@/components/shortcuts/settings/shortcut-list-view";
 import { ShortcutRulesDialog } from "@/components/shortcuts/settings/shortcut-rules-dialog";
-import type { ShortcutDef } from "@/lib/shortcuts";
+import type { ShortcutDef } from "@/utils/shortcuts";
 
 export interface ShortcutEditorViewProps {
   description: string;

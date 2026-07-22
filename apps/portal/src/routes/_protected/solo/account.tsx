@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 
-import { AccountPanel } from "@/features/account/account-panel";
+import { AccountPanel } from "@/pages/account/account-panel";
 
 const accountSearchSchema = z.object({
   addinOnly: z.boolean().optional(),

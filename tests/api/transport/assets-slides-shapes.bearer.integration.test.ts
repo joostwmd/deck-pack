@@ -1,47 +1,44 @@
-import { createAppRouter } from "@deck-pack/api/api/router";
+import { createAppRouter } from "@deck-pack/api/trpc/router";
+import { AppContainer } from "@deck-pack/api/container";
 import { createApp } from "@deck-pack/api/server";
-import { createDb } from "@deck-pack/db";
+import { createDb, unitOfWork } from "@deck-pack/db";
 import { session, user } from "@deck-pack/db/schema/auth";
 import { ensureMigrationsApplied } from "@deck-pack/db/test-utils/ensure-migrations";
-import { tx } from "@deck-pack/db/transaction";
 import { sql } from "drizzle-orm";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { createMemoryObjectStorage } from "@deck-pack/storage";
+import { InMemoryObjectStorage } from "@deck-pack/storage";
 
 import { createSignedSessionFixture } from "../test-utils/create-signed-session-fixture";
-import {
-  seedReadyShape,
-  seedReadySlide,
-} from "../test-utils/seed-ready-library-fixture";
+import { seedReadyShape, seedReadySlide } from "../test-utils/seed-ready-gallery-fixture";
 import { trpcQuery } from "../test-utils/trpc-request";
 
 describe("assets slides and shapes bearer transport", () => {
   const db = createDb();
   const createdUserIds: string[] = [];
-  const storage = createMemoryObjectStorage();
+  const storage = new InMemoryObjectStorage();
 
   beforeAll(async () => {
     await ensureMigrationsApplied();
   });
 
   beforeEach(async () => {
-    await tx.execute(
+    await db.execute(
       sql.raw(
-        `TRUNCATE TABLE flag_variants, flag_items, shape_items, slide_items, library_item_names, library_items, files RESTART IDENTITY CASCADE`,
+        `TRUNCATE TABLE flag_variants, flag_items, shape_items, slide_items, gallery_item_names, gallery_items, files RESTART IDENTITY CASCADE`,
       ),
     );
-    await seedReadySlide(tx, storage, {
+    await seedReadySlide(unitOfWork, storage, {
       displayName: "Title Hero",
       category: "Intro",
       aspectRatio: "16:9",
       aliases: ["title"],
     });
-    await seedReadyShape(tx, storage, {
+    await seedReadyShape(unitOfWork, storage, {
       displayName: "Chevron",
       category: "Arrows",
     });
-    await seedReadyShape(tx, storage, {
+    await seedReadyShape(unitOfWork, storage, {
       displayName: "Ribbon",
       category: "Banners & Ribbons",
     });
@@ -56,14 +53,17 @@ describe("assets slides and shapes bearer transport", () => {
 
   function createTestApp() {
     return createApp({
-      router: createAppRouter({
-        brandfetchApiKey: "dummy-key-for-now",
-        brandfetchClientId: "dummy-client-id-for-now",
-        nounProjectApiKey: "dummy-key-for-now",
-        nounProjectApiSecret: "dummy-secret-for-now",
-        pexelsApiKey: "dummy-key-for-now",
-        storage,
-      }),
+      router: createAppRouter(
+        {
+          brandfetchApiKey: "dummy-key-for-now",
+          brandfetchClientId: "dummy-client-id-for-now",
+          nounProjectApiKey: "dummy-key-for-now",
+          nounProjectApiSecret: "dummy-secret-for-now",
+          pexelsApiKey: "dummy-key-for-now",
+          storage,
+        },
+        AppContainer.forUnitTest(),
+      ),
     });
   }
 

@@ -2,7 +2,7 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import { useAssetSearch } from "@/hooks/use-asset-search";
+import { useAssetSearch } from "@/hooks/asset-browser/use-asset-search";
 
 describe("useAssetSearch", () => {
   it("calls searchFn and stores results for non-empty queries", async () => {

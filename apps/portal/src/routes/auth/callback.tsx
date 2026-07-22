@@ -1,7 +1,7 @@
 import { Loader } from "@deck-pack/ui/components/system/loader";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
-import { resolvePortalPostAuthDestination } from "@/features/join/resolve-portal-post-auth";
+import { resolvePortalPostAuthDestination } from "@/pages/join/resolve-portal-post-auth";
 
 export const Route = createFileRoute("/auth/callback")({
   beforeLoad: async ({ context }) => {

@@ -6,7 +6,7 @@ import {
   getUserFacingApiErrorMessage,
   isAuthenticationError,
   isQuotaExceededError,
-} from "@/lib/user-facing-api-error";
+} from "@/utils/user-facing-api-error";
 
 describe("getUserFacingApiErrorMessage", () => {
   it("standardizes tRPC UNAUTHORIZED errors", () => {

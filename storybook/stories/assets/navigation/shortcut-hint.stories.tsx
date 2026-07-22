@@ -6,7 +6,7 @@ import {
   NAVIGATE_VARIANTS_DISPLAY,
   SELECT_RESULT_DISPLAY,
   SHORTCUTS,
-} from "@/lib/shortcuts";
+} from "@/utils/shortcuts";
 
 import { withAssetsPanel } from "../decorators";
 
@@ -55,7 +55,9 @@ export const Row: Story = {
 export const HintList: Story = {
   render: () => (
     <div className="max-w-sm p-4">
-      <ShortcutHints defs={[NAVIGATE_RESULTS_DISPLAY, SELECT_RESULT_DISPLAY, NAVIGATE_VARIANTS_DISPLAY]} />
+      <ShortcutHints
+        defs={[NAVIGATE_RESULTS_DISPLAY, SELECT_RESULT_DISPLAY, NAVIGATE_VARIANTS_DISPLAY]}
+      />
     </div>
   ),
 };

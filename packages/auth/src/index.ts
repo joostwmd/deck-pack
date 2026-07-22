@@ -54,17 +54,19 @@ export interface AuthDeps {
  */
 async function loadDbRuntime() {
   const [
-    { tx },
-    { activateSeatForUser },
-    { bootstrapPersonalOrganization },
-    { findPendingOrgIntentByEmail },
+    { unitOfWork },
+    { DrizzleBillingRepository },
+    { DrizzleOrganizationRepository },
+    { activateSeatForUser, findPendingOrgIntentByEmail },
   ] = await Promise.all([
-    import("@deck-pack/db/transaction"),
-    import("@deck-pack/db/queries/activateSeatForUser"),
-    import("@deck-pack/db/queries/bootstrapPersonalOrganization"),
-    import("@deck-pack/db/queries/findPendingOrgIntentByEmail"),
+    import("@deck-pack/db"),
+    import("@deck-pack/billing"),
+    import("@deck-pack/organization"),
+    import("./session-db"),
   ]);
-  return { tx, activateSeatForUser, bootstrapPersonalOrganization, findPendingOrgIntentByEmail };
+  const billingRepository = new DrizzleBillingRepository(unitOfWork);
+  const organizationRepository = new DrizzleOrganizationRepository(unitOfWork, billingRepository);
+  return { unitOfWork, organizationRepository, activateSeatForUser, findPendingOrgIntentByEmail };
 }
 
 function baseAuthOptions(
@@ -118,7 +120,7 @@ async function sessionCreateAfter(
   ctx: any,
 ) {
   const adapter = ctx!.context.adapter;
-  const { tx, activateSeatForUser, bootstrapPersonalOrganization, findPendingOrgIntentByEmail } =
+  const { unitOfWork, organizationRepository, activateSeatForUser, findPendingOrgIntentByEmail } =
     await loadDbRuntime();
 
   const userRecord = (await adapter.findOne({
@@ -127,8 +129,7 @@ async function sessionCreateAfter(
   })) as { email?: string } | null;
 
   if (userRecord?.email) {
-    await activateSeatForUser({
-      tx,
+    await activateSeatForUser(unitOfWork, {
       userId: session.userId,
       email: userRecord.email,
     }).catch(() => {
@@ -144,26 +145,24 @@ async function sessionCreateAfter(
   // Only bootstrap a personal org when there is no membership and no pending
   // invite/seat (pending intent should win — user joins that org instead).
   if (!member && userRecord?.email) {
-    const pendingIntent = await findPendingOrgIntentByEmail({
-      tx,
+    const pendingIntent = await findPendingOrgIntentByEmail(unitOfWork, {
       email: userRecord.email,
     }).catch(() => null);
 
     if (!pendingIntent) {
-      const bootstrap = await bootstrapPersonalOrganization({
-        tx,
-        input: {
+      const bootstrap = await organizationRepository
+        .bootstrapPersonalOrganization({
           userId: session.userId,
           email: userRecord.email,
           name: userRecord.email.split("@")[0],
-        },
-      }).catch((error) => {
-        console.error("bootstrapPersonalOrganization on session failed", {
-          userId: session.userId,
-          error,
+        })
+        .catch((error: unknown) => {
+          console.error("bootstrapPersonalOrganization on session failed", {
+            userId: session.userId,
+            error,
+          });
+          return null;
         });
-        return null;
-      });
 
       if (bootstrap?.ok) {
         member = (await adapter.findOne({
@@ -310,11 +309,10 @@ export function createAuth(deps: AuthDeps) {
                 });
               }
 
-              const { tx, bootstrapPersonalOrganization, findPendingOrgIntentByEmail } =
+              const { unitOfWork, organizationRepository, findPendingOrgIntentByEmail } =
                 await loadDbRuntime();
 
-              const pendingIntent = await findPendingOrgIntentByEmail({
-                tx,
+              const pendingIntent = await findPendingOrgIntentByEmail(unitOfWork, {
                 email: user.email,
               }).catch(() => null);
 
@@ -324,19 +322,18 @@ export function createAuth(deps: AuthDeps) {
                 return;
               }
 
-              await bootstrapPersonalOrganization({
-                tx,
-                input: {
+              await organizationRepository
+                .bootstrapPersonalOrganization({
                   userId: user.id,
                   email: user.email,
                   name: user.name,
-                },
-              }).catch((error) => {
-                console.error("bootstrapPersonalOrganization failed", {
-                  userId: user.id,
-                  error,
+                })
+                .catch((error: unknown) => {
+                  console.error("bootstrapPersonalOrganization failed", {
+                    userId: user.id,
+                    error,
+                  });
                 });
-              });
             },
           },
         },

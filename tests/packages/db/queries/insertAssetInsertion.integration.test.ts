@@ -1,14 +1,19 @@
 import { eq, sql } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import { db } from "@deck-pack/db";
+import { db, unitOfWork } from "@deck-pack/db";
 import { ensureMigrationsApplied } from "@deck-pack/db/test-utils/ensure-migrations";
-import { insertAssetInsertion } from "@deck-pack/db/queries/insertAssetInsertion";
 import { assetInsertions } from "@deck-pack/db/schema/asset-insertions";
 import { member, organization, user } from "@deck-pack/db/schema/auth";
-import { tx } from "@deck-pack/db/transaction";
+import { DrizzleBillingRepository } from "@deck-pack/billing/repositories/billing-repository";
+import { DrizzleUsageRepository } from "@deck-pack/usage/repositories/usage-repository";
 
 describe("insertAssetInsertion (integration)", () => {
+  const usageRepo = new DrizzleUsageRepository(
+    unitOfWork,
+    new DrizzleBillingRepository(unitOfWork),
+  );
+
   beforeAll(async () => {
     await ensureMigrationsApplied();
   });
@@ -59,20 +64,21 @@ describe("insertAssetInsertion (integration)", () => {
   it("persists insertion events with JSONB metadata and server timestamps", async () => {
     const { userId, organizationId } = await seedUserWithOrg();
 
-    const row = await insertAssetInsertion({
-      tx,
-      input: {
-        organizationId,
-        userId,
-        assetType: "logo",
-        externalId: "brand-123",
-        client: "office",
-        metadata: {
-          variantId: "0",
-          BRAND_NAME: "Acme",
-        },
+    const result = await usageRepo.insertAssetInsertion({
+      organizationId,
+      userId,
+      assetType: "logo",
+      externalId: "brand-123",
+      client: "office",
+      metadata: {
+        variantId: "0",
+        BRAND_NAME: "Acme",
       },
     });
+
+    expect(result?.id).toBeTruthy();
+
+    const [row] = await db.select().from(assetInsertions).where(eq(assetInsertions.id, result!.id));
 
     expect(row?.organizationId).toBe(organizationId);
     expect(row?.userId).toBe(userId);
@@ -89,26 +95,20 @@ describe("insertAssetInsertion (integration)", () => {
   it("allows duplicate insertion rows for repeated usage events", async () => {
     const { userId, organizationId } = await seedUserWithOrg();
 
-    await insertAssetInsertion({
-      tx,
-      input: {
-        organizationId,
-        userId,
-        assetType: "icon",
-        externalId: "icon-1",
-        client: "web",
-      },
+    await usageRepo.insertAssetInsertion({
+      organizationId,
+      userId,
+      assetType: "icon",
+      externalId: "icon-1",
+      client: "web",
     });
 
-    await insertAssetInsertion({
-      tx,
-      input: {
-        organizationId,
-        userId,
-        assetType: "icon",
-        externalId: "icon-1",
-        client: "web",
-      },
+    await usageRepo.insertAssetInsertion({
+      organizationId,
+      userId,
+      assetType: "icon",
+      externalId: "icon-1",
+      client: "web",
     });
 
     const rows = await db

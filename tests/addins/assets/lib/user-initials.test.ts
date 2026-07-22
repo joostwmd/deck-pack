@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getUserInitials } from "@/lib/user-initials";
+import { getUserInitials } from "@/utils/user-initials";
 
 describe("getUserInitials", () => {
   it("uses first letters from first and last name", () => {

@@ -2,13 +2,13 @@ import { sql } from "drizzle-orm";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { agendaConfigV1Schema, buildConfigurationHash } from "@deck-pack/agenda";
+import { DrizzleAgendaServiceRepository } from "@deck-pack/agenda-service/repositories/agenda-service-repository";
 
 import { db } from "@deck-pack/db";
-import { syncAgenda } from "@deck-pack/db/queries/syncAgenda";
 import { agendaEvents, agendaInstances } from "@deck-pack/db/schema/agendas";
 import { user } from "@deck-pack/db/schema/auth";
 import { ensureMigrationsApplied } from "@deck-pack/db/test-utils/ensure-migrations";
-import { tx } from "@deck-pack/db/transaction";
+import { UnitOfWork } from "@deck-pack/db/transaction";
 
 describe("syncAgenda (integration)", () => {
   beforeEach(async () => {
@@ -23,8 +23,10 @@ describe("syncAgenda (integration)", () => {
   it("upserts snapshot and records idempotent events", async () => {
     const userId = crypto.randomUUID();
     const now = new Date();
+    const uow = new UnitOfWork(db);
+    const repo = new DrizzleAgendaServiceRepository(uow);
 
-    await tx.insert(user).values({
+    await uow.getDb().insert(user).values({
       id: userId,
       name: "Agenda User",
       email: "agenda@integration.test.local",
@@ -72,55 +74,44 @@ describe("syncAgenda (integration)", () => {
       },
     });
 
-    const first = await syncAgenda({
-      tx,
-      input: {
-        userId,
-        documentAgendaId: config.agendaId,
-        schemaVersion: 1,
+    const syncInput = {
+      userId,
+      documentAgendaId: config.agendaId,
+      schemaVersion: 1,
+      revision: 1,
+      configuration: config,
+      configurationHash: buildConfigurationHash(config),
+      sectionCount: 0,
+      generatedSlideCount: 0,
+      event: {
+        id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        eventType: "created",
+        client: "office",
         revision: 1,
-        configuration: config,
-        configurationHash: buildConfigurationHash(config),
-        sectionCount: 0,
-        generatedSlideCount: 0,
-        event: {
-          id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
-          eventType: "created",
-          client: "office",
-          revision: 1,
-          metadata: { sectionCount: 0 },
-        },
+        metadata: { sectionCount: 0 },
       },
-    });
+    };
+
+    const first = await repo.sync(syncInput);
 
     expect(first?.revision).toBe(1);
 
-    const retry = await syncAgenda({
-      tx,
-      input: {
-        userId,
-        documentAgendaId: config.agendaId,
-        schemaVersion: 1,
+    const retry = await repo.sync({
+      ...syncInput,
+      event: {
+        id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        eventType: "created",
+        client: "office",
         revision: 1,
-        configuration: config,
-        configurationHash: buildConfigurationHash(config),
-        sectionCount: 0,
-        generatedSlideCount: 0,
-        event: {
-          id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
-          eventType: "created",
-          client: "office",
-          revision: 1,
-        },
       },
     });
 
     expect(retry?.id).toBe(first?.id);
 
-    const events = await tx.select().from(agendaEvents);
+    const events = await uow.getDb().select().from(agendaEvents);
     expect(events).toHaveLength(1);
 
-    const instances = await tx.select().from(agendaInstances);
+    const instances = await uow.getDb().select().from(agendaInstances);
     expect(instances).toHaveLength(1);
   });
 });

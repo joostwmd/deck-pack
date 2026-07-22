@@ -1,10 +1,6 @@
 import { Button } from "@deck-pack/ui/components/system/button";
 import { Input } from "@deck-pack/ui/components/system/input";
-import {
-  buildAgendaUpdatePlan,
-  FIELD_ROLES,
-  type AgendaSection,
-} from "@deck-pack/agenda";
+import { buildAgendaUpdatePlan, FIELD_ROLES, type AgendaSection } from "@deck-pack/agenda";
 import {
   buildTemplateMapping,
   createInitialAgendaConfig,
@@ -19,12 +15,12 @@ import { toast } from "sonner";
 import { EmptyState } from "@/components/asset-browser/empty-state";
 import { InsertSection } from "@/components/asset-browser/insert-section";
 import { ScreenHeader } from "@/components/asset-browser/screen-header";
-import { useInsertSectionShortcutDefs } from "@/hooks/use-resolved-shortcut-defs";
-import { queueAgendaCloudEvent, syncAgendaToCloud } from "@/lib/sync-agenda";
+import { useInsertSectionShortcutDefs } from "@/hooks/shortcuts/use-resolved-shortcut-defs";
+import { queueAgendaCloudEvent, syncAgendaToCloud } from "@/utils/sync-agenda";
 import {
   AUTHENTICATION_REQUIRED_MESSAGE,
   isAuthenticationError,
-} from "@/lib/user-facing-api-error";
+} from "@/utils/user-facing-api-error";
 import { useServices } from "@/services/services-context";
 
 type WizardStep = "structure" | "template" | "mapping" | "review";
@@ -71,13 +67,7 @@ export function AgendaSetupWizard({ onComplete }: AgendaSetupWizardProps) {
       activeStyleSlotId,
       inactiveStyleSlotId,
     });
-  }, [
-    activeStyleSlotId,
-    headingShape,
-    inactiveStyleSlotId,
-    rowSlots,
-    templateSlide,
-  ]);
+  }, [activeStyleSlotId, headingShape, inactiveStyleSlotId, rowSlots, templateSlide]);
 
   const addCurrentSlideAsSection = useCallback(async () => {
     const selection = await getAgendaSelectionSnapshot();
@@ -132,14 +122,24 @@ export function AgendaSetupWizard({ onComplete }: AgendaSetupWizardProps) {
     const sorted = [...selection.shapes].sort((left, right) => left.left - right.left);
     const slotId = crypto.randomUUID();
     const fields = [
-      { shapeEntityId: crypto.randomUUID(), nativeShapeIdHint: sorted[0]!.nativeShapeId, fieldRole: FIELD_ROLES.SECTION_NUMBER },
-      { shapeEntityId: crypto.randomUUID(), nativeShapeIdHint: sorted[1]!.nativeShapeId, fieldRole: FIELD_ROLES.SECTION_TITLE },
+      {
+        shapeEntityId: crypto.randomUUID(),
+        nativeShapeIdHint: sorted[0]!.nativeShapeId,
+        fieldRole: FIELD_ROLES.SECTION_NUMBER,
+      },
+      {
+        shapeEntityId: crypto.randomUUID(),
+        nativeShapeIdHint: sorted[1]!.nativeShapeId,
+        fieldRole: FIELD_ROLES.SECTION_TITLE,
+      },
       ...(sorted[2]
-        ? [{
-            shapeEntityId: crypto.randomUUID(),
-            nativeShapeIdHint: sorted[2]!.nativeShapeId,
-            fieldRole: FIELD_ROLES.PAGE_NUMBER,
-          }]
+        ? [
+            {
+              shapeEntityId: crypto.randomUUID(),
+              nativeShapeIdHint: sorted[2]!.nativeShapeId,
+              fieldRole: FIELD_ROLES.PAGE_NUMBER,
+            },
+          ]
         : []),
     ] as TemplateMappingDraft["rowSlots"][number]["fields"];
 
@@ -261,14 +261,7 @@ export function AgendaSetupWizard({ onComplete }: AgendaSetupWizardProps) {
       config: draftConfig,
       deck: { slides: [], shapes: [] },
     });
-  }, [
-    activeStyleSlotId,
-    headingShape,
-    inactiveStyleSlotId,
-    rowSlots,
-    sections,
-    templateSlide,
-  ]);
+  }, [activeStyleSlotId, headingShape, inactiveStyleSlotId, rowSlots, sections, templateSlide]);
 
   return (
     <div className="flex flex-1 flex-col gap-4">
@@ -330,7 +323,11 @@ export function AgendaSetupWizard({ onComplete }: AgendaSetupWizardProps) {
             </div>
           )}
 
-          <Button variant="outline" className="w-full" onClick={() => void addCurrentSlideAsSection()}>
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => void addCurrentSlideAsSection()}
+          >
             <Plus className="size-4" />
             Add current slide as section
           </Button>
@@ -406,9 +403,7 @@ export function AgendaSetupWizard({ onComplete }: AgendaSetupWizardProps) {
             <p>{sections.length} sections</p>
             <p>{capacity} template row slots</p>
             <p>{1 + sections.length} generated slides expected</p>
-            {reviewPlan ? (
-              <p>{reviewPlan.summary.updatedSlides} slide updates planned</p>
-            ) : null}
+            {reviewPlan ? <p>{reviewPlan.summary.updatedSlides} slide updates planned</p> : null}
           </div>
           <div className="flex gap-2">
             <Button variant="ghost" onClick={() => setStep("mapping")}>

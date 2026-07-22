@@ -6,9 +6,9 @@ import { toast } from "sonner";
 
 import { ShortcutEditorView } from "@/components/shortcuts/settings/shortcut-editor-view";
 import { getInvalidHotkeyMessage } from "@/components/shortcuts/settings/shortcut-rules-help";
-import { detectPowerPointConflict } from "@/lib/powerpoint-shortcuts";
-import { resolvedShortcutToDef, type ShortcutId } from "@/lib/shortcuts";
-import { getUserFacingApiErrorMessage } from "@/lib/user-facing-api-error";
+import { detectPowerPointConflict } from "@/utils/powerpoint-shortcuts";
+import { resolvedShortcutToDef, type ShortcutId } from "@/utils/shortcuts";
+import { getUserFacingApiErrorMessage } from "@/utils/user-facing-api-error";
 import { useShortcutBindings } from "@/providers/shortcut-bindings-provider";
 
 interface ShortcutEditorProps {
@@ -49,9 +49,7 @@ export function ShortcutEditor({ shortcutId, onBack, onSaved }: ShortcutEditorPr
     }
   }, [recorder]);
 
-  const draftDef = draftHotkey
-    ? resolvedShortcutToDef({ ...shortcut, hotkey: draftHotkey })
-    : null;
+  const draftDef = draftHotkey ? resolvedShortcutToDef({ ...shortcut, hotkey: draftHotkey }) : null;
 
   const internalConflict = useMemo(
     () => (draftHotkey ? findLocalConflict(shortcutId, draftHotkey) : null),
@@ -60,9 +58,7 @@ export function ShortcutEditor({ shortcutId, onBack, onSaved }: ShortcutEditorPr
 
   const powerPointConflict = useMemo(
     () =>
-      draftHotkey && !acceptedPowerPoint
-        ? detectPowerPointConflict(draftHotkey as Hotkey)
-        : null,
+      draftHotkey && !acceptedPowerPoint ? detectPowerPointConflict(draftHotkey as Hotkey) : null,
     [acceptedPowerPoint, draftHotkey],
   );
 

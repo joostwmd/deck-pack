@@ -1,5 +1,5 @@
-import type { FormattingActionId, GapParams, SetBoundsParams } from "@deck-pack/presentation-formatting";
-import type { ShapeSelection } from "@deck-pack/presentation-formatting";
+import type { FormattingActionId, GapParams, SetBoundsParams } from "@deck-pack/shape-commands";
+import type { ShapeSelection } from "@deck-pack/shape-commands";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@deck-pack/ui/components/system/tabs";
 import { Table } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
@@ -7,7 +7,7 @@ import type { ReactNode } from "react";
 import { EmptyState } from "@/components/asset-browser/empty-state";
 import { ScreenHeader } from "@/components/asset-browser/screen-header";
 import { PowerPointGuard, type PowerPointApiLevel } from "@/components/shell/power-point-guard";
-import type { SelectionState } from "@/hooks/use-powerpoint-selection";
+import type { SelectionState } from "@/hooks/shared/use-powerpoint-selection";
 
 import {
   AlignControls,
@@ -19,7 +19,7 @@ import {
 import { BoundsControls, SelectionSummary } from "./bounds-controls";
 import { GapExactControls } from "./gap-controls";
 import { TextControls } from "./text-controls";
-import type { FormatPanelController } from "@/hooks/use-format-panel-controller";
+import type { FormatPanelController } from "@/hooks/format/use-format-panel-controller";
 
 function FormatSection({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -56,7 +56,11 @@ function FormatPanelContentView({
 }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pb-6 pt-2">
-      <SelectionSummary selection={selection} isRefreshing={isRefreshing} onRefresh={() => void refresh()} />
+      <SelectionSummary
+        selection={selection}
+        isRefreshing={isRefreshing}
+        onRefresh={() => void refresh()}
+      />
 
       {state.status === "error" ? (
         <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
@@ -127,12 +131,22 @@ function FormatPanelContentView({
               />
               <GapExactControls
                 disabled={!selection || selection.shapes.length < 2}
-                busy={busyActionId === "gap-exact-horizontal" || busyActionId === "gap-exact-vertical"}
+                busy={
+                  busyActionId === "gap-exact-horizontal" || busyActionId === "gap-exact-vertical"
+                }
                 onApplyHorizontal={(value) =>
-                  void runAction("gap-exact-horizontal", { mode: "exact", direction: "horizontal", value })
+                  void runAction("gap-exact-horizontal", {
+                    mode: "exact",
+                    direction: "horizontal",
+                    value,
+                  })
                 }
                 onApplyVertical={(value) =>
-                  void runAction("gap-exact-vertical", { mode: "exact", direction: "vertical", value })
+                  void runAction("gap-exact-vertical", {
+                    mode: "exact",
+                    direction: "vertical",
+                    value,
+                  })
                 }
               />
             </PowerPointGuard>

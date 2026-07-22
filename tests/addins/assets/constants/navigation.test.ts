@@ -6,7 +6,7 @@ import {
   getNavigationPagesBySection,
   getNavigationPagesWithShortcuts,
 } from "@/constants/navigation";
-import { SHORTCUTS } from "@/lib/shortcuts";
+import { SHORTCUTS } from "@/utils/shortcuts";
 
 describe("navigation registry", () => {
   it("defines assets, utilities, and settings sections in order", () => {

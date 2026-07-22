@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { UserMenuView } from "@/components/shell/user-menu-view";
 import type { AppEnvironment } from "@/constants/navigation";
 import { getPageRouteParams, getPageRouteTo } from "@/constants/navigation";
-import { getUserInitials } from "@/lib/user-initials";
+import { getUserInitials } from "@/utils/user-initials";
 import { useServices } from "@/services/services-context";
 
 export function UserMenu({ environment }: { environment: AppEnvironment }) {

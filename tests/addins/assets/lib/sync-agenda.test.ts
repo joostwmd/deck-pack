@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { agendaConfigV1Schema } from "@deck-pack/agenda";
 
-import { queueAgendaCloudEvent } from "@/lib/sync-agenda";
+import { queueAgendaCloudEvent } from "@/utils/sync-agenda";
 
 describe("sync-agenda", () => {
   it("queues pending cloud events without duplicating ids", () => {

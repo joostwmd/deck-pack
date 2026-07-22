@@ -1,14 +1,8 @@
-import {
-  DndContext,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from "@dnd-kit/core";
+import { DndContext, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { useCallback, useRef } from "react";
 
 import { useWebCanvas } from "@/contexts/web-canvas-context";
-import { clampCanvasPosition, deltaPxToFraction } from "@/lib/canvas-position";
+import { clampCanvasPosition, deltaPxToFraction } from "@/utils/canvas-position";
 
 import { WaitlistBanner } from "@/components/shell/waitlist/waitlist-banner";
 
@@ -74,8 +68,8 @@ export function WebCanvas() {
           >
             {items.length === 0 ? (
               <div className="flex h-full items-center justify-center px-8 text-center text-sm text-muted-foreground">
-                Your slide preview will appear here. Search for an asset in the sidebar and add it to
-                the canvas.
+                Your slide preview will appear here. Search for an asset in the sidebar and add it
+                to the canvas.
               </div>
             ) : null}
 

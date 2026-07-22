@@ -18,23 +18,234 @@
   },
   "overrides": [
     {
-      "files": ["apps/api/src/domains/**/routes.ts"],
+      "files": ["apps/api/src/domains/**/routes.ts", "apps/api/src/domains/**/*-routes.ts"],
       "rules": {
         "no-restricted-imports": [
           "error",
           {
-            "paths": ["drizzle-orm", "@deck-pack/db"]
+            "paths": [
+              {
+                "name": "drizzle-orm",
+                "message": "Routes are transport-only; call the service/use-case."
+              },
+              {
+                "name": "@trpc/server",
+                "message": "Use procedures from trpc/procedures; do not import tRPC helpers in routes."
+              }
+            ],
+            "patterns": [
+              {
+                "group": ["@deck-pack/db", "@deck-pack/db/**"],
+                "message": "Routes must not touch the DB. Call the domain service (today) or use-case (after package extraction)."
+              }
+            ]
           }
         ]
       }
     },
     {
-      "files": ["apps/api/src/domains/**/service.ts"],
+      "files": ["apps/api/src/domains/**/service.ts", "apps/api/src/domains/**/*-service.ts"],
       "rules": {
         "no-restricted-imports": [
           "error",
           {
-            "paths": ["@trpc/server"]
+            "paths": [
+              {
+                "name": "@trpc/server",
+                "message": "Services must not know tRPC. Throw AppError; routes stay thin."
+              },
+              {
+                "name": "hono",
+                "message": "Services must not know Hono."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["apps/api/src/trpc/guards/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["**/domains/**"],
+                "message": "Guards compose middleware; do not import domain services or routes."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["apps/api/src/routers/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "drizzle-orm",
+                "message": "Routers are thin adapters; call a use-case."
+              },
+              {
+                "name": "hono",
+                "message": "Routers must not import Hono transport internals."
+              }
+            ],
+            "patterns": [
+              {
+                "group": ["@deck-pack/db", "@deck-pack/db/**"],
+                "message": "Routers must not touch the DB."
+              },
+              {
+                "group": ["../transport/**"],
+                "message": "Routers must not import transport internals."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": [
+        "apps/api/src/trpc/init.ts",
+        "apps/api/src/trpc/context.ts",
+        "apps/api/src/trpc/error-mapping.ts",
+        "apps/api/src/trpc/procedures.ts"
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["@deck-pack/db/queries/**"],
+                "message": "tRPC plumbing uses AppContainer; do not import query files directly."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["apps/api/src/transport/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "@trpc/server",
+                "message": "Transport is Hono-only; tRPC mounts elsewhere."
+              }
+            ],
+            "patterns": [
+              {
+                "group": ["@deck-pack/db/queries/**"],
+                "message": "Transport must not import DB query files."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["packages/*/src/domain/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "@deck-pack/db",
+                "message": "Domain layer must not import the DB."
+              },
+              {
+                "name": "drizzle-orm",
+                "message": "Domain layer must not import Drizzle."
+              },
+              {
+                "name": "@trpc/server",
+                "message": "Domain layer must not know tRPC."
+              },
+              {
+                "name": "hono",
+                "message": "Domain layer must not know Hono."
+              }
+            ],
+            "patterns": [
+              {
+                "group": ["@deck-pack/db/**"],
+                "message": "Domain layer must not import @deck-pack/db subpaths."
+              },
+              {
+                "group": ["../repositories/**", "../use-cases/**"],
+                "message": "Domain layer must not import sibling layers."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["packages/*/src/repositories/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "@trpc/server",
+                "message": "Repositories must not know tRPC."
+              },
+              {
+                "name": "hono",
+                "message": "Repositories must not know Hono."
+              }
+            ],
+            "patterns": [
+              {
+                "group": ["../use-cases/**"],
+                "message": "Repositories must not import use-cases."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["packages/*/src/use-cases/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "@deck-pack/db",
+                "message": "Use-cases depend on repository interfaces, not Drizzle."
+              },
+              {
+                "name": "drizzle-orm",
+                "message": "Use-cases must not import Drizzle."
+              },
+              {
+                "name": "@trpc/server",
+                "message": "Use-cases must not know tRPC."
+              },
+              {
+                "name": "hono",
+                "message": "Use-cases must not know Hono."
+              }
+            ],
+            "patterns": [
+              {
+                "group": ["@deck-pack/db/**"],
+                "message": "Use-cases must not import @deck-pack/db subpaths (including queries)."
+              }
+            ]
           }
         ]
       }
@@ -44,7 +255,8 @@
         "apps/*/src/components/**/*.{ts,tsx}",
         "apps/*/src/hooks/**/*.{ts,tsx}",
         "apps/*/src/lib/**/*.{ts,tsx}",
-        "apps/*/src/features/**/*.{ts,tsx}"
+        "apps/*/src/features/**/*.{ts,tsx}",
+        "apps/*/src/domains/**/*.{ts,tsx}"
       ],
       "rules": {
         "no-restricted-imports": [
@@ -81,6 +293,22 @@
               {
                 "name": "@deck-pack/office-js",
                 "importNames": ["officeClient"]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["packages/ui/src/components/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "warn",
+          {
+            "patterns": [
+              {
+                "group": ["@deck-pack/hooks", "@deck-pack/hooks/**"],
+                "message": "UI views stay dumb; data hooks belong in app panels, not shared components."
               }
             ]
           }

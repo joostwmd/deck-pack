@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@deck-pack/ui/components/system/select";
-import type { CheckFinding } from "@deck-pack/presentation-check";
+import type { CheckFinding } from "@deck-pack/brand-compliance";
 import { CircleNotch, WarningCircle } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 
@@ -15,9 +15,13 @@ import { EmptyState } from "@/components/asset-browser/empty-state";
 import { InsertSection } from "@/components/asset-browser/insert-section";
 import { ScreenHeader } from "@/components/asset-browser/screen-header";
 import { PowerPointGuard, type PowerPointApiLevel } from "@/components/shell/power-point-guard";
-import type { ScanScope } from "@/lib/run-presentation-check";
+import type { ScanScope } from "@/utils/run-presentation-check";
 
-import type { CheckPanelController, GroupBy, SeverityFilter } from "@/hooks/use-check-panel-controller";
+import type {
+  CheckPanelController,
+  GroupBy,
+  SeverityFilter,
+} from "@/hooks/check/use-check-panel-controller";
 
 export interface CheckPanelProfileOption {
   id: string;
@@ -44,7 +48,11 @@ function CheckGuardedContent({
   );
 }
 
-export function CheckPanelView({ minTextApi, capabilitySummaryText, controller }: CheckPanelViewProps) {
+export function CheckPanelView({
+  minTextApi,
+  capabilitySummaryText,
+  controller,
+}: CheckPanelViewProps) {
   const {
     view,
     setView,
@@ -250,7 +258,12 @@ function CheckSetupView({
               </SelectContent>
             </Select>
             {selectedProfileId !== "universal" ? (
-              <Button type="button" variant="ghost" className="justify-start px-0" onClick={onEditTheme}>
+              <Button
+                type="button"
+                variant="ghost"
+                className="justify-start px-0"
+                onClick={onEditTheme}
+              >
                 Edit selected theme
               </Button>
             ) : null}
@@ -344,8 +357,8 @@ function CheckResultsView({
           {result.summary.unsupportedRules.length > 0 ? (
             <p className="rounded-md border border-blue-500/30 bg-blue-500/10 px-3 py-2 text-xs text-blue-900 dark:text-blue-100">
               {result.summary.unsupportedRules.length} enabled rule
-              {result.summary.unsupportedRules.length === 1 ? "" : "s"} require a newer PowerPoint API:{" "}
-              {result.summary.unsupportedRules.join(", ")}
+              {result.summary.unsupportedRules.length === 1 ? "" : "s"} require a newer PowerPoint
+              API: {result.summary.unsupportedRules.join(", ")}
             </p>
           ) : null}
 
@@ -376,7 +389,11 @@ function CheckResultsView({
             </Select>
           </div>
 
-          <Input placeholder="Search issues" value={search} onChange={(event) => onSearchChange(event.target.value)} />
+          <Input
+            placeholder="Search issues"
+            value={search}
+            onChange={(event) => onSearchChange(event.target.value)}
+          />
 
           {safeCount > 0 ? (
             <Button type="button" onClick={onSafeFixAll}>

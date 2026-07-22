@@ -7,7 +7,7 @@ import {
   swapPositionsCommand,
   swapTextCommand,
   textMarginRemoveCommand,
-} from "@deck-pack/presentation-formatting";
+} from "@deck-pack/shape-commands";
 import { describe, expect, it } from "vitest";
 
 import { executeFormattingCommand } from "@deck-pack/office-js/format/execute-formatting-command";
@@ -60,9 +60,7 @@ describe("executeFormattingCommand", () => {
   });
 
   it("runs set-bounds with partial params", async () => {
-    const office = fakePowerPointSelection([
-      { id: "a", left: 0, top: 0, width: 10, height: 10 },
-    ]);
+    const office = fakePowerPointSelection([{ id: "a", left: 0, top: 0, width: 10, height: 10 }]);
 
     await executeFormattingCommand(office.runner, setBoundsCommand, { left: 5, width: 30 });
     expect(office.shape("a").left).toBe(5);
@@ -72,9 +70,9 @@ describe("executeFormattingCommand", () => {
   it("throws when command is unavailable for the current selection", async () => {
     const office = fakePowerPointSelection([{ id: "a", left: 0, top: 0, width: 10, height: 10 }]);
 
-    await expect(executeFormattingCommand(office.runner, swapPositionsCommand, undefined)).rejects.toBeInstanceOf(
-      FormattingUnavailableError,
-    );
+    await expect(
+      executeFormattingCommand(office.runner, swapPositionsCommand, undefined),
+    ).rejects.toBeInstanceOf(FormattingUnavailableError);
   });
 
   it("does not mutate shapes when the plan is empty", async () => {

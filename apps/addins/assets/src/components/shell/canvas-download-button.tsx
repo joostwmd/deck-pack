@@ -1,10 +1,13 @@
 import { CanvasDownloadButtonView } from "@/components/shell/canvas-download-button-view";
-import { useCanvasDownloadButtonController } from "@/hooks/use-canvas-download-button-controller";
+import { useCanvasDownloadButtonController } from "@/hooks/shared/use-canvas-download-button-controller";
 
 export function CanvasDownloadButton() {
   const controller = useCanvasDownloadButtonController();
 
   return (
-    <CanvasDownloadButtonView isExporting={controller.isExporting} onDownload={controller.onDownload} />
+    <CanvasDownloadButtonView
+      isExporting={controller.isExporting}
+      onDownload={controller.onDownload}
+    />
   );
 }

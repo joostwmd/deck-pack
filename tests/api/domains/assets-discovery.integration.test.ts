@@ -1,44 +1,48 @@
 import { sql } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import { createFlagService } from "@deck-pack/api/domains/flags/service";
-import { createShapeService } from "@deck-pack/api/domains/shapes/service";
-import { createSlideService } from "@deck-pack/api/domains/slides/service";
+import { db, unitOfWork } from "@deck-pack/db";
 import { ensureMigrationsApplied } from "@deck-pack/db/test-utils/ensure-migrations";
-import { tx } from "@deck-pack/db/transaction";
-import { createMemoryObjectStorage } from "@deck-pack/storage";
+import {
+  DrizzleGalleryRepository,
+  GetReadyFlagDetails,
+  SearchReadyFlags,
+  SearchReadyShapes,
+  SearchReadySlides,
+} from "@deck-pack/gallery";
+import { InMemoryObjectStorage } from "@deck-pack/storage";
 
 import {
   seedPendingShape,
   seedReadyFlag,
   seedReadyShape,
   seedReadySlide,
-} from "../test-utils/seed-ready-library-fixture";
+} from "../test-utils/seed-ready-gallery-fixture";
 
-describe("assets discovery services (integration)", () => {
+describe("assets discovery use-cases (integration)", () => {
   beforeAll(async () => {
     await ensureMigrationsApplied();
-  });
+  }, 60_000);
 
   beforeEach(async () => {
-    await tx.execute(
+    await db.execute(
       sql.raw(
-        `TRUNCATE TABLE flag_variants, flag_items, shape_items, slide_items, library_item_names, library_items, files RESTART IDENTITY CASCADE`,
+        `TRUNCATE TABLE flag_variants, flag_items, shape_items, slide_items, gallery_item_names, gallery_items, files RESTART IDENTITY CASCADE`,
       ),
     );
   });
 
   it("shape search returns signed svg urls for ready items only", async () => {
-    const storage = createMemoryObjectStorage();
-    const service = createShapeService({ storage });
+    const storage = new InMemoryObjectStorage();
+    const repo = new DrizzleGalleryRepository(unitOfWork);
 
-    await seedReadyShape(tx, storage, {
+    await seedReadyShape(unitOfWork, storage, {
       displayName: "Chevron",
       category: "Arrows",
     });
-    await seedPendingShape(tx, { displayName: "Draft", category: "Arrows" });
+    await seedPendingShape(unitOfWork, { displayName: "Draft", category: "Arrows" });
 
-    const response = await service.search(tx, {});
+    const response = await new SearchReadyShapes(repo, storage).execute({});
 
     expect(response.total).toBe(1);
     expect(response.results[0]?.name).toBe("Chevron");
@@ -48,50 +52,53 @@ describe("assets discovery services (integration)", () => {
   });
 
   it("slide search maps aliases to tags and applies filters", async () => {
-    const storage = createMemoryObjectStorage();
-    const service = createSlideService({ storage });
+    const storage = new InMemoryObjectStorage();
+    const repo = new DrizzleGalleryRepository(unitOfWork);
 
-    await seedReadySlide(tx, storage, {
+    await seedReadySlide(unitOfWork, storage, {
       displayName: "Title Hero",
       category: "Intro",
       aspectRatio: "16:9",
       aliases: ["title", "hero"],
     });
-    await seedReadySlide(tx, storage, {
+    await seedReadySlide(unitOfWork, storage, {
       displayName: "Closing CTA",
       category: "Closing",
       aspectRatio: "16:9",
       aliases: ["closing"],
     });
 
-    const all = await service.search(tx, { sort: "relevance" });
+    const all = await new SearchReadySlides(repo, storage).execute({ sort: "relevance" });
     expect(all.total).toBe(2);
     expect(all.facets.tags).toEqual(["closing", "hero", "title"]);
 
-    const filtered = await service.search(tx, { query: "hero", sort: "relevance" });
+    const filtered = await new SearchReadySlides(repo, storage).execute({
+      query: "hero",
+      sort: "relevance",
+    });
     expect(filtered.total).toBe(1);
     expect(filtered.results[0]?.tags).toEqual(expect.arrayContaining(["title", "hero"]));
     expect(filtered.results[0]?.thumbnailUrl.startsWith("data:image/png;base64,")).toBe(true);
   });
 
   it("flag search and getDetails return signed variant urls", async () => {
-    const storage = createMemoryObjectStorage();
-    const service = createFlagService({ storage });
+    const storage = new InMemoryObjectStorage();
+    const repo = new DrizzleGalleryRepository(unitOfWork);
 
-    const seeded = await seedReadyFlag(tx, storage, {
+    const seeded = await seedReadyFlag(unitOfWork, storage, {
       displayName: "United States",
       code: "US",
       aliases: ["USA"],
     });
 
-    const search = await service.search(tx, "usa");
+    const search = await new SearchReadyFlags(repo, storage).execute({ query: "usa" });
     expect(search.results).toHaveLength(1);
     expect(search.results[0]?.imageUrl.startsWith("data:image/png;base64,")).toBe(true);
 
-    const details = await service.getDetails(tx, seeded.id);
-    expect(details?.variants).toHaveLength(3);
-    expect(details?.metadata.FLAG_CODE).toBe("US");
-    expect(details?.variants.every((v) => v.imageUrl.startsWith("data:image/png;base64,"))).toBe(
+    const details = await new GetReadyFlagDetails(repo, storage).execute({ id: seeded.id });
+    expect(details.variants).toHaveLength(3);
+    expect(details.metadata.FLAG_CODE).toBe("US");
+    expect(details.variants.every((v) => v.imageUrl.startsWith("data:image/png;base64,"))).toBe(
       true,
     );
   });

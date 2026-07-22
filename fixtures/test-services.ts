@@ -1,7 +1,10 @@
 import type { SlideAspectRatio } from "@/components/slides/types";
 import type { AppServices, AssetListSearchStore } from "@/services/types";
-import { createCanvasStrategy, officeInsertionStrategyWithTracker } from "@/lib/insertion-strategy";
-import { createInsertionTracker } from "@/lib/track-asset-insertion";
+import {
+  createCanvasStrategy,
+  officeInsertionStrategyWithTracker,
+} from "@/utils/insertion-strategy";
+import { createInsertionTracker } from "@/utils/track-asset-insertion";
 
 import type { DeepPartial } from "@fixtures/deep-partial";
 import {

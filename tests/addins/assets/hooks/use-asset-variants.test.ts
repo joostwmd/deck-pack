@@ -2,7 +2,7 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import { useAssetVariants } from "@/hooks/use-asset-variants";
+import { useAssetVariants } from "@/hooks/asset-browser/use-asset-variants";
 
 describe("useAssetVariants", () => {
   it("loads variants for the selected asset", async () => {

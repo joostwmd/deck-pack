@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { EnvironmentProvider } from "@/contexts/EnvironmentContext";
 import { WebCanvasProvider } from "@/contexts/web-canvas-context";
-import { useInsertionStrategy } from "@/hooks/use-insertion-strategy";
+import { useInsertionStrategy } from "@/hooks/asset-browser/use-insertion-strategy";
 import { ServicesProvider } from "@/services/services-context";
 import { createTestServices } from "@fixtures/test-services";
 

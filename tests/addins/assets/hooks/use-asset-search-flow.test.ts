@@ -2,7 +2,7 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import { useAssetSearchFlow } from "@/hooks/use-asset-search-flow";
+import { useAssetSearchFlow } from "@/hooks/asset-browser/use-asset-search-flow";
 import { mockFlagDetails, mockFlagSearch } from "@fixtures/asset-search";
 
 describe("useAssetSearchFlow", () => {

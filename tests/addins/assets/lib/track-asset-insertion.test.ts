@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createInsertionTracker } from "@/lib/track-asset-insertion";
+import { createInsertionTracker } from "@/utils/track-asset-insertion";
 
 describe("createInsertionTracker", () => {
   const track = vi.fn();

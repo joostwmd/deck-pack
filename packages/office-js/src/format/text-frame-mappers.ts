@@ -2,7 +2,7 @@ import type {
   TextAutoSizeMode,
   TextFrameSnapshot,
   TextVerticalAlignmentMode,
-} from "@deck-pack/presentation-formatting";
+} from "@deck-pack/shape-commands";
 
 const OFFICE_AUTO_SIZE_TO_DOMAIN: Record<string, TextAutoSizeMode> = {
   AutoSizeNone: "none",

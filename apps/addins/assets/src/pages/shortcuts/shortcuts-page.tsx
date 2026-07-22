@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import { ShortcutEditor } from "@/components/shortcuts/settings/shortcut-editor";
 import { ShortcutList } from "@/components/shortcuts/settings/shortcut-list";
-import type { ShortcutId } from "@/lib/shortcuts";
+import type { ShortcutId } from "@/utils/shortcuts";
 
 type ShortcutsView = { name: "list" } | { name: "edit"; shortcutId: ShortcutId };
 
@@ -14,7 +14,9 @@ export function ShortcutsPage() {
       {view.name === "list" ? (
         <>
           <div>
-            <h1 className="text-base font-semibold tracking-tight text-foreground">Shortcut settings</h1>
+            <h1 className="text-base font-semibold tracking-tight text-foreground">
+              Shortcut settings
+            </h1>
             <p className="mt-1 text-sm text-muted-foreground">
               Customize keyboard shortcuts for this add-in.
             </p>

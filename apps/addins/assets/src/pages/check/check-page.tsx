@@ -2,7 +2,7 @@ import { getPowerPointCapabilitySummary, MIN_TEXT_API } from "@deck-pack/office-
 import { useMemo } from "react";
 
 import { CheckPanelView } from "@/components/check/check-panel-view";
-import { useCheckPanelController } from "@/hooks/use-check-panel-controller";
+import { useCheckPanelController } from "@/hooks/check/use-check-panel-controller";
 
 export function CheckPage() {
   const controller = useCheckPanelController();

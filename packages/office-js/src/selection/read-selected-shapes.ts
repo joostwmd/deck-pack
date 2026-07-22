@@ -1,5 +1,5 @@
-import type { SelectedShape, ShapeSelection } from "@deck-pack/presentation-formatting";
-import { getVisualBounds } from "@deck-pack/presentation-formatting";
+import type { SelectedShape, ShapeSelection } from "@deck-pack/shape-commands";
+import { getVisualBounds } from "@deck-pack/shape-commands";
 
 import { mapOfficeTextFrameSnapshot } from "../format/text-frame-mappers";
 import { shapeSupportsTextFrame, toShapeCapabilities } from "./shape-capabilities";

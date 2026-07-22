@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 import { getBearerToken } from "@/auth/bearer-session-store";
 import { useOfficeBearerMode } from "@/auth/office-auth-mode";
-import { isAuthenticationError } from "@/lib/user-facing-api-error";
+import { isAuthenticationError } from "@/utils/user-facing-api-error";
 
 let trpcBundle: ReturnType<typeof createTrpcBrowserBundle<AppRouter>> | null = null;
 
@@ -41,10 +41,22 @@ export function createTrpcClient(): ReturnType<typeof createTrpcBrowserBundle<Ap
   return trpcBundle;
 }
 
-export function getTrpcClient(): ReturnType<typeof createTrpcBrowserBundle<AppRouter>>["trpcClient"] {
+export function getTrpcClient(): ReturnType<
+  typeof createTrpcBrowserBundle<AppRouter>
+>["trpcClient"] {
   if (!trpcBundle) {
     createTrpcClient();
   }
 
   return trpcBundle!.trpcClient;
+}
+
+export function getQueryClient(): ReturnType<
+  typeof createTrpcBrowserBundle<AppRouter>
+>["queryClient"] {
+  if (!trpcBundle) {
+    createTrpcClient();
+  }
+
+  return trpcBundle!.queryClient;
 }

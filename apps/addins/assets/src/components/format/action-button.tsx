@@ -1,5 +1,5 @@
 import { Button } from "@deck-pack/ui/components/system/button";
-import type { Applicability, FormattingActionId } from "@deck-pack/presentation-formatting";
+import type { Applicability, FormattingActionId } from "@deck-pack/shape-commands";
 
 interface FormatActionButtonProps {
   id: FormattingActionId;
@@ -34,7 +34,9 @@ export function FormatActionButton({
         {busy ? "Applying..." : label}
       </Button>
       {reason ? <p className="text-xs text-muted-foreground">{reason}</p> : null}
-      {!reason && description ? <p className="text-xs text-muted-foreground">{description}</p> : null}
+      {!reason && description ? (
+        <p className="text-xs text-muted-foreground">{description}</p>
+      ) : null}
     </div>
   );
 }

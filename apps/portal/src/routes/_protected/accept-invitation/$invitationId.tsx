@@ -3,7 +3,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 
-import { JoinConfirmCard } from "@/features/join/join-confirm-card";
+import { JoinConfirmCard } from "@/pages/join/join-confirm-card";
 import { portalHomePath } from "@/config/portal-nav";
 import { trpc } from "@/utils/trpc";
 

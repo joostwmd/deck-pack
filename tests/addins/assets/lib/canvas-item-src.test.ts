@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { PlacedCanvasItem } from "@/contexts/web-canvas-context";
 
-import { getCanvasItemPreviewSrc, svgToDataUri } from "@/lib/canvas-item-src";
+import { getCanvasItemPreviewSrc, svgToDataUri } from "@/utils/canvas-item-src";
 
 function createItem(overrides: Partial<PlacedCanvasItem> = {}): PlacedCanvasItem {
   return {
@@ -24,7 +24,9 @@ describe("canvas-item-src", () => {
     const uri = svgToDataUri('<svg xmlns="http://www.w3.org/2000/svg"></svg>');
 
     expect(uri).toMatch(/^data:image\/svg\+xml;charset=utf-8,/);
-    expect(decodeURIComponent(uri.replace("data:image/svg+xml;charset=utf-8,", ""))).toContain("<svg");
+    expect(decodeURIComponent(uri.replace("data:image/svg+xml;charset=utf-8,", ""))).toContain(
+      "<svg",
+    );
   });
 
   it("uses the SVG insert payload for preview when imageUrl is empty", () => {

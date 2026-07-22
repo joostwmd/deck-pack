@@ -1,17 +1,17 @@
 import { sql } from "drizzle-orm";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { db } from "@deck-pack/db";
+import { db, unitOfWork } from "@deck-pack/db";
 import { serializeOrganizationMetadata } from "@deck-pack/db/org-metadata";
 import { invitation, member, organization, user } from "@deck-pack/db/schema/auth";
-import { organizationSeats } from "@deck-pack/db/schema/billing";
-import { tx } from "@deck-pack/db/transaction";
-import { acceptInvitationForUser } from "@deck-pack/db/queries/acceptInvitationForUser";
-import { findPendingOrgIntentByEmail } from "@deck-pack/db/queries/findPendingOrgIntentByEmail";
-import { getCurrentMembershipSummary } from "@deck-pack/db/queries/getCurrentMembershipSummary";
-import { vacateCurrentOrganization } from "@deck-pack/db/queries/vacateCurrentOrganization";
+import { DrizzleBillingRepository } from "@deck-pack/billing/repositories/billing-repository";
+import { DrizzleMembersRepository } from "@deck-pack/members/repositories/members-repository";
+import { DrizzleOrganizationRepository } from "@deck-pack/organization/repositories/organization-repository";
 
-describe("pending org intent + replace-on-join (integration)", () => {
+describe("replace-on-join (integration)", () => {
+  const billingRepo = new DrizzleBillingRepository(unitOfWork);
+  const organizationRepo = new DrizzleOrganizationRepository(unitOfWork, billingRepo);
+  const membersRepo = new DrizzleMembersRepository(unitOfWork, billingRepo, organizationRepo);
   const now = new Date();
   const ownerId = crypto.randomUUID();
   const inviteeId = crypto.randomUUID();
@@ -19,7 +19,6 @@ describe("pending org intent + replace-on-join (integration)", () => {
   const teamOrgId = crypto.randomUUID();
   const soloOrgId = crypto.randomUUID();
   const invitationId = crypto.randomUUID();
-  const seatId = crypto.randomUUID();
 
   beforeEach(async () => {
     await db.execute(
@@ -81,66 +80,6 @@ describe("pending org intent + replace-on-join (integration)", () => {
     });
   });
 
-  it("findPendingOrgIntentByEmail prefers invitation over pending seat", async () => {
-    await db.insert(invitation).values({
-      id: invitationId,
-      organizationId: teamOrgId,
-      email: "invitee@join.test.local",
-      role: "organizationMember",
-      status: "pending",
-      expiresAt: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000),
-      createdAt: now,
-      inviterId: ownerId,
-    });
-
-    await db.insert(organizationSeats).values({
-      id: seatId,
-      organizationId: teamOrgId,
-      email: "invitee@join.test.local",
-      status: "pending",
-      assignedBy: ownerId,
-      assignedAt: now,
-      createdAt: now,
-      updatedAt: now,
-    });
-
-    const intent = await findPendingOrgIntentByEmail({
-      tx,
-      email: "Invitee@join.test.local",
-    });
-
-    expect(intent?.kind).toBe("invitation");
-    if (intent?.kind === "invitation") {
-      expect(intent.invitationId).toBe(invitationId);
-      expect(intent.organizationName).toBe("Team Org");
-    }
-  });
-
-  it("findPendingOrgIntentByEmail returns pending seat when no invitation", async () => {
-    await db.insert(organizationSeats).values({
-      id: seatId,
-      organizationId: teamOrgId,
-      email: "invitee@join.test.local",
-      status: "pending",
-      assignedBy: ownerId,
-      assignedAt: now,
-      createdAt: now,
-      updatedAt: now,
-    });
-
-    const intent = await findPendingOrgIntentByEmail({
-      tx,
-      email: "invitee@join.test.local",
-    });
-
-    expect(intent).toEqual({
-      kind: "seat",
-      seatId,
-      organizationId: teamOrgId,
-      organizationName: "Team Org",
-    });
-  });
-
   it("vacateCurrentOrganization deletes sole-member solo org", async () => {
     await db.insert(member).values({
       id: crypto.randomUUID(),
@@ -150,18 +89,18 @@ describe("pending org intent + replace-on-join (integration)", () => {
       createdAt: now,
     });
 
-    const summary = await getCurrentMembershipSummary({ tx, userId: inviteeId });
+    const summary = await membersRepo.getCurrentMembershipSummary(inviteeId);
     expect(summary?.willDeleteOnVacate).toBe(true);
     expect(summary?.blockedSoleOwner).toBe(false);
 
-    const vacated = await vacateCurrentOrganization({ tx, userId: inviteeId });
+    const vacated = await membersRepo.vacateCurrentOrganization(inviteeId);
     expect(vacated).toEqual({
       ok: true,
       action: "deleted",
       organizationId: soloOrgId,
     });
 
-    const after = await getCurrentMembershipSummary({ tx, userId: inviteeId });
+    const after = await membersRepo.getCurrentMembershipSummary(inviteeId);
     expect(after).toBeNull();
   });
 
@@ -174,11 +113,11 @@ describe("pending org intent + replace-on-join (integration)", () => {
       createdAt: now,
     });
 
-    const summary = await getCurrentMembershipSummary({ tx, userId: ownerId });
+    const summary = await membersRepo.getCurrentMembershipSummary(ownerId);
     expect(summary?.willDeleteOnVacate).toBe(false);
     expect(summary?.blockedSoleOwner).toBe(true);
 
-    const vacated = await vacateCurrentOrganization({ tx, userId: ownerId });
+    const vacated = await membersRepo.vacateCurrentOrganization(ownerId);
     expect(vacated).toEqual({
       ok: false,
       reason: "sole_owner_with_other_members",
@@ -205,11 +144,10 @@ describe("pending org intent + replace-on-join (integration)", () => {
       inviterId: ownerId,
     });
 
-    const vacated = await vacateCurrentOrganization({ tx, userId: inviteeId });
+    const vacated = await membersRepo.vacateCurrentOrganization(inviteeId);
     expect(vacated.ok).toBe(true);
 
-    const accepted = await acceptInvitationForUser({
-      tx,
+    const accepted = await membersRepo.acceptInvitationForUser({
       invitationId,
       userId: inviteeId,
     });
@@ -218,7 +156,7 @@ describe("pending org intent + replace-on-join (integration)", () => {
     if (!accepted.ok) return;
     expect(accepted.organizationId).toBe(teamOrgId);
 
-    const membership = await getCurrentMembershipSummary({ tx, userId: inviteeId });
+    const membership = await membersRepo.getCurrentMembershipSummary(inviteeId);
     expect(membership?.organizationId).toBe(teamOrgId);
     expect(membership?.organizationType).toBe("team");
   });

@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  buildLibraryObjectKey,
-  createMemoryObjectStorage,
+  buildGalleryObjectKey,
+  InMemoryObjectStorage,
   StorageNotFoundError,
 } from "@deck-pack/storage";
 
-describe("createMemoryObjectStorage", () => {
+describe("InMemoryObjectStorage", () => {
   it("mints upload targets with required headers", async () => {
-    const storage = createMemoryObjectStorage();
+    const storage = new InMemoryObjectStorage();
     const target = await storage.createUploadTarget({
       key: "global/shape/item-1/svg.svg",
       contentType: "image/svg+xml",
@@ -23,7 +23,7 @@ describe("createMemoryObjectStorage", () => {
   });
 
   it("returns null from head until seeded, then serves download urls", async () => {
-    const storage = createMemoryObjectStorage();
+    const storage = new InMemoryObjectStorage();
     const key = "global/flag/item-1/variant_rectangle.png";
 
     expect(await storage.head(key)).toBeNull();
@@ -42,7 +42,7 @@ describe("createMemoryObjectStorage", () => {
   });
 
   it("returns a data URL when the object body is available", async () => {
-    const storage = createMemoryObjectStorage();
+    const storage = new InMemoryObjectStorage();
     const key = "global/shape/item-1/svg.svg";
     const body = new TextEncoder().encode("<svg/>");
 
@@ -53,7 +53,7 @@ describe("createMemoryObjectStorage", () => {
   });
 
   it("throws when downloading a missing object", async () => {
-    const storage = createMemoryObjectStorage();
+    const storage = new InMemoryObjectStorage();
 
     await expect(
       storage.createDownloadUrl({ key: "missing", expiresInSeconds: 30 }),
@@ -61,7 +61,7 @@ describe("createMemoryObjectStorage", () => {
   });
 
   it("deletes seeded objects", async () => {
-    const storage = createMemoryObjectStorage();
+    const storage = new InMemoryObjectStorage();
     const key = "org/org-1/slide/item-1/presentation.pptx";
     storage.seed(key, {
       contentType: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
@@ -73,24 +73,24 @@ describe("createMemoryObjectStorage", () => {
   });
 });
 
-describe("buildLibraryObjectKey", () => {
+describe("buildGalleryObjectKey", () => {
   it("builds global and org paths", () => {
     expect(
-      buildLibraryObjectKey({
+      buildGalleryObjectKey({
         scope: "global",
         assetClass: "shape",
-        libraryItemId: "shape-1",
+        galleryItemId: "shape-1",
         role: "svg",
         extension: "svg",
       }),
     ).toBe("global/shape/shape-1/svg.svg");
 
     expect(
-      buildLibraryObjectKey({
+      buildGalleryObjectKey({
         scope: "org",
         organizationId: "org-1",
         assetClass: "slide",
-        libraryItemId: "slide-1",
+        galleryItemId: "slide-1",
         role: "thumbnail",
         extension: ".png",
       }),
@@ -99,10 +99,10 @@ describe("buildLibraryObjectKey", () => {
 
   it("requires organizationId for org scope", () => {
     expect(() =>
-      buildLibraryObjectKey({
+      buildGalleryObjectKey({
         scope: "org",
         assetClass: "flag",
-        libraryItemId: "flag-1",
+        galleryItemId: "flag-1",
         role: "variant_rectangle",
         extension: "png",
       }),

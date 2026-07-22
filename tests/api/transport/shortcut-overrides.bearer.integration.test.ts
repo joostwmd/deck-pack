@@ -1,25 +1,20 @@
 import { createDb } from "@deck-pack/db";
-import { deleteAllShortcutOverrides } from "@deck-pack/db/queries/deleteAllShortcutOverrides";
-import { deleteShortcutOverride } from "@deck-pack/db/queries/deleteShortcutOverride";
-import { listAllShortcutOverridesByUser } from "@deck-pack/db/queries/listShortcutOverridesByUser";
-import { upsertShortcutOverride } from "@deck-pack/db/queries/upsertShortcutOverride";
+import { UnitOfWork } from "@deck-pack/db/transaction";
 import { session, user } from "@deck-pack/db/schema/auth";
 import { ensureMigrationsApplied } from "@deck-pack/db/test-utils/ensure-migrations";
-import { tx } from "@deck-pack/db/transaction";
+import {
+  ListShortcutOverrides,
+  ResetAllShortcutOverrides,
+  SetShortcutOverride,
+  ShortcutConflictError,
+} from "@deck-pack/shortcut-overrides";
+import { DrizzleShortcutOverridesRepository } from "@deck-pack/shortcut-overrides/repositories/shortcut-overrides-repository";
 import { eq, sql } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import { createShortcutService } from "@deck-pack/api/domains/shortcuts/service";
 import { createSignedSessionFixture } from "../test-utils/create-signed-session-fixture";
 import { trpcQuery } from "../test-utils/trpc-request";
 import { createApp } from "@deck-pack/api/server";
-
-const shortcutService = createShortcutService({
-  listAllShortcutOverridesByUser,
-  upsertShortcutOverride,
-  deleteShortcutOverride,
-  deleteAllShortcutOverrides,
-});
 
 type SignedSessionFixture = Awaited<ReturnType<typeof createSignedSessionFixture>>;
 
@@ -29,6 +24,7 @@ async function createShortcutSessionFixture(emailPrefix: string): Promise<Signed
 
 describe("shortcut overrides bearer transport", () => {
   const db = createDb();
+  const repo = new DrizzleShortcutOverridesRepository(new UnitOfWork(db));
   const createdUserIds: string[] = [];
   const truncateSql = `TRUNCATE TABLE shortcut_overrides, brand_profile_versions, brand_profiles, asset_insertions, invitation, verification, session, account, member, organization, "user" RESTART IDENTITY CASCADE`;
 
@@ -62,76 +58,66 @@ describe("shortcut overrides bearer transport", () => {
     expect(body.result?.data?.json?.overrides).toEqual([]);
   });
 
-  it("saves and reloads overrides through the service layer", async () => {
+  it("saves and reloads overrides through the use-case layer", async () => {
     const fixture = await createShortcutSessionFixture("shortcuts-save");
     createdUserIds.push(fixture.userId);
 
-    const saved = await shortcutService.setOverride(tx, {
+    const saved = await new SetShortcutOverride(repo).execute({
       userId: fixture.userId,
       shortcutId: "photos",
       hotkey: "Mod+Alt+P",
     });
 
-    expect(saved.ok).toBe(true);
-    if (!saved.ok) return;
+    expect(saved.isCustomized).toBe(true);
+    expect(saved.hotkey).toBe("Mod+Alt+P");
 
-    expect(saved.data.isCustomized).toBe(true);
-    expect(saved.data.hotkey).toBe("Mod+Alt+P");
-
-    const listed = await shortcutService.list(tx, { userId: fixture.userId });
-    expect(listed.ok).toBe(true);
-    if (!listed.ok) return;
-
-    expect(listed.data.overrides).toHaveLength(1);
-    expect(listed.data.overrides[0]?.shortcutId).toBe("photos");
+    const listed = await new ListShortcutOverrides(repo).execute({ userId: fixture.userId });
+    expect(listed.overrides).toHaveLength(1);
+    expect(listed.overrides[0]?.shortcutId).toBe("photos");
   });
 
   it("rejects overlapping internal conflicts", async () => {
     const fixture = await createShortcutSessionFixture("shortcuts-conflict");
     createdUserIds.push(fixture.userId);
 
-    await shortcutService.setOverride(tx, {
+    await new SetShortcutOverride(repo).execute({
       userId: fixture.userId,
       shortcutId: "photos",
       hotkey: "Mod+Alt+X",
     });
 
-    const conflict = await shortcutService.setOverride(tx, {
-      userId: fixture.userId,
-      shortcutId: "logos",
-      hotkey: "Mod+Alt+X",
-    });
-
-    expect(conflict.ok).toBe(false);
-    if (conflict.ok) return;
-    expect(conflict.code).toBe("conflict");
-    expect(conflict.details).toMatchObject({ shortcutId: "photos" });
+    await expect(
+      new SetShortcutOverride(repo).execute({
+        userId: fixture.userId,
+        shortcutId: "logos",
+        hotkey: "Mod+Alt+X",
+      }),
+    ).rejects.toMatchObject({
+      name: "ShortcutConflictError",
+      conflictingShortcutId: "photos",
+    } satisfies Partial<ShortcutConflictError>);
   });
 
   it("deletes overrides when saving the default hotkey", async () => {
     const fixture = await createShortcutSessionFixture("shortcuts-reset-default");
     createdUserIds.push(fixture.userId);
 
-    await shortcutService.setOverride(tx, {
+    await new SetShortcutOverride(repo).execute({
       userId: fixture.userId,
       shortcutId: "photos",
       hotkey: "Mod+Alt+P",
     });
 
-    const reset = await shortcutService.setOverride(tx, {
+    const reset = await new SetShortcutOverride(repo).execute({
       userId: fixture.userId,
       shortcutId: "photos",
       hotkey: "Mod+Shift+P",
     });
 
-    expect(reset.ok).toBe(true);
-    if (!reset.ok) return;
-    expect(reset.data.isCustomized).toBe(false);
+    expect(reset.isCustomized).toBe(false);
 
-    const listed = await shortcutService.list(tx, { userId: fixture.userId });
-    expect(listed.ok).toBe(true);
-    if (!listed.ok) return;
-    expect(listed.data.overrides).toHaveLength(0);
+    const listed = await new ListShortcutOverrides(repo).execute({ userId: fixture.userId });
+    expect(listed.overrides).toHaveLength(0);
   });
 
   it("isolates overrides between users", async () => {
@@ -139,25 +125,21 @@ describe("shortcut overrides bearer transport", () => {
     const fixtureB = await createShortcutSessionFixture("shortcuts-user-b");
     createdUserIds.push(fixtureA.userId, fixtureB.userId);
 
-    await shortcutService.setOverride(tx, {
+    await new SetShortcutOverride(repo).execute({
       userId: fixtureA.userId,
       shortcutId: "photos",
       hotkey: "Mod+Alt+P",
     });
 
-    const listedA = await shortcutService.list(tx, { userId: fixtureA.userId });
-    const listedB = await shortcutService.list(tx, { userId: fixtureB.userId });
+    const listedA = await new ListShortcutOverrides(repo).execute({ userId: fixtureA.userId });
+    const listedB = await new ListShortcutOverrides(repo).execute({ userId: fixtureB.userId });
 
-    expect(listedA.ok).toBe(true);
-    expect(listedB.ok).toBe(true);
-    if (!listedA.ok || !listedB.ok) return;
+    expect(listedA.overrides).toHaveLength(1);
+    expect(listedB.overrides).toHaveLength(0);
 
-    expect(listedA.data.overrides).toHaveLength(1);
-    expect(listedB.data.overrides).toHaveLength(0);
-
-    const deleted = await shortcutService.resetAll(tx, { userId: fixtureA.userId });
-    expect(deleted.ok).toBe(true);
-    if (!deleted.ok) return;
-    expect(deleted.data.deletedCount).toBe(1);
+    const deleted = await new ResetAllShortcutOverrides(repo).execute({
+      userId: fixtureA.userId,
+    });
+    expect(deleted.deletedCount).toBe(1);
   });
 });

@@ -3,7 +3,7 @@ import { HarveyBallPreview } from "@/components/harvey-balls/harvey-ball-preview
 import { InsertSection } from "@/components/asset-browser/insert-section";
 import { ScreenHeader } from "@/components/asset-browser/screen-header";
 
-import type { HarveyBallsPanelController } from "@/hooks/use-harvey-balls-panel-controller";
+import type { HarveyBallsPanelController } from "@/hooks/harvey-balls/use-harvey-balls-panel-controller";
 
 export interface HarveyBallsPanelViewProps {
   controller: HarveyBallsPanelController;

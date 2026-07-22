@@ -3,7 +3,7 @@ import { useState } from "react";
 
 import { SearchBar } from "@/components/asset-browser/search-bar";
 import { ShortcutKeys } from "@/components/shortcuts/shortcut-hint";
-import { SHORTCUTS } from "@/lib/shortcuts";
+import { SHORTCUTS } from "@/utils/shortcuts";
 
 import { withAssetsPanel } from "../decorators";
 

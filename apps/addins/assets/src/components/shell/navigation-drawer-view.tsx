@@ -12,7 +12,7 @@ import { List } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 
 import { ShortcutKeys } from "@/components/shortcuts/shortcut-hint";
-import type { KeyToken } from "@/lib/shortcuts";
+import type { KeyToken } from "@/utils/shortcuts";
 
 export interface NavigationDrawerViewProps {
   open: boolean;
@@ -66,7 +66,9 @@ export function NavigationDrawerSectionView({
 }) {
   return (
     <section className="flex flex-col gap-2">
-      <h3 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">{label}</h3>
+      <h3 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+        {label}
+      </h3>
       <div className="flex flex-col gap-1">{children}</div>
     </section>
   );
@@ -89,7 +91,12 @@ export function NavigationDrawerView({
           />
           <SheetTrigger
             render={
-              <Button type="button" variant="ghost" size="icon-sm" aria-label="Open navigation menu">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                aria-label="Open navigation menu"
+              >
                 <List className="size-4" />
               </Button>
             }
