@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build",
+    "storybook": "pnpm -F @deck-pack/assets generate:routes && storybook dev -p 6006",
+    "build-storybook": "pnpm -F @deck-pack/assets generate:routes && storybook build",
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
