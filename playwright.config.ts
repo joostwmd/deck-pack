@@ -19,6 +19,8 @@ process.env.CORS_ORIGINS = `${OPS_URL},${PORTAL_URL}`;
 process.env.OPS_ORIGINS = OPS_URL;
 process.env.PORTAL_APP_URL = PORTAL_URL;
 process.env.VITE_SERVER_URL = API_URL;
+process.env.VITE_PORTAL_URL = PORTAL_URL;
+process.env.VITE_OPS_URL = OPS_URL;
 
 const sharedEnv = {
   ...process.env,
@@ -27,6 +29,8 @@ const sharedEnv = {
   OPS_ORIGINS: OPS_URL,
   PORTAL_APP_URL: PORTAL_URL,
   VITE_SERVER_URL: API_URL,
+  VITE_PORTAL_URL: PORTAL_URL,
+  VITE_OPS_URL: OPS_URL,
 };
 
 export default defineConfig({

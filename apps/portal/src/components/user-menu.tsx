@@ -1,3 +1,4 @@
+import { env } from "@deck-pack/env/web";
 import { Button } from "@deck-pack/ui/components/system/button";
 import {
   DropdownMenu,
@@ -13,8 +14,6 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 
 import { useServices } from "@/services/services-context";
-
-const OPS_URL = "http://localhost:3001";
 
 export default function UserMenu() {
   const navigate = useNavigate();
@@ -56,7 +55,7 @@ export default function UserMenu() {
                     return;
                   }
                   toast.success("Stopped impersonating");
-                  window.location.assign(`${OPS_URL}/users`);
+                  window.location.assign(`${env.VITE_OPS_URL}/users`);
                 })();
               }}
             >
