@@ -1,12 +1,13 @@
 import { PexelsRateLimitError } from "@deck-pack/integrations/pexels";
 import { createDb } from "@deck-pack/db";
-import { session, user } from "@deck-pack/db/schema/auth";
-import { eq } from "drizzle-orm";
 import { afterAll, describe, expect, it, vi } from "vitest";
 
 import { createAppRouter } from "@deck-pack/api/trpc/router";
 import { AppContainer } from "@deck-pack/api/container";
-import { createSignedSessionFixture } from "../test-utils/create-signed-session-fixture";
+import {
+  cleanupSignedSession,
+  createSignedSessionFixture,
+} from "../test-utils/create-signed-session-fixture";
 import { trpcQuery } from "../test-utils/trpc-request";
 import { createApp } from "@deck-pack/api/server";
 
@@ -97,19 +98,12 @@ function createExternalAssetsApp() {
     }),
   };
 
-  const router = createAppRouter(
-    {
-      brandfetchApiKey: "test",
-      brandfetchClientId: "test-client",
-      nounProjectApiKey: "test",
-      nounProjectApiSecret: "test-secret",
-      pexelsApiKey: "test",
-      pexels: pexels as never,
-      nounProject: nounProject as never,
-      brandfetch: brandfetch as never,
-    },
-    AppContainer.forUnitTest(),
-  );
+  const container = AppContainer.forIntegrationTest(createDb(), {
+    brandfetchClient: brandfetch as never,
+    nounProjectClient: nounProject as never,
+    pexelsClient: pexels as never,
+  });
+  const router = createAppRouter(container.toRouterDeps(), container);
 
   return {
     app: createApp({ router }),
@@ -120,13 +114,11 @@ function createExternalAssetsApp() {
 }
 
 describe("assets external integrations bearer transport", () => {
-  const db = createDb();
   const createdUserIds: string[] = [];
 
   afterAll(async () => {
     for (const userId of createdUserIds) {
-      await db.delete(session).where(eq(session.userId, userId));
-      await db.delete(user).where(eq(user.id, userId));
+      await cleanupSignedSession(userId);
     }
   });
 
@@ -148,7 +140,9 @@ describe("assets external integrations bearer transport", () => {
     const fixture = await createSignedSessionFixture({ emailPrefix: "photos-rate-limit" });
     createdUserIds.push(fixture.userId);
     const { app, pexels } = createExternalAssetsApp();
-    pexels.searchPhotos.mockRejectedValue(new PexelsRateLimitError("Rate limited"));
+    pexels.searchPhotos.mockRejectedValue(
+      new PexelsRateLimitError({ limit: 200, remaining: 0, reset: null }),
+    );
 
     const { status, body } = await trpcQuery(
       app,

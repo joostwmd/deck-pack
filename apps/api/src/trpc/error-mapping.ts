@@ -20,9 +20,23 @@ function appErrorToTrpcCode(error: AppError): TRPCError["code"] {
   }
 }
 
-/** Maps arbitrary caught values to {@link TRPCError} while preserving intentional TRPC failures. */
+/**
+ * Maps arbitrary caught values to {@link TRPCError} while preserving intentional TRPC failures.
+ *
+ * tRPC v11 converts procedure throws via `getTRPCErrorFromUnknown` before middleware sees them,
+ * so AppErrors often arrive already wrapped as INTERNAL_SERVER_ERROR with `cause` set. Remap those.
+ */
 export function normalizeProcedureError(err: unknown): TRPCError {
-  if (err instanceof TRPCError) return err;
+  if (err instanceof TRPCError) {
+    if (err.code === "INTERNAL_SERVER_ERROR" && err.cause instanceof AppError) {
+      return new TRPCError({
+        code: appErrorToTrpcCode(err.cause),
+        message: err.cause.message,
+        cause: err.cause,
+      });
+    }
+    return err;
+  }
 
   if (err instanceof AppError) {
     return new TRPCError({
@@ -41,10 +55,20 @@ export function normalizeProcedureError(err: unknown): TRPCError {
 
 /**
  * Maps unknown errors to TRPCError, including {@link AppError} subclasses from `@deck-pack/errors`.
+ *
+ * Procedure failures are returned as `{ ok: false, error }` (not thrown) in tRPC v11, so we
+ * inspect the middleware result instead of relying on try/catch alone.
  */
 export const errorMapperMiddleware = middleware(async ({ next }) => {
   try {
-    return await next();
+    const result = await next();
+    if (!result.ok) {
+      const normalized = normalizeProcedureError(result.error);
+      if (normalized !== result.error) {
+        return { ...result, error: normalized };
+      }
+    }
+    return result;
   } catch (err) {
     throw normalizeProcedureError(err);
   }

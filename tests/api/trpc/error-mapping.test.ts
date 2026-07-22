@@ -14,6 +14,18 @@ describe("normalizeProcedureError", () => {
     expect(out).toBe(inner);
   });
 
+  it("remaps INTERNAL_SERVER_ERROR whose cause is an AppError", () => {
+    const cause = new NotFoundError("missing");
+    const wrapped = new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      cause,
+    });
+    const out = normalizeProcedureError(wrapped);
+    expect(out.code).toBe("NOT_FOUND");
+    expect(out.message).toBe("missing");
+    expect(out.cause).toBe(cause);
+  });
+
   it("maps NotFoundError to NOT_FOUND", () => {
     const out = normalizeProcedureError(new NotFoundError("missing"));
     expect(out.code).toBe("NOT_FOUND");

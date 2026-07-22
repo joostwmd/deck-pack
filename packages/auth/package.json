@@ -13,7 +13,8 @@
     "./rbac": "./src/rbac.ts",
     "./workspace": "./src/workspace.ts",
     "./permissions": "./src/permissions.ts",
-    "./session-db": "./src/session-db.ts"
+    "./session-db": "./src/session-db.ts",
+    "./test-auth": "./src/test-auth.ts"
   },
   "scripts": {
     "auth:generate": "npx auth@latest generate --config ./src/schema.ts --output ../db/src/schema/auth.ts --y"
