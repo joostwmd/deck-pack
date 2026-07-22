@@ -6,7 +6,7 @@ import {
   getVariantNavigationShortcutDefs,
   resolvedShortcutToDef,
   type ShortcutId,
-} from "@/lib/shortcuts";
+} from "@/utils/shortcuts";
 import { useShortcutBindings } from "@/providers/shortcut-bindings-provider";
 
 export function useResolvedShortcutDef(id: ShortcutId) {

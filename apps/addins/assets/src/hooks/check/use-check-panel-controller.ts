@@ -1,11 +1,11 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
-import type { CheckFinding, CheckResult, IssueSeverity } from "@deck-pack/presentation-check";
+import type { CheckFinding, CheckResult, IssueSeverity } from "@deck-pack/brand-compliance";
 import { navigateToFinding, persistFindingIgnoreForPresentation } from "@deck-pack/office-js";
 
-import { useBrandProfiles } from "@/hooks/use-brand-profiles";
-import { useInsertSectionShortcutDefs } from "@/hooks/use-resolved-shortcut-defs";
+import { useBrandProfiles } from "@/hooks/shared/use-brand-profiles";
+import { useInsertSectionShortcutDefs } from "@/hooks/shortcuts/use-resolved-shortcut-defs";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import {
   filterFindings,
@@ -15,7 +15,7 @@ import {
   navigateAndFixFinding,
   runPresentationCheckFlow,
   type ScanScope,
-} from "@/lib/run-presentation-check";
+} from "@/utils/run-presentation-check";
 import { getPageRouteParams, getPageRouteTo } from "@/constants/navigation";
 
 export type CheckView = "setup" | "scanning" | "results" | "detail";

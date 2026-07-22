@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isGalleryItemPublishable } from "@deck-pack/db/queries/galleryAdmin";
-import type { GalleryItemDetail } from "@deck-pack/db/queries/galleryAdmin";
+import { checkPublishable, type GalleryItemDetail } from "@deck-pack/gallery/domain/gallery-item";
 
 function baseDetail(
   overrides: Partial<GalleryItemDetail> & Pick<GalleryItemDetail, "assetClass">,
@@ -21,9 +20,9 @@ function baseDetail(
   };
 }
 
-describe("isGalleryItemPublishable", () => {
+describe("checkPublishable", () => {
   it("requires all flag variants", () => {
-    const result = isGalleryItemPublishable(
+    const result = checkPublishable(
       baseDetail({
         assetClass: "flag",
         flag: {
@@ -49,7 +48,7 @@ describe("isGalleryItemPublishable", () => {
   });
 
   it("requires shape svg", () => {
-    const result = isGalleryItemPublishable(
+    const result = checkPublishable(
       baseDetail({
         assetClass: "shape",
         shape: { category: "Arrows", svgFile: null },
@@ -67,7 +66,7 @@ describe("isGalleryItemPublishable", () => {
       contentType: "application/octet-stream",
       byteSize: 10,
     };
-    const result = isGalleryItemPublishable(
+    const result = checkPublishable(
       baseDetail({
         assetClass: "slide",
         slide: {

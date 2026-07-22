@@ -1,39 +1,39 @@
 import { describe, expect, it } from "vitest";
 
-import { alignLeftCommand } from "@deck-pack/presentation-formatting/commands/align";
-import { distributeHorizontalCommand } from "@deck-pack/presentation-formatting/commands/distribute";
+import { alignLeftCommand } from "@deck-pack/shape-commands/commands/align";
+import { distributeHorizontalCommand } from "@deck-pack/shape-commands/commands/distribute";
 import {
   gapExactHorizontalCommand,
   gapIncreaseHorizontalCommand,
   gapRemoveHorizontalCommand,
-} from "@deck-pack/presentation-formatting/commands/gap";
-import { matchWidthCommand } from "@deck-pack/presentation-formatting/commands/match-size";
+} from "@deck-pack/shape-commands/commands/gap";
+import { matchWidthCommand } from "@deck-pack/shape-commands/commands/match-size";
 import {
   formattingCommandRegistry,
   getUniqueFormattingCommandIds,
-} from "@deck-pack/presentation-formatting/commands/registry";
-import { rectifyLinesCommand } from "@deck-pack/presentation-formatting/commands/rectify-lines";
-import { setBoundsCommand } from "@deck-pack/presentation-formatting/commands/set-bounds";
+} from "@deck-pack/shape-commands/commands/registry";
+import { rectifyLinesCommand } from "@deck-pack/shape-commands/commands/rectify-lines";
+import { setBoundsCommand } from "@deck-pack/shape-commands/commands/set-bounds";
 import {
   stackBottomCommand,
   stackRightCommand,
   stackVerticalCommand,
-} from "@deck-pack/presentation-formatting/commands/stack";
+} from "@deck-pack/shape-commands/commands/stack";
 import {
   swapBottomLeftCommand,
   swapPositionsCommand,
   swapTopLeftCommand,
-} from "@deck-pack/presentation-formatting/commands/swap";
+} from "@deck-pack/shape-commands/commands/swap";
 import {
   swapTextCommand,
   textMarginRemoveCommand,
   textWrapOnCommand,
-} from "@deck-pack/presentation-formatting/commands/text";
+} from "@deck-pack/shape-commands/commands/text";
 import {
   createShape,
   selectionFromBounds,
   selectionOf,
-} from "@deck-pack/presentation-formatting/test-utils/selection";
+} from "@deck-pack/shape-commands/test-utils/selection";
 
 describe("align commands", () => {
   it("aligns shapes to the selection left edge regardless of input order", () => {

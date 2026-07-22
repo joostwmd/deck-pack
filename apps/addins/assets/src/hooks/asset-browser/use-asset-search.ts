@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import type { AssetListItem } from "@/types/asset-types";
-import { getUserFacingApiErrorMessage } from "@/lib/user-facing-api-error";
+import { getUserFacingApiErrorMessage } from "@/utils/user-facing-api-error";
 
 export function useAssetSearch(
   debouncedQuery: string,

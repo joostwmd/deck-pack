@@ -11,9 +11,6 @@
     "./schema/*": {
       "default": "./src/schema/*.ts"
     },
-    "./queries/*": {
-      "default": "./src/queries/*.ts"
-    },
     "./test-utils/*": {
       "default": "./src/test-utils/*.ts"
     },

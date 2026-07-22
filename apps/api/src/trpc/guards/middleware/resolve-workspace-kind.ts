@@ -1,6 +1,5 @@
 import { TRPCError } from "@trpc/server";
 
-import { getOrganizationMetadataById } from "@deck-pack/db/queries/getOrganizationMetadataById";
 import {
   isWorkspaceKind,
   workspaceFromOrganizationMetadata,
@@ -17,10 +16,7 @@ export async function resolveWorkspaceKind(ctx: Context): Promise<WorkspaceKind>
   }
 
   const organizationId = requireActiveOrganizationId(ctx);
-  const org = await getOrganizationMetadataById({
-    tx: ctx.tx,
-    organizationId,
-  });
+  const org = await ctx.organization.getMetadataById(organizationId);
 
   if (!org) {
     throw new TRPCError({

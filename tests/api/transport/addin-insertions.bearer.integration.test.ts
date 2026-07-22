@@ -1,8 +1,7 @@
-import { createDb } from "@deck-pack/db";
+import { createDb, UnitOfWork } from "@deck-pack/db";
 import { ensureMigrationsApplied } from "@deck-pack/db/test-utils/ensure-migrations";
-import { assignOrganizationSeat } from "@deck-pack/db/queries/assignOrganizationSeat";
-import { createOrganizationSubscription } from "@deck-pack/db/queries/createOrganizationSubscription";
-import { tx } from "@deck-pack/db/transaction";
+import { DrizzleBillingRepository } from "@deck-pack/billing/repositories/billing-repository";
+import { DrizzleSeatsRepository } from "@deck-pack/seats/repositories/seats-repository";
 import { assetInsertions } from "@deck-pack/db/schema/asset-insertions";
 import { member, organization, session, user } from "@deck-pack/db/schema/auth";
 import { plans } from "@deck-pack/db/schema/billing";
@@ -15,6 +14,9 @@ import { createApp } from "@deck-pack/api/server";
 
 describe("addin insertions bearer transport", () => {
   const db = createDb();
+  const uow = new UnitOfWork(db);
+  const billingRepo = new DrizzleBillingRepository(uow);
+  const seatsRepo = new DrizzleSeatsRepository(uow);
   const createdUserIds: string[] = [];
   const truncateSql = `TRUNCATE TABLE organization_seats, organization_subscriptions, plan_limits, plans, asset_insertions, invitation, verification, session, account, member, organization, "user" RESTART IDENTITY CASCADE`;
 
@@ -81,20 +83,16 @@ describe("addin insertions bearer transport", () => {
       updatedAt: now,
     });
 
-    await createOrganizationSubscription({
-      tx,
-      input: { organizationId: orgId, planId, quantity: 5 },
+    await billingRepo.createOrganizationSubscription({
+      organizationId: orgId,
+      planId,
+      quantity: 5,
     });
 
-    await assignOrganizationSeat({
-      tx,
-      input: {
-        organizationId: orgId,
-        email: fixture.email,
-        assignedBy: adminId,
-        userId: fixture.userId,
-        status: "active",
-      },
+    await seatsRepo.assign({
+      organizationId: orgId,
+      email: fixture.email,
+      assignedBy: adminId,
     });
 
     await db

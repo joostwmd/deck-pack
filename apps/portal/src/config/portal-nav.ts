@@ -7,9 +7,9 @@ export type OrgNavRoute =
   | "/org/dashboard"
   | "/org/members"
   | "/org/seats"
-  | "/org/library/shapes"
-  | "/org/library/flags"
-  | "/org/library/slides";
+  | "/org/gallery/shapes"
+  | "/org/gallery/flags"
+  | "/org/gallery/slides";
 
 export type PortalNavRoute = SoloNavRoute | OrgNavRoute;
 
@@ -37,17 +37,17 @@ export const ORG_NAV_ITEMS: OrgNavItem[] = [
   { title: "Dashboard", to: "/org/dashboard" },
   {
     title: "Shapes",
-    to: "/org/library/shapes",
+    to: "/org/gallery/shapes",
     permissions: { gallery: ["create"] },
   },
   {
     title: "Flags",
-    to: "/org/library/flags",
+    to: "/org/gallery/flags",
     permissions: { gallery: ["create"] },
   },
   {
     title: "Slides",
-    to: "/org/library/slides",
+    to: "/org/gallery/slides",
     permissions: { gallery: ["create"] },
   },
   {
@@ -68,12 +68,12 @@ export const ORG_NAV_GROUPS: OrgNavGroup[] = [
     items: [{ title: "Dashboard", to: "/org/dashboard" }],
   },
   {
-    title: "Library",
+    title: "Gallery",
     permissions: { gallery: ["create"] },
     items: [
-      { title: "Shapes", to: "/org/library/shapes", permissions: { gallery: ["create"] } },
-      { title: "Flags", to: "/org/library/flags", permissions: { gallery: ["create"] } },
-      { title: "Slides", to: "/org/library/slides", permissions: { gallery: ["create"] } },
+      { title: "Shapes", to: "/org/gallery/shapes", permissions: { gallery: ["create"] } },
+      { title: "Flags", to: "/org/gallery/flags", permissions: { gallery: ["create"] } },
+      { title: "Slides", to: "/org/gallery/slides", permissions: { gallery: ["create"] } },
     ],
   },
   {
@@ -125,44 +125,44 @@ export function portalBreadcrumbs(
     return [{ label: "Seats" }];
   }
 
-  if (pathname === "/org/library/shapes") {
-    return [{ label: "Library" }, { label: "Shapes" }];
+  if (pathname === "/org/gallery/shapes") {
+    return [{ label: "Gallery" }, { label: "Shapes" }];
   }
-  if (pathname === "/org/library/shapes/new") {
-    return [{ label: "Library" }, { label: "Shapes", to: "/org/library/shapes" }, { label: "New" }];
+  if (pathname === "/org/gallery/shapes/new") {
+    return [{ label: "Gallery" }, { label: "Shapes", to: "/org/gallery/shapes" }, { label: "New" }];
   }
-  const shapeDetail = pathname.match(/^\/org\/library\/shapes\/([^/]+)$/);
+  const shapeDetail = pathname.match(/^\/org\/gallery\/shapes\/([^/]+)$/);
   if (shapeDetail && shapeDetail[1] !== "new") {
     const label = dynamicLabels[pathname] ?? "Shape";
-    return [{ label: "Library" }, { label: "Shapes", to: "/org/library/shapes" }, { label }];
+    return [{ label: "Gallery" }, { label: "Shapes", to: "/org/gallery/shapes" }, { label }];
   }
 
-  if (pathname === "/org/library/flags") {
-    return [{ label: "Library" }, { label: "Flags" }];
+  if (pathname === "/org/gallery/flags") {
+    return [{ label: "Gallery" }, { label: "Flags" }];
   }
-  if (pathname === "/org/library/flags/new") {
-    return [{ label: "Library" }, { label: "Flags", to: "/org/library/flags" }, { label: "New" }];
+  if (pathname === "/org/gallery/flags/new") {
+    return [{ label: "Gallery" }, { label: "Flags", to: "/org/gallery/flags" }, { label: "New" }];
   }
-  const flagDetail = pathname.match(/^\/org\/library\/flags\/([^/]+)$/);
+  const flagDetail = pathname.match(/^\/org\/gallery\/flags\/([^/]+)$/);
   if (flagDetail && flagDetail[1] !== "new") {
     const label = dynamicLabels[pathname] ?? "Flag";
-    return [{ label: "Library" }, { label: "Flags", to: "/org/library/flags" }, { label }];
+    return [{ label: "Gallery" }, { label: "Flags", to: "/org/gallery/flags" }, { label }];
   }
 
-  if (pathname === "/org/library/slides") {
-    return [{ label: "Library" }, { label: "Slides" }];
+  if (pathname === "/org/gallery/slides") {
+    return [{ label: "Gallery" }, { label: "Slides" }];
   }
-  if (pathname === "/org/library/slides/new") {
-    return [{ label: "Library" }, { label: "Slides", to: "/org/library/slides" }, { label: "New" }];
+  if (pathname === "/org/gallery/slides/new") {
+    return [{ label: "Gallery" }, { label: "Slides", to: "/org/gallery/slides" }, { label: "New" }];
   }
-  const slideDetail = pathname.match(/^\/org\/library\/slides\/([^/]+)$/);
+  const slideDetail = pathname.match(/^\/org\/gallery\/slides\/([^/]+)$/);
   if (slideDetail && slideDetail[1] !== "new") {
     const label = dynamicLabels[pathname] ?? "Slide";
-    return [{ label: "Library" }, { label: "Slides", to: "/org/library/slides" }, { label }];
+    return [{ label: "Gallery" }, { label: "Slides", to: "/org/gallery/slides" }, { label }];
   }
 
-  if (pathname.startsWith("/org/library")) {
-    return [{ label: "Library" }];
+  if (pathname.startsWith("/org/gallery")) {
+    return [{ label: "Gallery" }];
   }
 
   const dynamicLabel = dynamicLabels[pathname];

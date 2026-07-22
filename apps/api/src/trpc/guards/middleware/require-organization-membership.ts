@@ -1,7 +1,5 @@
 import { TRPCError } from "@trpc/server";
 
-import { isOrganizationMember as isOrganizationMemberQuery } from "@deck-pack/db/queries/isOrganizationMember";
-
 import type { Context } from "../../context";
 import { middleware } from "../../init";
 
@@ -21,8 +19,7 @@ export const requireOrganizationMembership = middleware<Context>(async ({ ctx, n
     });
   }
 
-  const isMember = await isOrganizationMemberQuery({
-    tx: ctx.tx,
+  const isMember = await ctx.organization.isMember({
     userId: ctx.session.user.id,
     organizationId: ctx.session.session.activeOrganizationId,
   });

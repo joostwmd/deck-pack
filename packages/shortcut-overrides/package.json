@@ -20,7 +20,8 @@
   "dependencies": {
     "@deck-pack/db": "workspace:*",
     "@deck-pack/errors": "workspace:*",
-    "@deck-pack/shortcuts": "workspace:*"
+    "@deck-pack/shortcuts": "workspace:*",
+    "drizzle-orm": "^0.45.1"
   },
   "devDependencies": {
     "@deck-pack/config": "workspace:*",

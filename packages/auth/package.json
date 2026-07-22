@@ -12,7 +12,8 @@
     "./microsoft-naa": "./src/microsoft-naa.ts",
     "./rbac": "./src/rbac.ts",
     "./workspace": "./src/workspace.ts",
-    "./permissions": "./src/permissions.ts"
+    "./permissions": "./src/permissions.ts",
+    "./session-db": "./src/session-db.ts"
   },
   "scripts": {
     "auth:generate": "npx auth@latest generate --config ./src/schema.ts --output ../db/src/schema/auth.ts --y"
@@ -21,6 +22,7 @@
     "@azure/msal-browser": "^4.28.1",
     "@deck-pack/db": "workspace:*",
     "@deck-pack/env": "workspace:*",
+    "@deck-pack/organization": "workspace:*",
     "better-auth": "catalog:",
     "dotenv": "catalog:",
     "drizzle-orm": "^0.45.1",

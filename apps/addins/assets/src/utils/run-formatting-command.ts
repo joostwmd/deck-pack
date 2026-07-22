@@ -1,5 +1,5 @@
-import type { AnyFormattingCommand, FormattingActionId } from "@deck-pack/presentation-formatting";
-import { getFormattingCommandById } from "@deck-pack/presentation-formatting";
+import type { AnyFormattingCommand, FormattingActionId } from "@deck-pack/shape-commands";
+import { getFormattingCommandById } from "@deck-pack/shape-commands";
 import { FormattingUnavailableError } from "@deck-pack/office-js";
 
 import type { OfficeService } from "@/services/types";

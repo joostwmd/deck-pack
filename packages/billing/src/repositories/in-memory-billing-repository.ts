@@ -12,7 +12,12 @@ import {
   type UpdatePlanInput,
   type UpdatePlanResult,
 } from "../domain/billing";
-import type { BillingRepository } from "./billing-repository";
+import type {
+  ActiveOrganizationSubscriptionRow,
+  BillingRepository,
+  EnsureFreePlanResult,
+} from "./billing-repository";
+import { FREE_PLAN_SLUG } from "./billing-repository";
 
 type SeedOrg = {
   organizationId: string;
@@ -29,6 +34,8 @@ export type InMemoryBillingSeed = {
     planId: string;
     quantity: number;
     status: string;
+    currentPeriodStart?: Date | null;
+    currentPeriodEnd?: Date | null;
     createdAt?: Date;
     updatedAt?: Date;
   }>;
@@ -69,6 +76,8 @@ export class InMemoryBillingRepository implements BillingRepository {
     planId: string;
     quantity: number;
     status: string;
+    currentPeriodStart: Date | null;
+    currentPeriodEnd: Date | null;
     createdAt: Date;
     updatedAt: Date;
   }> = [];
@@ -81,6 +90,8 @@ export class InMemoryBillingRepository implements BillingRepository {
     for (const sub of data.subscriptions ?? []) {
       this.subscriptions.push({
         ...sub,
+        currentPeriodStart: sub.currentPeriodStart ?? null,
+        currentPeriodEnd: sub.currentPeriodEnd ?? null,
         createdAt: sub.createdAt ?? new Date(),
         updatedAt: sub.updatedAt ?? new Date(),
       });
@@ -93,6 +104,24 @@ export class InMemoryBillingRepository implements BillingRepository {
 
   async getPlan(planId: string): Promise<Plan | null> {
     return this.plans.find((p) => p.id === planId) ?? null;
+  }
+
+  async ensureFreePlan(): Promise<EnsureFreePlanResult> {
+    const existing = this.plans.find((p) => p.slug === FREE_PLAN_SLUG);
+    if (existing) {
+      return { ok: true, planId: existing.id, created: false };
+    }
+    const now = new Date();
+    const plan: Plan = {
+      id: crypto.randomUUID(),
+      name: "Free",
+      slug: FREE_PLAN_SLUG,
+      limits: allUnlimitedLimits(),
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.plans.push(plan);
+    return { ok: true, planId: plan.id, created: true };
   }
 
   async createPlan(input: CreatePlanInput): Promise<CreatePlanResult> {
@@ -152,6 +181,27 @@ export class InMemoryBillingRepository implements BillingRepository {
     return this.toJoined(sub);
   }
 
+  async getActiveOrganizationSubscriptionByOrgId(
+    organizationId: string,
+  ): Promise<ActiveOrganizationSubscriptionRow | null> {
+    const sub = this.subscriptions.find(
+      (s) => s.organizationId === organizationId && s.status === "active",
+    );
+    if (!sub) return null;
+    return {
+      id: sub.id,
+      organizationId: sub.organizationId,
+      planId: sub.planId,
+      quantity: sub.quantity,
+      status: sub.status,
+      provider: "manual",
+      externalCustomerId: null,
+      externalSubscriptionId: null,
+      currentPeriodStart: null,
+      currentPeriodEnd: null,
+    };
+  }
+
   async createOrganizationSubscription(
     input: CreateOrganizationSubscriptionInput,
   ): Promise<CreateOrganizationSubscriptionResult> {
@@ -175,6 +225,8 @@ export class InMemoryBillingRepository implements BillingRepository {
       planId: input.planId,
       quantity: input.quantity,
       status: "active",
+      currentPeriodStart: null,
+      currentPeriodEnd: null,
       createdAt: now,
       updatedAt: now,
     };

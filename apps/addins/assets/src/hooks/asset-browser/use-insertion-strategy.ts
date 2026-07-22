@@ -2,8 +2,8 @@ import { useMemo } from "react";
 
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { useWebCanvasOptional } from "@/contexts/web-canvas-context";
-import type { InsertionStrategy } from "@/lib/insertion-strategy";
-import { createInsertionTracker } from "@/lib/track-asset-insertion";
+import type { InsertionStrategy } from "@/utils/insertion-strategy";
+import { createInsertionTracker } from "@/utils/track-asset-insertion";
 import { useServices } from "@/services/services-context";
 
 export function useInsertionStrategy(): InsertionStrategy | null {

@@ -22,4 +22,8 @@ export class InMemoryUsersRepository implements UsersRepository {
     this.users.delete(userId);
     return { userId };
   }
+
+  async isPlatformAdmin(userId: string): Promise<boolean> {
+    return this.users.get(userId)?.role === "admin";
+  }
 }

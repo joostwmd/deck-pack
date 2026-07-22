@@ -49,6 +49,18 @@
     "./usage/*": {
       "default": "./src/usage/*.ts"
     },
+    "./brand-profiles": {
+      "default": "./src/brand-profiles/index.ts"
+    },
+    "./brand-profiles/*": {
+      "default": "./src/brand-profiles/*.ts"
+    },
+    "./shortcut-overrides": {
+      "default": "./src/shortcut-overrides/index.ts"
+    },
+    "./shortcut-overrides/*": {
+      "default": "./src/shortcut-overrides/*.ts"
+    },
     "./*": {
       "default": "./src/*.ts"
     }
@@ -57,7 +69,9 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
+    "@deck-pack/brand-compliance": "workspace:*",
     "@deck-pack/db": "workspace:*",
+    "@deck-pack/shortcuts": "workspace:*",
     "@tanstack/react-query": "^5.90.12",
     "react": "^19.2.3"
   },

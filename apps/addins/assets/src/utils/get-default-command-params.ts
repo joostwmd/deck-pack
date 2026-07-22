@@ -1,4 +1,4 @@
-import type { FormattingActionId } from "@deck-pack/presentation-formatting";
+import type { FormattingActionId } from "@deck-pack/shape-commands";
 
 export function getDefaultCommandParams(commandId: FormattingActionId): unknown {
   switch (commandId) {

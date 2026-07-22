@@ -114,3 +114,7 @@ export type ListSeatUsageInput = {
   periodStart: Date;
   periodEnd: Date;
 };
+
+export type AssertInsertAllowedResult =
+  | { ok: true }
+  | { ok: false; reason: "no_subscription" | "quota_exceeded"; assetType: string };

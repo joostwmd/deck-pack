@@ -1,5 +1,5 @@
-import { useShortcutCommands } from "@/hooks/use-shortcut-commands";
-import type { useShapeLibrary } from "@/hooks/use-shape-library";
+import { useShortcutCommands } from "@/hooks/shortcuts/use-shortcut-commands";
+import type { useShapeLibrary } from "@/hooks/shapes/use-shape-library";
 
 type ShapeLibraryFlow = ReturnType<typeof useShapeLibrary>;
 

@@ -1,17 +1,17 @@
 import { useCallback, useId, useRef } from "react";
 import { toast } from "sonner";
 
-import { useAssetInsertion } from "@/hooks/use-asset-insertion";
-import { useInsertionStrategy } from "@/hooks/use-insertion-strategy";
+import { useAssetInsertion } from "@/hooks/asset-browser/use-asset-insertion";
+import { useInsertionStrategy } from "@/hooks/asset-browser/use-insertion-strategy";
 import {
   useResolvedShortcutDef,
   useInsertSectionShortcutDefs,
-} from "@/hooks/use-resolved-shortcut-defs";
+} from "@/hooks/shortcuts/use-resolved-shortcut-defs";
 
-import type { PhotoSearchRequest, PhotoSearchResponse } from "./types";
-import { usePhotoSearch } from "@/hooks/use-photo-search";
-import { usePhotoSearchHotkeys } from "@/hooks/use-photo-search-hotkeys";
-import { getUserFacingApiErrorMessage } from "@/lib/user-facing-api-error";
+import type { PhotoSearchRequest, PhotoSearchResponse } from "@/components/photos/types";
+import { usePhotoSearch } from "@/hooks/photos/use-photo-search";
+import { usePhotoSearchHotkeys } from "@/hooks/photos/use-photo-search-hotkeys";
+import { getUserFacingApiErrorMessage } from "@/utils/user-facing-api-error";
 
 export function usePhotoSearchController(
   search: (input: PhotoSearchRequest) => Promise<PhotoSearchResponse>,

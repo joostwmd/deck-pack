@@ -1,9 +1,9 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
-import { useInsertionStrategy } from "@/hooks/use-insertion-strategy";
-import { useInsertSectionShortcutDefs } from "@/hooks/use-resolved-shortcut-defs";
-import { useShortcutCommands } from "@/hooks/use-shortcut-commands";
+import { useInsertionStrategy } from "@/hooks/asset-browser/use-insertion-strategy";
+import { useInsertSectionShortcutDefs } from "@/hooks/shortcuts/use-resolved-shortcut-defs";
+import { useShortcutCommands } from "@/hooks/shortcuts/use-shortcut-commands";
 import {
   createHarveyBallMetadata,
   DEFAULT_HARVEY_BALL_CONFIG,
@@ -11,9 +11,9 @@ import {
   serializeHarveyBallSvg,
   validateHarveyBallConfig,
   type HarveyBallConfig,
-} from "@/lib/harvey-ball-svg";
-import { HARVEY_BALL_EXTERNAL_ID } from "@/lib/insert-harvey-ball";
-import { getUserFacingApiErrorMessage } from "@/lib/user-facing-api-error";
+} from "@/utils/harvey-ball-svg";
+import { HARVEY_BALL_EXTERNAL_ID } from "@/utils/insert-harvey-ball";
+import { getUserFacingApiErrorMessage } from "@/utils/user-facing-api-error";
 
 export function useHarveyBallsPanelController() {
   const insertionStrategy = useInsertionStrategy();

@@ -9,7 +9,7 @@ import {
 } from "@deck-pack/shortcuts";
 import type { Hotkey } from "@tanstack/react-hotkeys";
 
-import { hotkeyToKeyTokens as mapHotkeyToKeyTokens } from "@/lib/hotkey-display";
+import { hotkeyToKeyTokens as mapHotkeyToKeyTokens } from "@/utils/hotkey-display";
 
 export type { ShortcutId, ShortcutGroup };
 export { SHORTCUT_GROUPS };

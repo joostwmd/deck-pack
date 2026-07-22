@@ -2,21 +2,21 @@ import { useCallback, useId, useRef } from "react";
 import type { Icon } from "@phosphor-icons/react";
 import { toast } from "sonner";
 
-import { useAssetSearchFlow } from "@/hooks/use-asset-search-flow";
-import { useAssetInsertion } from "@/hooks/use-asset-insertion";
-import { useAssetSearchHotkeys } from "@/hooks/use-asset-search-hotkeys";
-import { useInsertionStrategy } from "@/hooks/use-insertion-strategy";
+import { useAssetSearchFlow } from "@/hooks/asset-browser/use-asset-search-flow";
+import { useAssetInsertion } from "@/hooks/asset-browser/use-asset-insertion";
+import { useAssetSearchHotkeys } from "@/hooks/asset-browser/use-asset-search-hotkeys";
+import { useInsertionStrategy } from "@/hooks/asset-browser/use-insertion-strategy";
 import {
   useInsertSectionShortcutDefs,
   useResolvedShortcutDef,
   useSearchNavigationShortcutDefs,
   useVariantNavigationShortcutDefs,
-} from "@/hooks/use-resolved-shortcut-defs";
+} from "@/hooks/shortcuts/use-resolved-shortcut-defs";
 import type { AssetDetailsResponse, AssetListItem, AssetType } from "@/types/asset-types";
 
 import { getSearchResultOptionId } from "@/components/asset-browser/search-results";
 import type { AssetSearchPanelViewProps } from "@/components/asset-browser/asset-search-panel-view";
-import { getUserFacingApiErrorMessage } from "@/lib/user-facing-api-error";
+import { getUserFacingApiErrorMessage } from "@/utils/user-facing-api-error";
 
 export interface AssetSearchPanelProps {
   assetType: AssetType;

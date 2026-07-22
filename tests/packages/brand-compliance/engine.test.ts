@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { runPresentationCheck } from "@deck-pack/presentation-check/engine";
-import { DEFAULT_BRAND_PROFILE_CONFIGURATION } from "@deck-pack/presentation-check/profile";
-import type { PresentationSnapshot } from "@deck-pack/presentation-check/types";
+import { runPresentationCheck } from "@deck-pack/brand-compliance/engine";
+import { DEFAULT_BRAND_PROFILE_CONFIGURATION } from "@deck-pack/brand-compliance/profile";
+import type { PresentationSnapshot } from "@deck-pack/brand-compliance/types";
 
 const snapshot: PresentationSnapshot = {
   title: "Test deck",

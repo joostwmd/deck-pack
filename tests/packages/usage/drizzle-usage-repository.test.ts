@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { createOrganizationSubscription } from "@deck-pack/db/queries/createOrganizationSubscription";
+import { DrizzleBillingRepository } from "@deck-pack/billing/repositories/billing-repository";
 import { assetInsertions } from "@deck-pack/db/schema/asset-insertions";
 import { organization, user } from "@deck-pack/db/schema/auth";
 import { organizationSeats, planLimits, plans } from "@deck-pack/db/schema/billing";
@@ -62,9 +62,11 @@ describe("DrizzleUsageRepository", () => {
       insertsPerMonth: 10,
     });
 
-    const sub = await createOrganizationSubscription({
-      tx: db as never,
-      input: { organizationId: orgId, planId, quantity: 2 },
+    const billingRepo = new DrizzleBillingRepository(uow);
+    const sub = await billingRepo.createOrganizationSubscription({
+      organizationId: orgId,
+      planId,
+      quantity: 2,
     });
     expect(sub.ok).toBe(true);
     if (!sub.ok) return;

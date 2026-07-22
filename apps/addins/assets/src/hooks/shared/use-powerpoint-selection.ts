@@ -1,14 +1,10 @@
-import type {
-  Applicability,
-  FormattingActionId,
-  ShapeSelection,
-} from "@deck-pack/presentation-formatting";
-import { formattingCommandRegistry } from "@deck-pack/presentation-formatting";
+import type { Applicability, FormattingActionId, ShapeSelection } from "@deck-pack/shape-commands";
+import { formattingCommandRegistry } from "@deck-pack/shape-commands";
 import type { OfficeContextPort } from "@deck-pack/office-js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useEnvironment } from "@/contexts/EnvironmentContext";
-import { getDefaultCommandParams } from "@/lib/get-default-command-params";
+import { getDefaultCommandParams } from "@/utils/get-default-command-params";
 import { useServices } from "@/services/services-context";
 
 export type SelectionState =

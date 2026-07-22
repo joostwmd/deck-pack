@@ -1,7 +1,7 @@
 import type { RefObject } from "react";
 
-import { useShortcutCommands } from "@/hooks/use-shortcut-commands";
-import type { useAssetSearchFlow } from "@/hooks/use-asset-search-flow";
+import { useShortcutCommands } from "@/hooks/shortcuts/use-shortcut-commands";
+import type { useAssetSearchFlow } from "@/hooks/asset-browser/use-asset-search-flow";
 
 type AssetSearchFlow = ReturnType<typeof useAssetSearchFlow>;
 

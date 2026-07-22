@@ -1,16 +1,14 @@
 import { and, asc, eq, inArray, ne } from "drizzle-orm";
 
-import { createOrganizationSubscription } from "@deck-pack/db/queries/createOrganizationSubscription";
-import { getPlan } from "@deck-pack/db/queries/getPlan";
+import { organization } from "@deck-pack/db/schema/auth";
 import {
   organizationSubscriptions,
   planLimits,
   plans,
   type PlanLimitAssetType as DbPlanLimitAssetType,
 } from "@deck-pack/db/schema/billing";
-import { organization } from "@deck-pack/db/schema/auth";
+import { calendarMonthEntitlementWindow } from "@deck-pack/db/usage-period";
 import type { UnitOfWork } from "@deck-pack/db";
-import type { Transaction } from "@deck-pack/db/transaction";
 
 import type {
   CreateOrganizationSubscriptionInput,
@@ -56,6 +54,25 @@ function normalizeLimits(limits: PlanLimit[]): PlanLimit[] | null {
   return normalized;
 }
 
+export const FREE_PLAN_SLUG = "free" as const;
+
+export type EnsureFreePlanResult =
+  | { ok: true; planId: string; created: boolean }
+  | { ok: false; reason: "create_failed" };
+
+export type ActiveOrganizationSubscriptionRow = {
+  id: string;
+  organizationId: string;
+  planId: string;
+  quantity: number;
+  status: string;
+  provider: string;
+  externalCustomerId: string | null;
+  externalSubscriptionId: string | null;
+  currentPeriodStart: Date | null;
+  currentPeriodEnd: Date | null;
+};
+
 export interface BillingRepository {
   listPlans(): Promise<Plan[]>;
   getPlan(planId: string): Promise<Plan | null>;
@@ -63,24 +80,24 @@ export interface BillingRepository {
   updatePlan(input: UpdatePlanInput): Promise<UpdatePlanResult>;
   listOrganizationSubscriptions(): Promise<OrganizationSubscription[]>;
   getOrganizationSubscription(subscriptionId: string): Promise<OrganizationSubscription | null>;
+  getActiveOrganizationSubscriptionByOrgId(
+    organizationId: string,
+  ): Promise<ActiveOrganizationSubscriptionRow | null>;
   createOrganizationSubscription(
     input: CreateOrganizationSubscriptionInput,
   ): Promise<CreateOrganizationSubscriptionResult>;
   updateOrganizationSubscription(
     input: UpdateOrganizationSubscriptionInput,
   ): Promise<UpdateOrganizationSubscriptionResult>;
+  ensureFreePlan(): Promise<EnsureFreePlanResult>;
 }
 
 export class DrizzleBillingRepository implements BillingRepository {
   constructor(private readonly uow: UnitOfWork) {}
 
-  private tx(): Transaction {
-    return this.uow.getDb() as Transaction;
-  }
-
   async listPlans(): Promise<Plan[]> {
-    const tx = this.tx();
-    const planRows = await tx
+    const db = this.uow.getDb();
+    const planRows = await db
       .select({
         id: plans.id,
         name: plans.name,
@@ -95,7 +112,7 @@ export class DrizzleBillingRepository implements BillingRepository {
       return [];
     }
 
-    const limitRows = await tx
+    const limitRows = await db
       .select({
         planId: planLimits.planId,
         assetType: planLimits.assetType,
@@ -132,11 +149,80 @@ export class DrizzleBillingRepository implements BillingRepository {
   }
 
   async getPlan(planId: string): Promise<Plan | null> {
-    return getPlan({ tx: this.tx(), planId });
+    const db = this.uow.getDb();
+    const [plan] = await db
+      .select({
+        id: plans.id,
+        name: plans.name,
+        slug: plans.slug,
+        createdAt: plans.createdAt,
+        updatedAt: plans.updatedAt,
+      })
+      .from(plans)
+      .where(eq(plans.id, planId))
+      .limit(1);
+
+    if (!plan) {
+      return null;
+    }
+
+    const limitRows = await db
+      .select({
+        assetType: planLimits.assetType,
+        insertsPerMonth: planLimits.insertsPerMonth,
+      })
+      .from(planLimits)
+      .where(eq(planLimits.planId, planId))
+      .orderBy(asc(planLimits.assetType));
+
+    const limits = limitRows.flatMap((limit) => {
+      const assetType = asPlanLimitAssetType(limit.assetType);
+      if (!assetType) {
+        return [];
+      }
+      return [{ assetType, insertsPerMonth: limit.insertsPerMonth }];
+    });
+
+    return { ...plan, limits };
+  }
+
+  async ensureFreePlan(): Promise<EnsureFreePlanResult> {
+    const db = this.uow.getDb();
+    const [existing] = await db
+      .select({ id: plans.id })
+      .from(plans)
+      .where(eq(plans.slug, FREE_PLAN_SLUG))
+      .limit(1);
+
+    if (existing) {
+      return { ok: true, planId: existing.id, created: false };
+    }
+
+    const [row] = await db
+      .insert(plans)
+      .values({
+        name: "Free",
+        slug: FREE_PLAN_SLUG,
+      })
+      .returning({ id: plans.id });
+
+    if (!row) {
+      return { ok: false, reason: "create_failed" };
+    }
+
+    await db.insert(planLimits).values(
+      DOMAIN_PLAN_LIMIT_ASSET_TYPES.map((assetType) => ({
+        planId: row.id,
+        assetType: assetType as DbPlanLimitAssetType,
+        insertsPerMonth: null,
+      })),
+    );
+
+    return { ok: true, planId: row.id, created: true };
   }
 
   async createPlan(input: CreatePlanInput): Promise<CreatePlanResult> {
-    const tx = this.tx();
+    const db = this.uow.getDb();
     const slug = input.slug.toLowerCase();
     const limits = normalizeLimits(input.limits);
 
@@ -144,7 +230,7 @@ export class DrizzleBillingRepository implements BillingRepository {
       return { ok: false, reason: "invalid_limits" };
     }
 
-    const [conflict] = await tx
+    const [conflict] = await db
       .select({ id: plans.id })
       .from(plans)
       .where(eq(plans.slug, slug))
@@ -154,7 +240,7 @@ export class DrizzleBillingRepository implements BillingRepository {
       return { ok: false, reason: "slug_conflict" };
     }
 
-    const [row] = await tx
+    const [row] = await db
       .insert(plans)
       .values({
         name: input.name.trim(),
@@ -172,7 +258,7 @@ export class DrizzleBillingRepository implements BillingRepository {
       throw new Error("Failed to create plan");
     }
 
-    await tx.insert(planLimits).values(
+    await db.insert(planLimits).values(
       limits.map((limit) => ({
         planId: row.id,
         assetType: limit.assetType as DbPlanLimitAssetType,
@@ -192,7 +278,7 @@ export class DrizzleBillingRepository implements BillingRepository {
   }
 
   async updatePlan(input: UpdatePlanInput): Promise<UpdatePlanResult> {
-    const tx = this.tx();
+    const db = this.uow.getDb();
     const slug = input.slug.toLowerCase();
     const limits = normalizeLimits(input.limits);
 
@@ -200,7 +286,7 @@ export class DrizzleBillingRepository implements BillingRepository {
       return { ok: false, reason: "invalid_limits" };
     }
 
-    const [existing] = await tx
+    const [existing] = await db
       .select({ id: plans.id })
       .from(plans)
       .where(eq(plans.id, input.planId))
@@ -210,7 +296,7 @@ export class DrizzleBillingRepository implements BillingRepository {
       return { ok: false, reason: "not_found" };
     }
 
-    const [slugConflict] = await tx
+    const [slugConflict] = await db
       .select({ id: plans.id })
       .from(plans)
       .where(and(eq(plans.slug, slug), ne(plans.id, input.planId)))
@@ -220,7 +306,7 @@ export class DrizzleBillingRepository implements BillingRepository {
       return { ok: false, reason: "slug_conflict" };
     }
 
-    const [row] = await tx
+    const [row] = await db
       .update(plans)
       .set({
         name: input.name.trim(),
@@ -239,8 +325,8 @@ export class DrizzleBillingRepository implements BillingRepository {
       return { ok: false, reason: "not_found" };
     }
 
-    await tx.delete(planLimits).where(eq(planLimits.planId, input.planId));
-    await tx.insert(planLimits).values(
+    await db.delete(planLimits).where(eq(planLimits.planId, input.planId));
+    await db.insert(planLimits).values(
       limits.map((limit) => ({
         planId: input.planId,
         assetType: limit.assetType as DbPlanLimitAssetType,
@@ -260,8 +346,8 @@ export class DrizzleBillingRepository implements BillingRepository {
   }
 
   async listOrganizationSubscriptions(): Promise<OrganizationSubscription[]> {
-    const tx = this.tx();
-    return tx
+    const db = this.uow.getDb();
+    return db
       .select({
         id: organizationSubscriptions.id,
         organizationId: organizationSubscriptions.organizationId,
@@ -284,8 +370,8 @@ export class DrizzleBillingRepository implements BillingRepository {
   async getOrganizationSubscription(
     subscriptionId: string,
   ): Promise<OrganizationSubscription | null> {
-    const tx = this.tx();
-    const [row] = await tx
+    const db = this.uow.getDb();
+    const [row] = await db
       .select({
         id: organizationSubscriptions.id,
         organizationId: organizationSubscriptions.organizationId,
@@ -308,30 +394,112 @@ export class DrizzleBillingRepository implements BillingRepository {
     return row ?? null;
   }
 
+  async getActiveOrganizationSubscriptionByOrgId(
+    organizationId: string,
+  ): Promise<ActiveOrganizationSubscriptionRow | null> {
+    const db = this.uow.getDb();
+    const [row] = await db
+      .select({
+        id: organizationSubscriptions.id,
+        organizationId: organizationSubscriptions.organizationId,
+        planId: organizationSubscriptions.planId,
+        quantity: organizationSubscriptions.quantity,
+        status: organizationSubscriptions.status,
+        provider: organizationSubscriptions.provider,
+        externalCustomerId: organizationSubscriptions.externalCustomerId,
+        externalSubscriptionId: organizationSubscriptions.externalSubscriptionId,
+        currentPeriodStart: organizationSubscriptions.currentPeriodStart,
+        currentPeriodEnd: organizationSubscriptions.currentPeriodEnd,
+      })
+      .from(organizationSubscriptions)
+      .where(
+        and(
+          eq(organizationSubscriptions.organizationId, organizationId),
+          eq(organizationSubscriptions.status, "active"),
+        ),
+      )
+      .limit(1);
+
+    return row ?? null;
+  }
+
   async createOrganizationSubscription(
     input: CreateOrganizationSubscriptionInput,
   ): Promise<CreateOrganizationSubscriptionResult> {
-    const result = await createOrganizationSubscription({ tx: this.tx(), input });
-    if (!result.ok) {
-      return result;
+    const db = this.uow.getDb();
+
+    const [org] = await db
+      .select({ id: organization.id })
+      .from(organization)
+      .where(eq(organization.id, input.organizationId))
+      .limit(1);
+
+    if (!org) {
+      return { ok: false, reason: "organization_not_found" };
     }
-    return {
-      ok: true,
-      id: result.id,
-      organizationId: result.organizationId,
-      planId: result.planId,
-      quantity: result.quantity,
-      status: result.status,
-      createdAt: result.createdAt,
-      updatedAt: result.updatedAt,
-    };
+
+    const [plan] = await db
+      .select({ id: plans.id })
+      .from(plans)
+      .where(eq(plans.id, input.planId))
+      .limit(1);
+
+    if (!plan) {
+      return { ok: false, reason: "plan_not_found" };
+    }
+
+    const [existing] = await db
+      .select({ id: organizationSubscriptions.id })
+      .from(organizationSubscriptions)
+      .where(
+        and(
+          eq(organizationSubscriptions.organizationId, input.organizationId),
+          eq(organizationSubscriptions.status, "active"),
+        ),
+      )
+      .limit(1);
+
+    if (existing) {
+      return { ok: false, reason: "already_subscribed" };
+    }
+
+    const period = calendarMonthEntitlementWindow(new Date());
+
+    const [row] = await db
+      .insert(organizationSubscriptions)
+      .values({
+        organizationId: input.organizationId,
+        planId: input.planId,
+        quantity: input.quantity,
+        status: "active",
+        provider: "manual",
+        currentPeriodStart: period.start,
+        currentPeriodEnd: period.end,
+      })
+      .returning({
+        id: organizationSubscriptions.id,
+        organizationId: organizationSubscriptions.organizationId,
+        planId: organizationSubscriptions.planId,
+        quantity: organizationSubscriptions.quantity,
+        status: organizationSubscriptions.status,
+        currentPeriodStart: organizationSubscriptions.currentPeriodStart,
+        currentPeriodEnd: organizationSubscriptions.currentPeriodEnd,
+        createdAt: organizationSubscriptions.createdAt,
+        updatedAt: organizationSubscriptions.updatedAt,
+      });
+
+    if (!row) {
+      throw new Error("Failed to create organization subscription");
+    }
+
+    return { ok: true, ...row };
   }
 
   async updateOrganizationSubscription(
     input: UpdateOrganizationSubscriptionInput,
   ): Promise<UpdateOrganizationSubscriptionResult> {
-    const tx = this.tx();
-    const [existing] = await tx
+    const db = this.uow.getDb();
+    const [existing] = await db
       .select({
         id: organizationSubscriptions.id,
         organizationId: organizationSubscriptions.organizationId,
@@ -346,7 +514,7 @@ export class DrizzleBillingRepository implements BillingRepository {
     }
 
     if (input.planId !== undefined) {
-      const [plan] = await tx
+      const [plan] = await db
         .select({ id: plans.id })
         .from(plans)
         .where(eq(plans.id, input.planId))
@@ -359,7 +527,7 @@ export class DrizzleBillingRepository implements BillingRepository {
 
     const nextStatus = input.status ?? existing.status;
     if (nextStatus === "active") {
-      const [otherActive] = await tx
+      const [otherActive] = await db
         .select({ id: organizationSubscriptions.id })
         .from(organizationSubscriptions)
         .where(
@@ -376,7 +544,7 @@ export class DrizzleBillingRepository implements BillingRepository {
       }
     }
 
-    const [row] = await tx
+    const [row] = await db
       .update(organizationSubscriptions)
       .set({
         ...(input.planId !== undefined ? { planId: input.planId } : {}),
@@ -390,6 +558,8 @@ export class DrizzleBillingRepository implements BillingRepository {
         planId: organizationSubscriptions.planId,
         quantity: organizationSubscriptions.quantity,
         status: organizationSubscriptions.status,
+        currentPeriodStart: organizationSubscriptions.currentPeriodStart,
+        currentPeriodEnd: organizationSubscriptions.currentPeriodEnd,
         createdAt: organizationSubscriptions.createdAt,
         updatedAt: organizationSubscriptions.updatedAt,
       });

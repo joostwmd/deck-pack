@@ -1,14 +1,14 @@
 import { useCallback } from "react";
 import { toast } from "sonner";
 
-import { useAssetInsertion } from "@/hooks/use-asset-insertion";
-import { useInsertionStrategy } from "@/hooks/use-insertion-strategy";
-import { useInsertSectionShortcutDefs } from "@/hooks/use-resolved-shortcut-defs";
-import { useShapeLibrary } from "@/hooks/use-shape-library";
+import { useAssetInsertion } from "@/hooks/asset-browser/use-asset-insertion";
+import { useInsertionStrategy } from "@/hooks/asset-browser/use-insertion-strategy";
+import { useInsertSectionShortcutDefs } from "@/hooks/shortcuts/use-resolved-shortcut-defs";
+import { useShapeLibrary } from "@/hooks/shapes/use-shape-library";
 
-import type { ShapeSearchRequest, ShapeSearchResponse } from "./types";
-import { useShapeLibraryHotkeys } from "@/hooks/use-shape-library-hotkeys";
-import { getUserFacingApiErrorMessage } from "@/lib/user-facing-api-error";
+import type { ShapeSearchRequest, ShapeSearchResponse } from "@/components/shapes/types";
+import { useShapeLibraryHotkeys } from "@/hooks/shapes/use-shape-library-hotkeys";
+import { getUserFacingApiErrorMessage } from "@/utils/user-facing-api-error";
 
 async function fetchSvgText(svgUrl: string): Promise<string> {
   const response = await fetch(svgUrl);

@@ -1,8 +1,5 @@
 import { TRPCError } from "@trpc/server";
 
-import { hasActiveSeat } from "@deck-pack/db/queries/activateOrganizationSeat";
-import { isOrganizationMember } from "@deck-pack/db/queries/isOrganizationMember";
-
 import type { Context } from "../../context";
 import { middleware } from "../../init";
 import { requireActiveOrganizationId } from "../assertions/require-active-organization-id";
@@ -12,8 +9,7 @@ export const requireActiveSeat = middleware<Context>(async ({ ctx, next }) => {
   const organizationId = requireActiveOrganizationId(ctx);
   const userId = ctx.session!.user.id;
 
-  const isMember = await isOrganizationMember({
-    tx: ctx.tx,
+  const isMember = await ctx.organization.isMember({
     userId,
     organizationId,
   });
@@ -25,8 +21,7 @@ export const requireActiveSeat = middleware<Context>(async ({ ctx, next }) => {
     });
   }
 
-  const seated = await hasActiveSeat({
-    tx: ctx.tx,
+  const seated = await ctx.seats.hasActiveSeat({
     organizationId,
     userId,
   });

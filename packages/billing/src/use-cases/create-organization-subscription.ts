@@ -28,6 +28,8 @@ export class CreateOrganizationSubscription {
       planId: result.planId,
       quantity: result.quantity,
       status: result.status,
+      currentPeriodStart: result.currentPeriodStart,
+      currentPeriodEnd: result.currentPeriodEnd,
       createdAt: result.createdAt,
       updatedAt: result.updatedAt,
     };

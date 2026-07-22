@@ -9,7 +9,7 @@ import {
   setVisualLeft,
   setVisualTop,
   setVisualWidth,
-} from "@deck-pack/presentation-formatting/geometry/bounds";
+} from "@deck-pack/shape-commands/geometry/bounds";
 
 describe("geometry bounds", () => {
   it("computes visual bounds for a shape rotated 90 degrees", () => {

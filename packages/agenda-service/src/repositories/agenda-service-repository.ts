@@ -1,7 +1,7 @@
-import { getAgendaInstance } from "@deck-pack/db/queries/getAgendaInstance";
-import { syncAgenda } from "@deck-pack/db/queries/syncAgenda";
+import { and, eq } from "drizzle-orm";
+
 import type { UnitOfWork } from "@deck-pack/db";
-import type { Transaction } from "@deck-pack/db/transaction";
+import { agendaEvents, agendaInstances } from "@deck-pack/db/schema/agendas";
 
 import type { AgendaInstance, SyncAgendaRepoInput } from "../domain/agenda-instance";
 
@@ -10,9 +10,9 @@ export type AgendaServiceRepository = {
   sync(input: SyncAgendaRepoInput): Promise<AgendaInstance | null>;
 };
 
-function mapInstance(
-  row: NonNullable<Awaited<ReturnType<typeof getAgendaInstance>>>,
-): AgendaInstance {
+type AgendaInstanceRow = typeof agendaInstances.$inferSelect;
+
+function mapInstance(row: AgendaInstanceRow): AgendaInstance {
   return {
     id: row.id,
     userId: row.userId,
@@ -31,24 +31,105 @@ function mapInstance(
 export class DrizzleAgendaServiceRepository implements AgendaServiceRepository {
   constructor(private readonly uow: UnitOfWork) {}
 
-  private tx(): Transaction {
-    return this.uow.getDb() as Transaction;
-  }
-
   async findInstance(input: {
     userId: string;
     documentAgendaId: string;
   }): Promise<AgendaInstance | null> {
-    const row = await getAgendaInstance({
-      tx: this.tx(),
-      userId: input.userId,
-      documentAgendaId: input.documentAgendaId,
-    });
-    return row ? mapInstance(row) : null;
+    const db = this.uow.getDb();
+    const [instance] = await db
+      .select()
+      .from(agendaInstances)
+      .where(
+        and(
+          eq(agendaInstances.userId, input.userId),
+          eq(agendaInstances.documentAgendaId, input.documentAgendaId),
+        ),
+      )
+      .limit(1);
+
+    return instance ? mapInstance(instance) : null;
   }
 
   async sync(input: SyncAgendaRepoInput): Promise<AgendaInstance | null> {
-    const row = await syncAgenda({ tx: this.tx(), input });
-    return row ? mapInstance(row) : null;
+    const db = this.uow.getDb();
+    const [existing] = await db
+      .select({ id: agendaInstances.id, revision: agendaInstances.revision })
+      .from(agendaInstances)
+      .where(
+        and(
+          eq(agendaInstances.userId, input.userId),
+          eq(agendaInstances.documentAgendaId, input.documentAgendaId),
+        ),
+      )
+      .limit(1);
+
+    let instanceId = existing?.id;
+
+    if (!existing) {
+      const [created] = await db
+        .insert(agendaInstances)
+        .values({
+          userId: input.userId,
+          documentAgendaId: input.documentAgendaId,
+          schemaVersion: input.schemaVersion,
+          revision: input.revision,
+          configuration: input.configuration,
+          configurationHash: input.configurationHash,
+          sectionCount: input.sectionCount,
+          generatedSlideCount: input.generatedSlideCount,
+          lastSyncedAt: new Date(),
+        })
+        .returning({ id: agendaInstances.id });
+
+      if (!created) {
+        return null;
+      }
+
+      instanceId = created.id;
+    } else if (!input.skipSnapshotUpdate) {
+      await db
+        .update(agendaInstances)
+        .set({
+          schemaVersion: input.schemaVersion,
+          revision: input.revision,
+          configuration: input.configuration,
+          configurationHash: input.configurationHash,
+          sectionCount: input.sectionCount,
+          generatedSlideCount: input.generatedSlideCount,
+          lastSyncedAt: new Date(),
+        })
+        .where(eq(agendaInstances.id, existing.id));
+    }
+
+    if (!instanceId) {
+      return null;
+    }
+
+    const [existingEvent] = await db
+      .select({ id: agendaEvents.id })
+      .from(agendaEvents)
+      .where(eq(agendaEvents.id, input.event.id))
+      .limit(1);
+
+    if (!existingEvent) {
+      await db.insert(agendaEvents).values({
+        id: input.event.id,
+        agendaInstanceId: instanceId,
+        userId: input.userId,
+        eventType: input.event.eventType,
+        client: input.event.client,
+        revision: input.event.revision,
+        durationMs: input.event.durationMs,
+        metadata: input.event.metadata ?? {},
+      });
+    }
+
+    const [instance] = await db
+      .select()
+      .from(agendaInstances)
+      .where(eq(agendaInstances.id, instanceId))
+      .limit(1);
+
+    return instance ? mapInstance(instance) : null;
   }
 }

@@ -1,8 +1,8 @@
 import type { RefObject } from "react";
 
-import { useShortcutCommands } from "@/hooks/use-shortcut-commands";
+import { useShortcutCommands } from "@/hooks/shortcuts/use-shortcut-commands";
 
-import type { usePhotoSearch } from "@/hooks/use-photo-search";
+import type { usePhotoSearch } from "@/hooks/photos/use-photo-search";
 
 type PhotoSearchFlow = ReturnType<typeof usePhotoSearch>;
 

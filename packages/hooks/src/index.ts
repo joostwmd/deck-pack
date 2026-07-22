@@ -5,3 +5,5 @@ export * from "./billing";
 export * from "./members";
 export * from "./seats";
 export * from "./usage";
+export * from "./brand-profiles";
+export * from "./shortcut-overrides";

@@ -4,9 +4,18 @@ import {
   ORGANIZATION_TYPES as DB_ORGANIZATION_TYPES,
   parseOrganizationMetadata,
   serializeOrganizationMetadata,
+  type OrganizationMetadata,
   type OrganizationType as DbOrganizationType,
 } from "@deck-pack/db/org-metadata";
 import { member, organization, session, user } from "@deck-pack/db/schema/auth";
+import {
+  organizationSeats,
+  organizationSubscriptions,
+  planLimits,
+  plans,
+  PLAN_LIMIT_ASSET_TYPES,
+} from "@deck-pack/db/schema/billing";
+import { calendarMonthEntitlementWindow } from "@deck-pack/db/usage-period";
 import type { UnitOfWork } from "@deck-pack/db";
 
 import {
@@ -16,10 +25,13 @@ import {
   UserAlreadyInOrganizationError,
 } from "../domain/errors";
 import type {
+  BootstrapPersonalOrganizationInput,
+  BootstrapPersonalOrganizationResult,
   CreateOrganizationInput,
   CreateOrganizationResult,
   OrganizationDetail,
   OrganizationMember,
+  OrganizationMetadataLookup,
   OrganizationSummary,
   OrganizationType,
   UpdateOrganizationInput,
@@ -27,12 +39,23 @@ import type {
 } from "../domain/organization";
 
 const OWNER_ROLE = "organizationOwner" as const;
+const FREE_PLAN_SLUG = "free" as const;
+
+function personalOrgSlug(userId: string): string {
+  return `personal-${userId.replace(/-/g, "").slice(0, 12).toLowerCase()}`;
+}
+
+function personalOrgName(displayName: string): string {
+  const trimmed = displayName.trim();
+  return trimmed.length > 0 ? `${trimmed}'s workspace` : "Personal workspace";
+}
 
 export interface OrganizationRepository {
   findUserByEmail(email: string): Promise<UserLookup>;
   list(): Promise<OrganizationSummary[]>;
   findById(organizationId: string): Promise<OrganizationDetail | null>;
   listMembers(organizationId: string): Promise<OrganizationMember[]>;
+  getMetadataById(organizationId: string): Promise<OrganizationMetadataLookup | null>;
   create(input: CreateOrganizationInput): Promise<CreateOrganizationResult>;
   update(input: UpdateOrganizationInput): Promise<{
     id: string;
@@ -42,6 +65,10 @@ export interface OrganizationRepository {
     type: OrganizationType | null;
   }>;
   delete(organizationId: string): Promise<{ organizationId: string }>;
+  bootstrapPersonalOrganization(
+    input: BootstrapPersonalOrganizationInput,
+  ): Promise<BootstrapPersonalOrganizationResult>;
+  isMember(input: { userId: string; organizationId: string }): Promise<boolean>;
 }
 
 export class DrizzleOrganizationRepository implements OrganizationRepository {
@@ -353,5 +380,170 @@ export class DrizzleOrganizationRepository implements OrganizationRepository {
     await db.delete(organization).where(eq(organization.id, organizationId));
 
     return { organizationId };
+  }
+
+  async getMetadataById(organizationId: string): Promise<OrganizationMetadataLookup | null> {
+    const db = this.uow.getDb();
+    const [row] = await db
+      .select({ metadata: organization.metadata })
+      .from(organization)
+      .where(eq(organization.id, organizationId))
+      .limit(1);
+
+    if (!row) return null;
+
+    return {
+      metadata: row.metadata,
+      type: getOrganizationType(row.metadata),
+    };
+  }
+
+  async isMember(input: { userId: string; organizationId: string }): Promise<boolean> {
+    const db = this.uow.getDb();
+    const [row] = await db
+      .select({ organizationId: member.organizationId })
+      .from(member)
+      .where(eq(member.userId, input.userId))
+      .limit(1);
+
+    return row?.organizationId === input.organizationId;
+  }
+
+  /**
+   * Bootstraps a personal (individual) organization with a free plan subscription and an
+   * active seat for the given user. Also used by `@deck-pack/auth` (via its own
+   * `session-db.ts` inline copy, to avoid a package cycle) during session/sign-up hooks.
+   */
+  async bootstrapPersonalOrganization(
+    input: BootstrapPersonalOrganizationInput,
+  ): Promise<BootstrapPersonalOrganizationResult> {
+    const db = this.uow.getDb();
+
+    const [existingMembership] = await db
+      .select({ organizationId: member.organizationId })
+      .from(member)
+      .where(eq(member.userId, input.userId))
+      .limit(1);
+
+    if (existingMembership) {
+      return {
+        ok: true,
+        organizationId: existingMembership.organizationId,
+        created: false,
+      };
+    }
+
+    const [userRecord] = await db
+      .select({ id: user.id, name: user.name, email: user.email })
+      .from(user)
+      .where(eq(user.id, input.userId))
+      .limit(1);
+
+    if (!userRecord) {
+      return { ok: false, reason: "user_not_found" };
+    }
+
+    const metadata: OrganizationMetadata = { type: "individual" };
+    const organizationId = crypto.randomUUID();
+    const now = new Date();
+    const slug = personalOrgSlug(input.userId);
+    const orgName = personalOrgName(input.name ?? userRecord.name);
+
+    await db.insert(organization).values({
+      id: organizationId,
+      name: orgName,
+      slug,
+      createdAt: now,
+      metadata: serializeOrganizationMetadata(metadata),
+      logo: null,
+    });
+
+    await db.insert(member).values({
+      id: crypto.randomUUID(),
+      organizationId,
+      userId: input.userId,
+      role: OWNER_ROLE,
+      createdAt: now,
+    });
+
+    const freePlan = await this.ensureFreePlanRow();
+    if (!freePlan.ok) {
+      return { ok: false, reason: "free_plan_failed" };
+    }
+
+    const period = calendarMonthEntitlementWindow(now);
+
+    const [subscriptionRow] = await db
+      .insert(organizationSubscriptions)
+      .values({
+        organizationId,
+        planId: freePlan.planId,
+        quantity: 1,
+        status: "active",
+        provider: "manual",
+        currentPeriodStart: period.start,
+        currentPeriodEnd: period.end,
+      })
+      .returning({ id: organizationSubscriptions.id });
+
+    if (!subscriptionRow) {
+      return { ok: false, reason: "subscription_failed" };
+    }
+
+    const [seatRow] = await db
+      .insert(organizationSeats)
+      .values({
+        organizationId,
+        email: input.email.toLowerCase(),
+        userId: input.userId,
+        status: "active",
+        assignedBy: input.userId,
+        assignedAt: now,
+        activatedAt: now,
+      })
+      .returning({ id: organizationSeats.id });
+
+    if (!seatRow) {
+      return { ok: false, reason: "seat_failed" };
+    }
+
+    return { ok: true, organizationId, created: true };
+  }
+
+  private async ensureFreePlanRow(): Promise<
+    { ok: true; planId: string } | { ok: false; reason: "create_failed" }
+  > {
+    const db = this.uow.getDb();
+    const [existing] = await db
+      .select({ id: plans.id })
+      .from(plans)
+      .where(eq(plans.slug, FREE_PLAN_SLUG))
+      .limit(1);
+
+    if (existing) {
+      return { ok: true, planId: existing.id };
+    }
+
+    const [row] = await db
+      .insert(plans)
+      .values({
+        name: "Free",
+        slug: FREE_PLAN_SLUG,
+      })
+      .returning({ id: plans.id });
+
+    if (!row) {
+      return { ok: false, reason: "create_failed" };
+    }
+
+    await db.insert(planLimits).values(
+      PLAN_LIMIT_ASSET_TYPES.map((assetType) => ({
+        planId: row.id,
+        assetType,
+        insertsPerMonth: null,
+      })),
+    );
+
+    return { ok: true, planId: row.id };
   }
 }

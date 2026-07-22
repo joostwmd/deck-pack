@@ -1,7 +1,6 @@
-import type { AssertInsertAllowedResult } from "@deck-pack/db/queries/usage-entitlements";
-
 import type {
   ActiveSubscription,
+  AssertInsertAllowedResult,
   AssetTypeCount,
   CountByAssetTypeInput,
   EntitlementWindow,

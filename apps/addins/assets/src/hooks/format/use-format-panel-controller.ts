@@ -1,13 +1,9 @@
-import type {
-  FormattingActionId,
-  GapParams,
-  SetBoundsParams,
-} from "@deck-pack/presentation-formatting";
+import type { FormattingActionId, GapParams, SetBoundsParams } from "@deck-pack/shape-commands";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
-import { usePowerPointSelection } from "@/hooks/use-powerpoint-selection";
-import { runFormattingCommand } from "@/lib/run-formatting-command";
+import { usePowerPointSelection } from "@/hooks/shared/use-powerpoint-selection";
+import { runFormattingCommand } from "@/utils/run-formatting-command";
 import { useServices } from "@/services/services-context";
 
 export function useFormatPanelController() {

@@ -6,7 +6,7 @@ import type {
   ShapeSearchResponse,
   ShapeSearchResult,
 } from "@/components/shapes/types";
-import { getUserFacingApiErrorMessage } from "@/lib/user-facing-api-error";
+import { getUserFacingApiErrorMessage } from "@/utils/user-facing-api-error";
 
 const EMPTY_FACETS: ShapeSearchFacets = {
   categories: [],

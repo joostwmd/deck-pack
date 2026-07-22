@@ -11,6 +11,7 @@ import {
   type RequestMonitoring,
 } from "@deck-pack/observability/server";
 
+import { AppContainer } from "./container";
 import { createContext } from "./trpc/context";
 import type { Context } from "./trpc/context";
 import type { AppRouter } from "./trpc/router";
@@ -30,6 +31,7 @@ import type { AppEnv } from "./types";
 export class ApiAppBuilder {
   private readonly app = new Hono<AppEnv>();
   private router?: AppRouter;
+  private container?: AppContainer;
   private corsEnabled = false;
   private monitoringEnabled = false;
   private errorReporter: ErrorReporter = new NoopErrorReporter();
@@ -82,14 +84,20 @@ export class ApiAppBuilder {
     return this;
   }
 
+  withContainer(container: AppContainer): this {
+    this.container = container;
+    return this;
+  }
+
   withTrpc(router: AppRouter): this {
     this.router = router;
     const errorReporter = this.errorReporter;
+    const container = this.container ?? AppContainer.forUnitTest();
     this.app.use(
       "/trpc/*",
       trpcServer({
         router,
-        createContext: (_opts, c) => createContext({ context: c }),
+        createContext: (_opts, c) => createContext({ context: c, container }),
         onError: ({ error, path, type, ctx }) => {
           const trpcLogger = getLogger(["deck-pack", "api", "trpc"]);
           const cctx = ctx as Context | undefined;

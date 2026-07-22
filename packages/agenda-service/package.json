@@ -24,6 +24,7 @@
     "@deck-pack/agenda": "workspace:*",
     "@deck-pack/db": "workspace:*",
     "@deck-pack/errors": "workspace:*",
+    "drizzle-orm": "^0.45.1",
     "zod": "catalog:"
   },
   "devDependencies": {

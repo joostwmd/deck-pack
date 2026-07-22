@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 
 import { VARIANT_GRID_COLUMN_COUNT } from "@/components/asset-browser/variant-grid";
-import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { useDebouncedValue } from "@/hooks/shared/use-debounced-value";
 import type { AssetDetailsResponse, AssetListItem, SelectedAssetEntity } from "@/types/asset-types";
 
 import { useAssetSearch } from "./use-asset-search";

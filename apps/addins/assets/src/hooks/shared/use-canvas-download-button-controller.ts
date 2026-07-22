@@ -2,7 +2,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { useWebCanvas } from "@/contexts/web-canvas-context";
-import { downloadCanvasAsPptx } from "@/lib/download-presentation";
+import { downloadCanvasAsPptx } from "@/utils/download-presentation";
 
 export function useCanvasDownloadButtonController() {
   const { items } = useWebCanvas();

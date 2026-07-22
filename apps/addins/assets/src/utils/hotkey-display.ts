@@ -1,7 +1,7 @@
 import { formatForDisplay } from "@tanstack/react-hotkeys";
 import type { Hotkey } from "@tanstack/react-hotkeys";
 
-import type { KeyToken } from "@/lib/shortcuts";
+import type { KeyToken } from "@/utils/shortcuts";
 
 export function hotkeyToKeyTokens(hotkey: string): KeyToken[] {
   const parts = hotkey

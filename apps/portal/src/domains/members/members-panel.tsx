@@ -1,5 +1,5 @@
 import { getRouteApi } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import {
@@ -10,37 +10,15 @@ import {
   useUpdateMemberRole,
 } from "@deck-pack/hooks/members";
 import { ORGANIZATION_ROLES } from "@deck-pack/auth/rbac";
-import { Badge } from "@deck-pack/ui/components/system/badge";
 import { Button } from "@deck-pack/ui/components/system/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@deck-pack/ui/components/system/dialog";
-import { Input } from "@deck-pack/ui/components/system/input";
-import { Label } from "@deck-pack/ui/components/system/label";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@deck-pack/ui/components/system/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@deck-pack/ui/components/system/table";
+  AddMemberDialogView,
+  ChangeRoleDialogView,
+  MembersView,
+} from "@deck-pack/ui/components/members/members-view";
 import { organizationRoleLabel } from "@deck-pack/ui/lib/organization-role-label";
 
+import { useCan } from "@/auth/use-can";
 import { Can } from "@/components/can";
 import { PortalPageShell } from "@/components/portal-page-shell";
 import { useServices } from "@/services/services-context";
@@ -75,6 +53,7 @@ function isAssignableRole(value: string): value is (typeof ASSIGNABLE_ROLES)[num
 export function MembersPanel() {
   const { activeOrganizationId } = membersRoute.useRouteContext();
   const { members } = useServices();
+  const { can } = useCan();
   const [addOpen, setAddOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<(typeof ASSIGNABLE_ROLES)[number]>(ORGANIZATION_ROLES.member);
@@ -85,6 +64,15 @@ export function MembersPanel() {
     email: string;
     role: (typeof ASSIGNABLE_ROLES)[number];
   } | null>(null);
+
+  const assignableRoles = useMemo(
+    () =>
+      ASSIGNABLE_ROLES.map((value) => ({
+        value,
+        label: organizationRoleLabel(value),
+      })),
+    [],
+  );
 
   const membersQuery = useMembers(members);
 
@@ -125,267 +113,93 @@ export function MembersPanel() {
       description="People who can access the organization portal."
       actions={
         <Can permissions={{ member: ["create"] }}>
-          <Dialog open={addOpen} onOpenChange={setAddOpen}>
-            <DialogTrigger render={<Button type="button">Add member</Button>} />
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add member</DialogTitle>
-                <DialogDescription>
-                  Existing users are added immediately. New emails receive an invitation link you
-                  can copy and share.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-2">
-                <div className="grid gap-2">
-                  <Label htmlFor="member-email">Email</Label>
-                  <Input
-                    id="member-email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="name@company.com"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="member-role">Role</Label>
-                  <Select
-                    value={role}
-                    onValueChange={(value) => {
-                      if (
-                        value === ORGANIZATION_ROLES.admin ||
-                        value === ORGANIZATION_ROLES.member ||
-                        value === ORGANIZATION_ROLES.addinUser ||
-                        value === ORGANIZATION_ROLES.libraryManager
-                      ) {
-                        setRole(value);
-                      }
-                    }}
-                  >
-                    <SelectTrigger id="member-role" className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent alignItemWithTrigger={false}>
-                      <SelectGroup>
-                        {ASSIGNABLE_ROLES.map((value) => (
-                          <SelectItem key={value} value={value}>
-                            {organizationRoleLabel(value)}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={assignSeat}
-                    onChange={(e) => setAssignSeat(e.target.checked)}
-                  />
-                  Also assign an add-in seat
-                </label>
-              </div>
-              <DialogFooter>
-                <Button
-                  type="button"
-                  disabled={addMutation.isPending || !email.trim()}
-                  onClick={handleAdd}
-                >
-                  Add member
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <AddMemberDialogView
+            open={addOpen}
+            onOpenChange={setAddOpen}
+            email={email}
+            onEmailChange={setEmail}
+            role={role}
+            onRoleChange={(value) => {
+              if (isAssignableRole(value)) {
+                setRole(value);
+              }
+            }}
+            assignSeat={assignSeat}
+            onAssignSeatChange={setAssignSeat}
+            assignableRoles={assignableRoles}
+            onSubmit={handleAdd}
+            isPending={addMutation.isPending}
+            trigger={<Button type="button">Add member</Button>}
+          />
         </Can>
       }
     >
-      {membersQuery.isLoading ? (
-        <p className="text-muted-foreground text-sm">Loading members…</p>
-      ) : membersQuery.isError ? (
-        <p className="text-destructive text-sm">{membersQuery.error.message}</p>
-      ) : (
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Joined</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {entries.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-muted-foreground h-24 text-center">
-                    No members yet.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                entries.map((entry) => (
-                  <TableRow key={`${entry.kind}-${entry.id}`}>
-                    <TableCell className="font-medium">{entry.name ?? "—"}</TableCell>
-                    <TableCell>{entry.email}</TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">{organizationRoleLabel(entry.role)}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={entry.status === "invited" ? "outline" : "default"}>
-                        {entry.status === "invited" ? "Invited" : "Active"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {entry.createdAt.toLocaleString()}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {entry.kind === "invitation" ? (
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => void copyInvitationLink(entry.id)}
-                          >
-                            Copy link
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            disabled={cancelInviteMutation.isPending}
-                            onClick={() =>
-                              cancelInviteMutation.mutate(
-                                { invitationId: entry.id },
-                                {
-                                  onSuccess: () => toast.success("Invitation canceled"),
-                                  onError: (error: Error) => toast.error(error.message),
-                                },
-                              )
-                            }
-                          >
-                            Cancel invite
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="flex justify-end gap-2">
-                          <Can permissions={{ member: ["update"] }}>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                setRoleEdit({
-                                  memberId: entry.id,
-                                  name: entry.name,
-                                  email: entry.email,
-                                  role: isAssignableRole(entry.role)
-                                    ? entry.role
-                                    : ORGANIZATION_ROLES.admin,
-                                })
-                              }
-                            >
-                              Change role
-                            </Button>
-                          </Can>
-                          <Can permissions={{ member: ["delete"] }}>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              disabled={removeMutation.isPending}
-                              onClick={() =>
-                                removeMutation.mutate(
-                                  { memberId: entry.id },
-                                  {
-                                    onSuccess: () => toast.success("Member removed"),
-                                    onError: (error: Error) => toast.error(error.message),
-                                  },
-                                )
-                              }
-                            >
-                              Remove
-                            </Button>
-                          </Can>
-                        </div>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+      <MembersView
+        loading={membersQuery.isLoading}
+        errorMessage={membersQuery.isError ? membersQuery.error.message : undefined}
+        entries={entries}
+        cancelInvitationPending={cancelInviteMutation.isPending}
+        removeMemberPending={removeMutation.isPending}
+        canUpdateMember={can({ member: ["update"] })}
+        canDeleteMember={can({ member: ["delete"] })}
+        onCopyInvitationLink={(invitationId) => void copyInvitationLink(invitationId)}
+        onCancelInvitation={(invitationId) =>
+          cancelInviteMutation.mutate(
+            { invitationId },
+            {
+              onSuccess: () => toast.success("Invitation canceled"),
+              onError: (error: Error) => toast.error(error.message),
+            },
+          )
+        }
+        onChangeRole={(entry) =>
+          setRoleEdit({
+            memberId: entry.id,
+            name: entry.name,
+            email: entry.email,
+            role: isAssignableRole(entry.role) ? entry.role : ORGANIZATION_ROLES.admin,
+          })
+        }
+        onRemoveMember={(memberId) =>
+          removeMutation.mutate(
+            { memberId },
+            {
+              onSuccess: () => toast.success("Member removed"),
+              onError: (error: Error) => toast.error(error.message),
+            },
+          )
+        }
+      />
 
-      <Dialog
+      <ChangeRoleDialogView
         open={roleEdit !== null}
         onOpenChange={(open) => {
           if (!open) setRoleEdit(null);
         }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Change role</DialogTitle>
-            <DialogDescription>
-              Update the portal role for{" "}
-              {roleEdit?.name?.trim() || roleEdit?.email || "this member"}.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-2 py-2">
-            <Label htmlFor="edit-member-role">Role</Label>
-            <Select
-              value={roleEdit?.role}
-              onValueChange={(value) => {
-                if (!roleEdit || value == null || !isAssignableRole(value)) return;
-                setRoleEdit({ ...roleEdit, role: value });
-              }}
-            >
-              <SelectTrigger id="edit-member-role" className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent alignItemWithTrigger={false}>
-                <SelectGroup>
-                  {ASSIGNABLE_ROLES.map((value) => (
-                    <SelectItem key={value} value={value}>
-                      {organizationRoleLabel(value)}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={updateRoleMutation.isPending}
-              onClick={() => setRoleEdit(null)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              disabled={updateRoleMutation.isPending || !roleEdit}
-              onClick={() => {
-                if (!roleEdit) return;
-                updateRoleMutation.mutate(
-                  { memberId: roleEdit.memberId, role: roleEdit.role },
-                  {
-                    onSuccess: () => {
-                      toast.success("Role updated");
-                      setRoleEdit(null);
-                    },
-                    onError: (error: Error) => toast.error(error.message),
-                  },
-                );
-              }}
-            >
-              {updateRoleMutation.isPending ? "Saving…" : "Save role"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        memberName={roleEdit?.name ?? null}
+        memberEmail={roleEdit?.email ?? ""}
+        role={roleEdit?.role ?? ORGANIZATION_ROLES.member}
+        onRoleChange={(value) => {
+          if (!roleEdit || !isAssignableRole(value)) return;
+          setRoleEdit({ ...roleEdit, role: value });
+        }}
+        assignableRoles={assignableRoles}
+        onCancel={() => setRoleEdit(null)}
+        isPending={updateRoleMutation.isPending}
+        onSubmit={() => {
+          if (!roleEdit) return;
+          updateRoleMutation.mutate(
+            { memberId: roleEdit.memberId, role: roleEdit.role },
+            {
+              onSuccess: () => {
+                toast.success("Role updated");
+                setRoleEdit(null);
+              },
+              onError: (error: Error) => toast.error(error.message),
+            },
+          );
+        }}
+      />
     </PortalPageShell>
   );
 }

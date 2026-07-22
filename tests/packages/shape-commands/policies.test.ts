@@ -7,8 +7,8 @@ import {
   onlyLines,
   supportsBoundsMutation,
   supportsResize,
-} from "@deck-pack/presentation-formatting/policies";
-import { createShape, selectionOf } from "@deck-pack/presentation-formatting/test-utils/selection";
+} from "@deck-pack/shape-commands/policies";
+import { createShape, selectionOf } from "@deck-pack/shape-commands/test-utils/selection";
 
 describe("policies", () => {
   it("explains why swap is unavailable for three shapes", () => {

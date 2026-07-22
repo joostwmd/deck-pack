@@ -1,6 +1,6 @@
 import type { AssetDetailsResponse, AssetType } from "@/types/asset-types";
 import type { InsertionTracker, OfficeService } from "@/services/types";
-import { urlToBase64 } from "@/lib/url-to-base64";
+import { urlToBase64 } from "@/utils/url-to-base64";
 
 export async function insertDirectImage({
   imageUrl,

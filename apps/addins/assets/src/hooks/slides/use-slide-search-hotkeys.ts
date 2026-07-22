@@ -1,7 +1,7 @@
 import type { RefObject } from "react";
 
-import { useShortcutCommands } from "@/hooks/use-shortcut-commands";
-import type { useSlideSearch } from "@/hooks/use-slide-search";
+import { useShortcutCommands } from "@/hooks/shortcuts/use-shortcut-commands";
+import type { useSlideSearch } from "@/hooks/slides/use-slide-search";
 
 type SlideSearchFlow = ReturnType<typeof useSlideSearch>;
 

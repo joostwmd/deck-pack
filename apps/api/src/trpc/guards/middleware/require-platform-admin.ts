@@ -1,7 +1,5 @@
 import { TRPCError } from "@trpc/server";
 
-import { isPlatformAdmin as isPlatformAdminQuery } from "@deck-pack/db/queries/isPlatformAdmin";
-
 import type { Context } from "../../context";
 import { middleware } from "../../init";
 
@@ -14,7 +12,7 @@ export const requirePlatformAdmin = middleware<Context>(async ({ ctx, next }) =>
     });
   }
 
-  const isAdmin = await isPlatformAdminQuery({ tx: ctx.tx, userId: ctx.session.user.id });
+  const isAdmin = await ctx.users.isPlatformAdmin(ctx.session.user.id);
 
   if (!isAdmin) {
     throw new TRPCError({

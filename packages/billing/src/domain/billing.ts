@@ -66,6 +66,8 @@ export type SubscriptionMutationResult = {
   planId: string;
   quantity: number;
   status: string;
+  currentPeriodStart: Date | null;
+  currentPeriodEnd: Date | null;
   createdAt: Date;
   updatedAt: Date;
 };

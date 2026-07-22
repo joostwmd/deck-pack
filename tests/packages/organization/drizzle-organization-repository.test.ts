@@ -78,4 +78,31 @@ describe("DrizzleOrganizationRepository", () => {
     expect(deleted.organizationId).toBe(created.organizationId);
     expect(await repo.findById(created.organizationId)).toBeNull();
   }, 30_000);
+
+  it("isMember detects membership for user and organization", async () => {
+    const db = await createPgliteTestDb();
+    const uow = new UnitOfWork(db);
+    const repo = new DrizzleOrganizationRepository(uow);
+
+    const created = await repo.create({
+      name: "Acme",
+      slug: "acme-member-check",
+      ownerEmail: "owner-member-check@acme.com",
+      type: "team",
+    });
+
+    const members = await repo.listMembers(created.organizationId);
+    const ownerId = members[0]?.userId;
+    expect(ownerId).toBeTruthy();
+
+    expect(await repo.isMember({ userId: ownerId!, organizationId: created.organizationId })).toBe(
+      true,
+    );
+    expect(await repo.isMember({ userId: ownerId!, organizationId: "some-other-org-id" })).toBe(
+      false,
+    );
+    expect(
+      await repo.isMember({ userId: "missing-user", organizationId: created.organizationId }),
+    ).toBe(false);
+  }, 30_000);
 });

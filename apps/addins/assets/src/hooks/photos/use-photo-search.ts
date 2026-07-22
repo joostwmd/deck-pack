@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { getUserFacingApiErrorMessage } from "@/lib/user-facing-api-error";
+import { getUserFacingApiErrorMessage } from "@/utils/user-facing-api-error";
 
 import type {
   PhotoFilters,
   PhotoSearchRequest,
   PhotoSearchResponse,
   PhotoSearchResult,
-} from "./types";
+} from "@/components/photos/types";
 
 function dedupeResults(results: PhotoSearchResult[]) {
   const seen = new Set<string>();

@@ -7,8 +7,11 @@ import {
   UserInOtherOrganizationError,
 } from "../domain/errors";
 import type {
+  ActivateOrganizationSeatResult,
+  ActivateSeatInput,
   AssignSeatInput,
   OrganizationSeat,
+  PendingSeatByEmail,
   RevokeSeatInput,
   SeatCapacity,
   SeatStatus,
@@ -144,5 +147,57 @@ export class InMemorySeatsRepository implements SeatsRepository {
       revokedAt: now,
     });
     return { seatId: input.seatId };
+  }
+
+  async activateSeat(input: ActivateSeatInput): Promise<ActivateOrganizationSeatResult> {
+    const seat = this.seats.get(input.seatId);
+    if (!seat) {
+      return { ok: false, reason: "not_found" };
+    }
+    if (seat.status === "revoked") {
+      return { ok: false, reason: "revoked" };
+    }
+    if (seat.status === "active") {
+      return { ok: false, reason: "already_active" };
+    }
+
+    const now = new Date();
+    this.seats.set(input.seatId, {
+      ...seat,
+      status: "active",
+      userId: input.userId,
+      activatedAt: now,
+    });
+
+    return {
+      ok: true,
+      seatId: seat.seatId,
+      organizationId: seat.organizationId,
+      userId: input.userId,
+      email: seat.email,
+    };
+  }
+
+  async findPendingSeatByEmail(email: string): Promise<PendingSeatByEmail> {
+    const normalizedEmail = email.toLowerCase().trim();
+    const seat = [...this.seats.values()].find(
+      (s) => s.email === normalizedEmail && (s.status === "pending" || s.status === "active"),
+    );
+    if (!seat) return null;
+    return {
+      seatId: seat.seatId,
+      organizationId: seat.organizationId,
+      email: seat.email,
+      status: seat.status,
+    };
+  }
+
+  async hasActiveSeat(input: { organizationId: string; userId: string }): Promise<boolean> {
+    return [...this.seats.values()].some(
+      (s) =>
+        s.organizationId === input.organizationId &&
+        s.userId === input.userId &&
+        s.status === "active",
+    );
   }
 }

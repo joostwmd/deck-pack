@@ -40,6 +40,7 @@ export function createApp(options?: CreateAppOptions): Hono<AppEnv> {
     .withRequestContext()
     .withSession()
     .withApitallyConsumer()
+    .withContainer(container)
     .withTrpc(appRouter)
     .withHealth()
     .withErrorHandlers()

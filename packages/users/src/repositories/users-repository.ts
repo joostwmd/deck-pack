@@ -9,6 +9,7 @@ import type { OrganizationType, UserWithMembership } from "../domain/user";
 export interface UsersRepository {
   list(): Promise<UserWithMembership[]>;
   delete(userId: string): Promise<{ userId: string }>;
+  isPlatformAdmin(userId: string): Promise<boolean>;
 }
 
 export class DrizzleUsersRepository implements UsersRepository {
@@ -68,5 +69,16 @@ export class DrizzleUsersRepository implements UsersRepository {
     await db.delete(user).where(eq(user.id, userId));
 
     return { userId };
+  }
+
+  async isPlatformAdmin(userId: string): Promise<boolean> {
+    const db = this.uow.getDb();
+    const [row] = await db
+      .select({ role: user.role })
+      .from(user)
+      .where(eq(user.id, userId))
+      .limit(1);
+
+    return row?.role === "admin";
   }
 }

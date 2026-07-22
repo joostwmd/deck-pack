@@ -5,19 +5,19 @@ import { fileURLToPath } from "node:url";
 import { eq, sql } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import { db } from "@deck-pack/db";
+import { db, unitOfWork } from "@deck-pack/db";
 import { getOrganizationType, parseOrganizationMetadata } from "@deck-pack/db/org-metadata";
 import { member, organization, user } from "@deck-pack/db/schema/auth";
+import { organizationSeats, organizationSubscriptions, plans } from "@deck-pack/db/schema/billing";
+import { DrizzleOrganizationRepository } from "@deck-pack/organization/repositories/organization-repository";
 import {
-  organizationSeats,
-  organizationSubscriptions,
-  plans,
-} from "@deck-pack/db/schema/billing";
-import { tx } from "@deck-pack/db/transaction";
-import { bootstrapPersonalOrganization } from "@deck-pack/db/queries/bootstrapPersonalOrganization";
-import { ensureFreePlan, FREE_PLAN_SLUG } from "@deck-pack/db/queries/ensureFreePlan";
+  DrizzleBillingRepository,
+  FREE_PLAN_SLUG,
+} from "@deck-pack/billing/repositories/billing-repository";
 
 describe("bootstrapPersonalOrganization (integration)", () => {
+  const organizationRepo = new DrizzleOrganizationRepository(unitOfWork);
+  const billingRepo = new DrizzleBillingRepository(unitOfWork);
   const userId = crypto.randomUUID();
   const now = new Date();
 
@@ -59,13 +59,10 @@ describe("bootstrapPersonalOrganization (integration)", () => {
   });
 
   it("creates personal org with individual metadata, free plan, subscription, and active seat", async () => {
-    const result = await bootstrapPersonalOrganization({
-      tx,
-      input: {
-        userId,
-        email: "solo@bootstrap.test.local",
-        name: "Solo User",
-      },
+    const result = await organizationRepo.bootstrapPersonalOrganization({
+      userId,
+      email: "solo@bootstrap.test.local",
+      name: "Solo User",
     });
 
     expect(result.ok).toBe(true);
@@ -80,18 +77,10 @@ describe("bootstrapPersonalOrganization (integration)", () => {
     expect(org).toBeDefined();
     expect(getOrganizationType(org!.metadata)).toBe("individual");
 
-    const [membership] = await db
-      .select()
-      .from(member)
-      .where(eq(member.userId, userId))
-      .limit(1);
+    const [membership] = await db.select().from(member).where(eq(member.userId, userId)).limit(1);
     expect(membership?.role).toBe("organizationOwner");
 
-    const [freePlan] = await db
-      .select()
-      .from(plans)
-      .where(eq(plans.slug, FREE_PLAN_SLUG))
-      .limit(1);
+    const [freePlan] = await db.select().from(plans).where(eq(plans.slug, FREE_PLAN_SLUG)).limit(1);
     expect(freePlan).toBeDefined();
 
     const [subscription] = await db
@@ -111,16 +100,16 @@ describe("bootstrapPersonalOrganization (integration)", () => {
   });
 
   it("is idempotent when user already has membership", async () => {
-    const first = await bootstrapPersonalOrganization({
-      tx,
-      input: { userId, email: "solo@bootstrap.test.local" },
+    const first = await organizationRepo.bootstrapPersonalOrganization({
+      userId,
+      email: "solo@bootstrap.test.local",
     });
     expect(first.ok).toBe(true);
     if (!first.ok) return;
 
-    const second = await bootstrapPersonalOrganization({
-      tx,
-      input: { userId, email: "solo@bootstrap.test.local" },
+    const second = await organizationRepo.bootstrapPersonalOrganization({
+      userId,
+      email: "solo@bootstrap.test.local",
     });
     expect(second.ok).toBe(true);
     if (!second.ok) return;
@@ -132,12 +121,12 @@ describe("bootstrapPersonalOrganization (integration)", () => {
   });
 
   it("ensureFreePlan is idempotent", async () => {
-    const first = await ensureFreePlan({ tx });
+    const first = await billingRepo.ensureFreePlan();
     expect(first.ok).toBe(true);
     if (!first.ok) return;
     expect(first.created).toBe(true);
 
-    const second = await ensureFreePlan({ tx });
+    const second = await billingRepo.ensureFreePlan();
     expect(second.ok).toBe(true);
     if (!second.ok) return;
     expect(second.created).toBe(false);

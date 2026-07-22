@@ -47,3 +47,25 @@ export type CreateOrganizationResult = {
   userId: string;
   isNewUser: boolean;
 };
+
+export type OrganizationMetadataLookup = {
+  metadata: string | null;
+  type: OrganizationType | null;
+};
+
+export type BootstrapPersonalOrganizationInput = {
+  userId: string;
+  email: string;
+  name?: string;
+};
+
+export type BootstrapPersonalOrganizationResult =
+  | {
+      ok: true;
+      organizationId: string;
+      created: boolean;
+    }
+  | {
+      ok: false;
+      reason: "user_not_found" | "free_plan_failed" | "subscription_failed" | "seat_failed";
+    };

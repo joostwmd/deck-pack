@@ -50,3 +50,13 @@ export function getTrpcClient(): ReturnType<
 
   return trpcBundle!.trpcClient;
 }
+
+export function getQueryClient(): ReturnType<
+  typeof createTrpcBrowserBundle<AppRouter>
+>["queryClient"] {
+  if (!trpcBundle) {
+    createTrpcClient();
+  }
+
+  return trpcBundle!.queryClient;
+}

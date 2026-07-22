@@ -1,15 +1,7 @@
-import { archiveBrandProfile } from "@deck-pack/db/queries/archiveBrandProfile";
-import {
-  createBrandProfile,
-  duplicateBrandProfile,
-} from "@deck-pack/db/queries/createBrandProfile";
-import { createBrandProfileVersion } from "@deck-pack/db/queries/createBrandProfileVersion";
-import { getBrandProfileWithVersion } from "@deck-pack/db/queries/getBrandProfileWithVersion";
-import { listBrandProfilesByUser } from "@deck-pack/db/queries/listBrandProfilesByUser";
-import { setDefaultBrandProfile } from "@deck-pack/db/queries/setDefaultBrandProfile";
-import { updateBrandProfileMetadata } from "@deck-pack/db/queries/updateBrandProfileMetadata";
+import { and, desc, eq, isNull } from "drizzle-orm";
+
 import type { UnitOfWork } from "@deck-pack/db";
-import type { Transaction } from "@deck-pack/db/transaction";
+import { brandProfileVersions, brandProfiles } from "@deck-pack/db/schema/brand-profiles";
 
 import type {
   BrandProfileListRow,
@@ -58,12 +50,26 @@ export interface BrandProfilesRepository {
 export class DrizzleBrandProfilesRepository implements BrandProfilesRepository {
   constructor(private readonly uow: UnitOfWork) {}
 
-  private tx(): Transaction {
-    return this.uow.getDb() as Transaction;
-  }
-
   async listByUser(userId: string): Promise<BrandProfileListRow[]> {
-    const rows = await listBrandProfilesByUser({ tx: this.tx(), userId });
+    const db = this.uow.getDb();
+    const rows = await db
+      .select({
+        id: brandProfiles.id,
+        name: brandProfiles.name,
+        description: brandProfiles.description,
+        isDefault: brandProfiles.isDefault,
+        activeVersionId: brandProfiles.activeVersionId,
+        createdAt: brandProfiles.createdAt,
+        updatedAt: brandProfiles.updatedAt,
+        versionNumber: brandProfileVersions.version,
+        schemaVersion: brandProfileVersions.schemaVersion,
+        configuration: brandProfileVersions.configuration,
+      })
+      .from(brandProfiles)
+      .leftJoin(brandProfileVersions, eq(brandProfiles.activeVersionId, brandProfileVersions.id))
+      .where(and(eq(brandProfiles.userId, userId), isNull(brandProfiles.archivedAt)))
+      .orderBy(desc(brandProfiles.isDefault), desc(brandProfiles.updatedAt));
+
     return rows.map((row) => ({
       ...row,
       configuration: (row.configuration as Record<string, unknown> | null) ?? null,
@@ -75,19 +81,62 @@ export class DrizzleBrandProfilesRepository implements BrandProfilesRepository {
     profileId: string;
     versionId?: string;
   }): Promise<BrandProfileWithVersion | null> {
-    const loaded = await getBrandProfileWithVersion({
-      tx: this.tx(),
-      profileId: input.profileId,
-      userId: input.userId,
-      versionId: input.versionId,
-    });
-    if (!loaded) return null;
+    const db = this.uow.getDb();
+    const [profile] = await db
+      .select({
+        id: brandProfiles.id,
+        userId: brandProfiles.userId,
+        name: brandProfiles.name,
+        description: brandProfiles.description,
+        isDefault: brandProfiles.isDefault,
+        activeVersionId: brandProfiles.activeVersionId,
+        createdAt: brandProfiles.createdAt,
+        updatedAt: brandProfiles.updatedAt,
+      })
+      .from(brandProfiles)
+      .where(
+        and(
+          eq(brandProfiles.id, input.profileId),
+          eq(brandProfiles.userId, input.userId),
+          isNull(brandProfiles.archivedAt),
+        ),
+      )
+      .limit(1);
+
+    if (!profile) {
+      return null;
+    }
+
+    const targetVersionId = input.versionId ?? profile.activeVersionId;
+    if (!targetVersionId) {
+      return { profile, version: null };
+    }
+
+    const [version] = await db
+      .select({
+        id: brandProfileVersions.id,
+        profileId: brandProfileVersions.profileId,
+        version: brandProfileVersions.version,
+        schemaVersion: brandProfileVersions.schemaVersion,
+        configuration: brandProfileVersions.configuration,
+        createdByUserId: brandProfileVersions.createdByUserId,
+        createdAt: brandProfileVersions.createdAt,
+      })
+      .from(brandProfileVersions)
+      .where(
+        and(
+          eq(brandProfileVersions.id, targetVersionId),
+          eq(brandProfileVersions.profileId, input.profileId),
+        ),
+      )
+      .limit(1);
+
     return {
-      profile: loaded.profile,
-      version: loaded.version
+      profile,
+      version: version
         ? {
-            ...loaded.version,
-            configuration: loaded.version.configuration as Record<string, unknown>,
+            ...version,
+            configuration: version.configuration as Record<string, unknown>,
           }
         : null,
     };
@@ -100,17 +149,77 @@ export class DrizzleBrandProfilesRepository implements BrandProfilesRepository {
     isDefault?: boolean;
     configuration: Record<string, unknown>;
   }): Promise<CreateBrandProfileResult> {
-    const created = await createBrandProfile({
-      tx: this.tx(),
-      input,
+    return this.uow.withTransaction(async () => {
+      const db = this.uow.getDb();
+
+      if (input.isDefault) {
+        await db
+          .update(brandProfiles)
+          .set({ isDefault: false, updatedAt: new Date() })
+          .where(eq(brandProfiles.userId, input.userId));
+      }
+
+      const [profile] = await db
+        .insert(brandProfiles)
+        .values({
+          userId: input.userId,
+          name: input.name,
+          description: input.description ?? null,
+          isDefault: input.isDefault ?? false,
+        })
+        .returning({
+          id: brandProfiles.id,
+          userId: brandProfiles.userId,
+          name: brandProfiles.name,
+          description: brandProfiles.description,
+          isDefault: brandProfiles.isDefault,
+          activeVersionId: brandProfiles.activeVersionId,
+          createdAt: brandProfiles.createdAt,
+          updatedAt: brandProfiles.updatedAt,
+        });
+
+      const [version] = await db
+        .insert(brandProfileVersions)
+        .values({
+          profileId: profile!.id,
+          version: 1,
+          schemaVersion: 1,
+          configuration: input.configuration,
+          createdByUserId: input.userId,
+        })
+        .returning({
+          id: brandProfileVersions.id,
+          profileId: brandProfileVersions.profileId,
+          version: brandProfileVersions.version,
+          schemaVersion: brandProfileVersions.schemaVersion,
+          configuration: brandProfileVersions.configuration,
+          createdByUserId: brandProfileVersions.createdByUserId,
+          createdAt: brandProfileVersions.createdAt,
+        });
+
+      const [updatedProfile] = await db
+        .update(brandProfiles)
+        .set({ activeVersionId: version!.id, updatedAt: new Date() })
+        .where(eq(brandProfiles.id, profile!.id))
+        .returning({
+          id: brandProfiles.id,
+          userId: brandProfiles.userId,
+          name: brandProfiles.name,
+          description: brandProfiles.description,
+          isDefault: brandProfiles.isDefault,
+          activeVersionId: brandProfiles.activeVersionId,
+          createdAt: brandProfiles.createdAt,
+          updatedAt: brandProfiles.updatedAt,
+        });
+
+      return {
+        profile: updatedProfile!,
+        version: {
+          ...version!,
+          configuration: version!.configuration as Record<string, unknown>,
+        },
+      };
     });
-    return {
-      profile: created.profile,
-      version: {
-        ...created.version,
-        configuration: created.version.configuration as Record<string, unknown>,
-      },
-    };
   }
 
   async appendVersion(input: {
@@ -118,17 +227,56 @@ export class DrizzleBrandProfilesRepository implements BrandProfilesRepository {
     profileId: string;
     configuration: Record<string, unknown>;
   }): Promise<BrandProfileVersionRecord | null> {
-    const version = await createBrandProfileVersion({
-      tx: this.tx(),
-      profileId: input.profileId,
-      userId: input.userId,
-      configuration: input.configuration,
+    return this.uow.withTransaction(async () => {
+      const db = this.uow.getDb();
+      const [profile] = await db
+        .select({ id: brandProfiles.id })
+        .from(brandProfiles)
+        .where(and(eq(brandProfiles.id, input.profileId), eq(brandProfiles.userId, input.userId)))
+        .limit(1);
+
+      if (!profile) {
+        return null;
+      }
+
+      const [latest] = await db
+        .select({ version: brandProfileVersions.version })
+        .from(brandProfileVersions)
+        .where(eq(brandProfileVersions.profileId, input.profileId))
+        .orderBy(desc(brandProfileVersions.version))
+        .limit(1);
+
+      const nextVersion = (latest?.version ?? 0) + 1;
+
+      const [version] = await db
+        .insert(brandProfileVersions)
+        .values({
+          profileId: input.profileId,
+          version: nextVersion,
+          schemaVersion: 1,
+          configuration: input.configuration,
+          createdByUserId: input.userId,
+        })
+        .returning({
+          id: brandProfileVersions.id,
+          profileId: brandProfileVersions.profileId,
+          version: brandProfileVersions.version,
+          schemaVersion: brandProfileVersions.schemaVersion,
+          configuration: brandProfileVersions.configuration,
+          createdByUserId: brandProfileVersions.createdByUserId,
+          createdAt: brandProfileVersions.createdAt,
+        });
+
+      await db
+        .update(brandProfiles)
+        .set({ activeVersionId: version!.id, updatedAt: new Date() })
+        .where(eq(brandProfiles.id, input.profileId));
+
+      return {
+        ...version!,
+        configuration: version!.configuration as Record<string, unknown>,
+      };
     });
-    if (!version) return null;
-    return {
-      ...version,
-      configuration: version.configuration as Record<string, unknown>,
-    };
   }
 
   async updateMetadata(input: {
@@ -137,13 +285,15 @@ export class DrizzleBrandProfilesRepository implements BrandProfilesRepository {
     name?: string;
     description?: string | null;
   }): Promise<void> {
-    await updateBrandProfileMetadata({
-      tx: this.tx(),
-      profileId: input.profileId,
-      userId: input.userId,
-      name: input.name,
-      description: input.description,
-    });
+    const db = this.uow.getDb();
+    await db
+      .update(brandProfiles)
+      .set({
+        ...(input.name !== undefined ? { name: input.name } : {}),
+        ...(input.description !== undefined ? { description: input.description } : {}),
+        updatedAt: new Date(),
+      })
+      .where(and(eq(brandProfiles.id, input.profileId), eq(brandProfiles.userId, input.userId)));
   }
 
   async duplicate(input: {
@@ -151,38 +301,76 @@ export class DrizzleBrandProfilesRepository implements BrandProfilesRepository {
     profileId: string;
     name: string;
   }): Promise<CreateBrandProfileResult | null> {
-    const duplicated = await duplicateBrandProfile({
-      tx: this.tx(),
-      profileId: input.profileId,
+    const db = this.uow.getDb();
+    const existing = await db
+      .select({
+        profile: brandProfiles,
+        version: brandProfileVersions,
+      })
+      .from(brandProfiles)
+      .innerJoin(brandProfileVersions, eq(brandProfiles.activeVersionId, brandProfileVersions.id))
+      .where(and(eq(brandProfiles.id, input.profileId), eq(brandProfiles.userId, input.userId)))
+      .limit(1);
+
+    const row = existing[0];
+    if (!row) {
+      return null;
+    }
+
+    return this.create({
       userId: input.userId,
       name: input.name,
+      description: row.profile.description,
+      configuration: row.version.configuration as Record<string, unknown>,
     });
-    if (!duplicated) return null;
-    return {
-      profile: duplicated.profile,
-      version: {
-        ...duplicated.version,
-        configuration: duplicated.version.configuration as Record<string, unknown>,
-      },
-    };
   }
 
   async setDefault(input: {
     userId: string;
     profileId: string;
   }): Promise<{ id: string; isDefault: boolean } | null> {
-    return setDefaultBrandProfile({
-      tx: this.tx(),
-      profileId: input.profileId,
-      userId: input.userId,
+    return this.uow.withTransaction(async () => {
+      const db = this.uow.getDb();
+      const [profile] = await db
+        .select({ id: brandProfiles.id })
+        .from(brandProfiles)
+        .where(and(eq(brandProfiles.id, input.profileId), eq(brandProfiles.userId, input.userId)))
+        .limit(1);
+
+      if (!profile) {
+        return null;
+      }
+
+      await db
+        .update(brandProfiles)
+        .set({ isDefault: false, updatedAt: new Date() })
+        .where(eq(brandProfiles.userId, input.userId));
+
+      const [updated] = await db
+        .update(brandProfiles)
+        .set({ isDefault: true, updatedAt: new Date() })
+        .where(eq(brandProfiles.id, input.profileId))
+        .returning({
+          id: brandProfiles.id,
+          isDefault: brandProfiles.isDefault,
+        });
+
+      return updated ?? null;
     });
   }
 
   async archive(input: { userId: string; profileId: string }): Promise<{ id: string } | null> {
-    return archiveBrandProfile({
-      tx: this.tx(),
-      profileId: input.profileId,
-      userId: input.userId,
-    });
+    const db = this.uow.getDb();
+    const [row] = await db
+      .update(brandProfiles)
+      .set({
+        archivedAt: new Date(),
+        isDefault: false,
+        updatedAt: new Date(),
+      })
+      .where(and(eq(brandProfiles.id, input.profileId), eq(brandProfiles.userId, input.userId)))
+      .returning({ id: brandProfiles.id });
+
+    return row ?? null;
   }
 }

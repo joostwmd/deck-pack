@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import {
   sortShapesHorizontally,
   sortShapesVertically,
-} from "@deck-pack/presentation-formatting/geometry/sort";
-import { createShape } from "@deck-pack/presentation-formatting/test-utils/selection";
+} from "@deck-pack/shape-commands/geometry/sort";
+import { createShape } from "@deck-pack/shape-commands/test-utils/selection";
 
 describe("geometry sort", () => {
   it("sorts horizontally by visual left with selection index tie-breaker", () => {

@@ -30,3 +30,25 @@ export type RevokeSeatInput = {
   organizationId: string;
   seatId: string;
 };
+
+export type ActivateSeatInput = {
+  seatId: string;
+  userId: string;
+};
+
+export type ActivateOrganizationSeatResult =
+  | {
+      ok: true;
+      seatId: string;
+      organizationId: string;
+      userId: string;
+      email: string;
+    }
+  | { ok: false; reason: "not_found" | "already_active" | "revoked" };
+
+export type PendingSeatByEmail = {
+  seatId: string;
+  organizationId: string;
+  email: string;
+  status: SeatStatus;
+} | null;

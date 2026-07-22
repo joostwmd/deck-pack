@@ -10,11 +10,11 @@ import type {
   BrandProfileConfiguration,
   CheckFinding,
   CheckResult,
-} from "@deck-pack/presentation-check";
+} from "@deck-pack/brand-compliance";
 import {
   DEFAULT_BRAND_PROFILE_CONFIGURATION,
   runPresentationCheck,
-} from "@deck-pack/presentation-check";
+} from "@deck-pack/brand-compliance";
 
 export type ScanScope = "all" | "current" | "selected";
 

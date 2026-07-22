@@ -4,7 +4,7 @@ export type { GalleryAssetClass };
 
 /**
  * Route-agnostic gallery class config. Apps supply concrete TanStack paths.
- * `to` values are typed as string so Ops (`/gallery/...`) and Portal (`/org/library/...`) share views.
+ * `to` values are typed as string so Ops (`/gallery/...`) and Portal (`/org/gallery/...`) share views.
  */
 export type GalleryClassConfig = {
   assetClass: GalleryAssetClass;

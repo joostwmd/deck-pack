@@ -6,10 +6,13 @@ import {
 } from "../domain/errors";
 import { ORGANIZATION_TYPES } from "../domain/organization";
 import type {
+  BootstrapPersonalOrganizationInput,
+  BootstrapPersonalOrganizationResult,
   CreateOrganizationInput,
   CreateOrganizationResult,
   OrganizationDetail,
   OrganizationMember,
+  OrganizationMetadataLookup,
   OrganizationSummary,
   OrganizationType,
   UpdateOrganizationInput,
@@ -257,5 +260,58 @@ export class InMemoryOrganizationRepository implements OrganizationRepository {
     this.organizations.delete(organizationId);
     this.members = this.members.filter((m) => m.organizationId !== organizationId);
     return { organizationId };
+  }
+
+  async getMetadataById(organizationId: string): Promise<OrganizationMetadataLookup | null> {
+    const org = this.organizations.get(organizationId);
+    if (!org) return null;
+    return { metadata: null, type: org.type };
+  }
+
+  async isMember(input: { userId: string; organizationId: string }): Promise<boolean> {
+    return this.members.some(
+      (m) => m.userId === input.userId && m.organizationId === input.organizationId,
+    );
+  }
+
+  async bootstrapPersonalOrganization(
+    input: BootstrapPersonalOrganizationInput,
+  ): Promise<BootstrapPersonalOrganizationResult> {
+    const existingMembership = this.members.find((m) => m.userId === input.userId);
+    if (existingMembership) {
+      return { ok: true, organizationId: existingMembership.organizationId, created: false };
+    }
+
+    const user =
+      [...this.users.values()].find((u) => u.id === input.userId) ??
+      this.users.get(input.email.toLowerCase());
+
+    if (!user) {
+      return { ok: false, reason: "user_not_found" };
+    }
+
+    const organizationId = crypto.randomUUID();
+    const now = new Date();
+
+    this.organizations.set(organizationId, {
+      id: organizationId,
+      name: input.name?.trim() ? `${input.name.trim()}'s workspace` : "Personal workspace",
+      slug: `personal-${organizationId.slice(0, 12)}`,
+      createdAt: now,
+      type: "individual",
+      ownerUserId: user.id,
+    });
+
+    this.members.push({
+      memberId: crypto.randomUUID(),
+      organizationId,
+      userId: user.id,
+      name: user.name,
+      email: user.email,
+      role: OWNER_ROLE,
+      createdAt: now,
+    });
+
+    return { ok: true, organizationId, created: true };
   }
 }

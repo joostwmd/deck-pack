@@ -1,14 +1,21 @@
 import type { AgendaConfigV1, AgendaEventType } from "@deck-pack/agenda";
-import type { BrandProfileConfiguration } from "@deck-pack/brand-compliance";
 import type { AuthClient } from "@deck-pack/auth/client";
 import type { SignOutStrategy } from "@deck-pack/auth/microsoft-sign-in";
+import type {
+  BrandProfileDetail,
+  BrandProfileStore,
+  BrandProfileSummary,
+} from "@deck-pack/hooks/brand-profiles";
+import type {
+  ShortcutOverrideRecord,
+  ShortcutOverridesStore,
+} from "@deck-pack/hooks/shortcut-overrides";
 import type {
   executeFormattingCommand,
   readSelectedShapes,
   runPowerPoint,
   subscribeToSelectionChanges,
 } from "@deck-pack/office-js";
-import type { ShortcutId, ShortcutOverride } from "@deck-pack/shortcuts";
 
 import type { WebCanvasContextValue } from "@/contexts/web-canvas-context";
 import type { PhotoFilters, PhotoSearchResponse } from "@/components/photos/types";
@@ -18,23 +25,8 @@ import type { AssetDetailsResponse, AssetListItem, AssetType } from "@/types/ass
 import type { InsertionStrategy } from "@/utils/insertion-strategy";
 
 export type { AuthClient };
-
-export interface ShortcutOverrideRecord {
-  shortcutId: ShortcutId;
-  hotkey: string;
-  isCustomized: boolean;
-  schemaVersion: number;
-}
-
-export interface ShortcutStore {
-  list: () => Promise<{ overrides: ShortcutOverride[] }>;
-  setOverride: (input: {
-    shortcutId: ShortcutId;
-    hotkey: string;
-  }) => Promise<ShortcutOverrideRecord>;
-  resetOverride: (input: { shortcutId: ShortcutId }) => Promise<unknown>;
-  resetAll: () => Promise<unknown>;
-}
+export type { BrandProfileDetail, BrandProfileStore, BrandProfileSummary };
+export type { ShortcutOverrideRecord, ShortcutOverridesStore as ShortcutStore };
 
 export interface AssetListSearchStore {
   search: (query: string, options?: { internalOnly?: boolean }) => Promise<AssetListItem[]>;
@@ -85,56 +77,6 @@ export interface InsertionStore {
     client: "office" | "web";
     metadata: Record<string, unknown>;
   }) => Promise<void>;
-}
-
-export interface BrandProfileSummary {
-  id: string;
-  name: string;
-  description: string | null;
-  isDefault: boolean;
-  activeVersionId: string | null;
-  versionNumber: number | null;
-  schemaVersion: number | null;
-  configuration: BrandProfileConfiguration | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface BrandProfileDetail {
-  id: string;
-  name: string;
-  description: string | null;
-  isDefault: boolean;
-  activeVersionId: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-  version: {
-    id: string;
-    version: number;
-    schemaVersion: number;
-    configuration: BrandProfileConfiguration;
-    createdAt: Date;
-  } | null;
-}
-
-export interface BrandProfileStore {
-  list: () => Promise<BrandProfileSummary[]>;
-  get: (profileId: string, versionId?: string) => Promise<BrandProfileDetail>;
-  create: (input: {
-    name: string;
-    description?: string | null;
-    isDefault?: boolean;
-    configuration: BrandProfileConfiguration;
-  }) => Promise<BrandProfileDetail>;
-  update: (input: {
-    profileId: string;
-    name?: string;
-    description?: string | null;
-    configuration: BrandProfileConfiguration;
-  }) => Promise<BrandProfileDetail>;
-  duplicate: (input: { profileId: string; name: string }) => Promise<BrandProfileDetail>;
-  setDefault: (profileId: string) => Promise<{ id: string; isDefault: boolean }>;
-  archive: (profileId: string) => Promise<{ id: string }>;
 }
 
 export interface AgendaSyncInput {
@@ -194,5 +136,5 @@ export interface AppServices {
   insertions: InsertionStore;
   office: OfficeService;
   insertion: InsertionService;
-  shortcutStore: ShortcutStore;
+  shortcutStore: ShortcutOverridesStore;
 }

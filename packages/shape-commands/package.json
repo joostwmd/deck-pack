@@ -1,5 +1,5 @@
 {
-  "name": "@deck-pack/presentation-formatting",
+  "name": "@deck-pack/shape-commands",
   "version": "0.0.0",
   "private": true,
   "type": "module",

@@ -1,9 +1,8 @@
 import { sql } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import { unitOfWork } from "@deck-pack/db";
+import { db, unitOfWork } from "@deck-pack/db";
 import { ensureMigrationsApplied } from "@deck-pack/db/test-utils/ensure-migrations";
-import { tx } from "@deck-pack/db/transaction";
 import {
   DrizzleGalleryRepository,
   GetReadyFlagDetails,
@@ -26,7 +25,7 @@ describe("assets discovery use-cases (integration)", () => {
   }, 60_000);
 
   beforeEach(async () => {
-    await tx.execute(
+    await db.execute(
       sql.raw(
         `TRUNCATE TABLE flag_variants, flag_items, shape_items, slide_items, gallery_item_names, gallery_items, files RESTART IDENTITY CASCADE`,
       ),
@@ -37,11 +36,11 @@ describe("assets discovery use-cases (integration)", () => {
     const storage = new InMemoryObjectStorage();
     const repo = new DrizzleGalleryRepository(unitOfWork);
 
-    await seedReadyShape(tx, storage, {
+    await seedReadyShape(unitOfWork, storage, {
       displayName: "Chevron",
       category: "Arrows",
     });
-    await seedPendingShape(tx, { displayName: "Draft", category: "Arrows" });
+    await seedPendingShape(unitOfWork, { displayName: "Draft", category: "Arrows" });
 
     const response = await new SearchReadyShapes(repo, storage).execute({});
 
@@ -56,13 +55,13 @@ describe("assets discovery use-cases (integration)", () => {
     const storage = new InMemoryObjectStorage();
     const repo = new DrizzleGalleryRepository(unitOfWork);
 
-    await seedReadySlide(tx, storage, {
+    await seedReadySlide(unitOfWork, storage, {
       displayName: "Title Hero",
       category: "Intro",
       aspectRatio: "16:9",
       aliases: ["title", "hero"],
     });
-    await seedReadySlide(tx, storage, {
+    await seedReadySlide(unitOfWork, storage, {
       displayName: "Closing CTA",
       category: "Closing",
       aspectRatio: "16:9",
@@ -86,7 +85,7 @@ describe("assets discovery use-cases (integration)", () => {
     const storage = new InMemoryObjectStorage();
     const repo = new DrizzleGalleryRepository(unitOfWork);
 
-    const seeded = await seedReadyFlag(tx, storage, {
+    const seeded = await seedReadyFlag(unitOfWork, storage, {
       displayName: "United States",
       code: "US",
       aliases: ["USA"],

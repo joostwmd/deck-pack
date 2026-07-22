@@ -18,6 +18,7 @@ export {
 } from "./domain/errors";
 
 export type { OrganizationRepository } from "./repositories/organization-repository";
+export { DrizzleOrganizationRepository } from "./repositories/organization-repository";
 
 export { LookupUserByEmail } from "./use-cases/lookup-user-by-email";
 export { ListOrganizations } from "./use-cases/list-organizations";

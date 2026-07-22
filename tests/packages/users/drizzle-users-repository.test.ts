@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 
 import { UnitOfWork } from "@deck-pack/db/transaction";
@@ -42,5 +43,27 @@ describe("DrizzleUsersRepository", () => {
     expect(await repo.list()).toHaveLength(1);
 
     await expect(repo.delete("missing")).rejects.toBeInstanceOf(UserNotFoundError);
+  }, 30_000);
+
+  it("isPlatformAdmin reflects user.role === admin", async () => {
+    const db = await createPgliteTestDb();
+    const uow = new UnitOfWork(db);
+    const repo = new DrizzleUsersRepository(uow);
+
+    const userId = "user-admin";
+    await db.insert(user).values({
+      id: userId,
+      name: "Platform",
+      email: "plat@integration.test.local",
+      emailVerified: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      role: "admin",
+    });
+
+    expect(await repo.isPlatformAdmin(userId)).toBe(true);
+
+    await db.update(user).set({ role: null }).where(eq(user.id, userId));
+    expect(await repo.isPlatformAdmin(userId)).toBe(false);
   }, 30_000);
 });

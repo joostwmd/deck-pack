@@ -1,15 +1,13 @@
 import { TRPCError } from "@trpc/server";
 
-import { getOrganizationMetadataById } from "@deck-pack/db/queries/getOrganizationMetadataById";
+import type { OrganizationRepository } from "@deck-pack/organization";
 import { isIndividualOrganization } from "@deck-pack/db/org-metadata";
 
-import type { Context } from "../../context";
-
 export async function requireSoloOrganizationById(
-  tx: Context["tx"],
+  organizationRepository: OrganizationRepository,
   organizationId: string,
 ): Promise<void> {
-  const org = await getOrganizationMetadataById({ tx, organizationId });
+  const org = await organizationRepository.getMetadataById(organizationId);
 
   if (!org || !isIndividualOrganization(org.metadata)) {
     throw new TRPCError({
