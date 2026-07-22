@@ -1,18 +1,26 @@
-import { OtpSignup, type OtpSignupStep } from "@deck-pack/ui/components/composite/otp-signup";
+import { OtpSignInView } from "@deck-pack/ui/components/composite/otp-sign-in-view";
+import { useOtpSignIn } from "@deck-pack/ui/hooks/use-otp-sign-in";
+import {
+  createMicrosoftSignInStrategy,
+  getMicrosoftSignInAvailability,
+} from "@deck-pack/auth/microsoft-sign-in";
+import { env } from "@deck-pack/env/web";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
-import { authClient } from "@/utils/auth";
+import { resolvePortalPostAuthDestination } from "@/pages/join/resolve-portal-post-auth";
+import { useServices } from "@/services/services-context";
+import { getAuthClient } from "@/utils/auth";
 
-const OTP_LENGTH = 6;
+const AUTH_CALLBACK_PATH = "/auth/callback";
 
 export const Route = createFileRoute("/")({
   beforeLoad: async ({ context }) => {
     const session = await context.authClient.getSession();
     if (session.data) {
       redirect({
-        to: "/account",
+        ...(await resolvePortalPostAuthDestination()),
         throw: true,
       });
     }
@@ -20,91 +28,64 @@ export const Route = createFileRoute("/")({
   component: HomeComponent,
 });
 
-function displayNameFromEmail(email: string): string {
-  const localPart = email.split("@")[0] ?? "User";
-  return localPart
-    .split(/[._-]/)
-    .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
-    .join(" ");
-}
-
 function HomeComponent() {
   const navigate = useNavigate();
+  const { auth } = useServices();
+  const [microsoftSigningIn, setMicrosoftSigningIn] = useState(false);
 
-  const [step, setStep] = useState<OtpSignupStep>("email");
-  const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState("");
-  const [sending, setSending] = useState(false);
-  const [verifying, setVerifying] = useState(false);
+  const authClient = getAuthClient();
+  const callbackURL = useMemo(() => `${window.location.origin}${AUTH_CALLBACK_PATH}`, []);
+  const microsoftAvailability = getMicrosoftSignInAvailability({
+    host: "web",
+    isNaaSupported: false,
+    clientId: env.VITE_MICROSOFT_CLIENT_ID,
+  });
+  const microsoftStrategy = createMicrosoftSignInStrategy({
+    authClient,
+    host: "web",
+    isNaaSupported: false,
+    callbackURL,
+    clientId: env.VITE_MICROSOFT_CLIENT_ID,
+  });
 
-  const handleSendCode = async () => {
-    const trimmed = email.trim().toLowerCase();
-    if (!trimmed) {
-      toast.error("Enter your email to continue");
+  const handleMicrosoftSignIn = async () => {
+    if (!microsoftStrategy) {
+      toast.error(
+        microsoftAvailability.reason ?? "Microsoft sign-in is not available in this host.",
+      );
       return;
     }
-    setSending(true);
+
+    setMicrosoftSigningIn(true);
     try {
-      const { error } = await authClient.emailOtp.sendVerificationOtp({
-        email: trimmed,
-        type: "sign-in",
-      });
-      if (error) {
-        toast.error(error.message ?? "Could not send the code. Try again in a moment.");
-        return;
+      const result = await microsoftStrategy.signIn();
+      if (!result.ok) {
+        toast.error(result.error);
       }
-      setOtp("");
-      setStep("otp");
+      // Web redirect: Better Auth navigates away once the OAuth flow starts.
+    } catch {
+      toast.error("Could not sign in with Microsoft. Try again or use email OTP.");
     } finally {
-      setSending(false);
+      setMicrosoftSigningIn(false);
     }
   };
 
-  const handleVerify = async () => {
-    if (otp.length < OTP_LENGTH) {
-      toast.error(`Enter all ${String(OTP_LENGTH)} digits.`);
-      return;
-    }
-    const trimmed = email.trim().toLowerCase();
-    setVerifying(true);
-    try {
-      const { error } = await authClient.signIn.emailOtp({
-        email: trimmed,
-        otp,
-        name: displayNameFromEmail(trimmed),
-      });
-      if (error) {
-        toast.error(error.message ?? "That code did not work.");
-        return;
-      }
-      toast.success("You’re signed in");
-      void navigate({ to: "/account" });
-    } finally {
-      setVerifying(false);
-    }
-  };
+  const otpProps = useOtpSignIn({
+    auth: {
+      sendVerificationOtp: auth.sendVerificationOtp,
+      signInWithEmailOtp: auth.signInWithEmailOtp,
+    },
+    onSuccess: async () => {
+      void navigate(await resolvePortalPostAuthDestination());
+    },
+    onMicrosoftSignIn: microsoftStrategy ? () => void handleMicrosoftSignIn() : undefined,
+    microsoftDisabled: !microsoftAvailability.available,
+    microsoftDisabledReason: microsoftAvailability.reason ?? undefined,
+    microsoftSigningIn,
+    emailHelperText: "We'll email a one-time code to this address.",
+    titleEmailStep: "Sign in to DeckPack",
+    descriptionEmailStep: "We'll email you a one-time code. It expires in a few minutes.",
+  });
 
-  return (
-    <div className="container flex min-h-[min(100dvh,48rem)] flex-col items-center justify-center px-2 py-8">
-      <OtpSignup
-        step={step}
-        email={email}
-        onEmailChange={setEmail}
-        otp={otp}
-        onOtpChange={setOtp}
-        onSubmitEmail={() => void handleSendCode()}
-        onSubmitOtp={() => void handleVerify()}
-        onBack={() => {
-          setStep("email");
-          setOtp("");
-        }}
-        sending={sending}
-        verifying={verifying}
-        otpLength={OTP_LENGTH}
-        emailHelperText="We’ll email a one-time code to this address."
-        titleEmailStep="Sign in to DeckPack"
-        descriptionEmailStep="We’ll email you a one-time code. It expires in a few minutes."
-      />
-    </div>
-  );
+  return <OtpSignInView {...otpProps} />;
 }

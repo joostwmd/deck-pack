@@ -14,13 +14,15 @@ export type CreateTrpcBrowserBundleOptions = {
   /** Full tRPC HTTP URL, e.g. `${env.VITE_SERVER_URL}/trpc` */
   trpcUrl: string;
   credentials?: RequestCredentials;
+  /** Optional bearer session token for non-cookie clients (e.g. Office add-in). */
+  getAuthorizationHeader?: () => string | null;
   onQueryError?: TrpcQueryCacheErrorHandler;
 };
 
 export function createTrpcBrowserBundle<TRouter extends AnyRouter>(
   options: CreateTrpcBrowserBundleOptions,
 ) {
-  const { trpcUrl, credentials = "include", onQueryError } = options;
+  const { trpcUrl, credentials = "include", getAuthorizationHeader, onQueryError } = options;
 
   const queryClient = new QueryClient({
     queryCache: new QueryCache({
@@ -36,8 +38,16 @@ export function createTrpcBrowserBundle<TRouter extends AnyRouter>(
         url: trpcUrl,
         transformer: superjson,
         fetch(url: string, opts: RequestInit) {
+          const authorization = getAuthorizationHeader?.();
+          const headers = new Headers(opts.headers);
+
+          if (authorization) {
+            headers.set("Authorization", authorization);
+          }
+
           return fetch(url, {
             ...opts,
+            headers,
             credentials,
           });
         },

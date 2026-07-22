@@ -9,62 +9,100 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarSeparator,
 } from "@deck-pack/ui/components/system/sidebar";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Building2, UserRound, Users } from "lucide-react";
+
+import {
+  ORG_NAV_GROUPS,
+  ORG_SECONDARY_NAV_ITEMS,
+  isPortalNavItemActive,
+  type OrgNavGroup,
+  type OrgNavItem,
+} from "@/config/portal-nav";
+import { useCan } from "@/auth/use-can";
+
+function filterGroupItems(
+  group: OrgNavGroup,
+  can: (permissions: NonNullable<OrgNavItem["permissions"]>) => boolean,
+  isLoading: boolean,
+): OrgNavItem[] {
+  if (group.permissions) {
+    if (isLoading || !can(group.permissions)) {
+      return [];
+    }
+  }
+
+  return group.items.filter((item) => {
+    if (!item.permissions) {
+      return true;
+    }
+    if (isLoading) {
+      return false;
+    }
+    return can(item.permissions);
+  });
+}
 
 export function OrgSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { can, isLoading } = useCan();
+
+  const visibleGroups = ORG_NAV_GROUPS.map((group) => ({
+    ...group,
+    items: filterGroupItems(group, can, isLoading),
+  })).filter((group) => group.items.length > 0);
 
   return (
     <Sidebar>
-      <SidebarHeader className="p-3 text-sm font-semibold">Organization</SidebarHeader>
+      <SidebarHeader className="p-3 text-sm font-semibold">Team workspace</SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Team</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  isActive={pathname === "/org/dashboard" || pathname === "/org"}
-                  render={<Link to="/org/dashboard" />}
-                >
-                  <Building2 className="size-4" />
-                  <span>Dashboard</span>
+          <SidebarMenu>
+            {visibleGroups.map((group) => (
+              <SidebarMenuItem key={group.title}>
+                <SidebarMenuButton className="pointer-events-none font-medium">
+                  {group.title}
                 </SidebarMenuButton>
+                <SidebarMenuSub>
+                  {group.items.map((item) => (
+                    <SidebarMenuSubItem key={item.to}>
+                      <SidebarMenuSubButton
+                        render={<Link to={item.to} />}
+                        isActive={isPortalNavItemActive(pathname, item.to)}
+                      >
+                        <span>{item.title}</span>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                  ))}
+                </SidebarMenuSub>
               </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  isActive={pathname === "/org/members"}
-                  render={<Link to="/org/members" />}
-                >
-                  <Users className="size-4" />
-                  <span>Members</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
+            ))}
+          </SidebarMenu>
         </SidebarGroup>
         <SidebarSeparator className="mx-2" />
         <SidebarGroup>
           <SidebarGroupLabel>Also</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  isActive={pathname === "/account"}
-                  render={<Link to="/account" />}
-                >
-                  <UserRound className="size-4" />
-                  <span>Personal account</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {ORG_SECONDARY_NAV_ITEMS.map((item) => (
+                <SidebarMenuItem key={item.to}>
+                  <SidebarMenuButton
+                    isActive={isPortalNavItemActive(pathname, item.to)}
+                    render={<Link to={item.to} />}
+                  >
+                    <span>{item.title}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="p-2 text-xs text-muted-foreground">Org workspace</SidebarFooter>
+      <SidebarFooter className="p-2 text-xs text-muted-foreground">Team workspace</SidebarFooter>
     </Sidebar>
   );
 }

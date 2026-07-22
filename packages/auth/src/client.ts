@@ -1,31 +1,70 @@
 import { createAuthClient as createReactAuthClient } from "better-auth/react";
-import { adminClient, emailOTPClient, organizationClient } from "better-auth/client/plugins";
-import { ac, organizationOwner, organizationAdmin, organizationMember } from "./utils/rbac";
+import {
+  adminClient,
+  emailOTPClient,
+  inferAdditionalFields,
+  organizationClient,
+} from "better-auth/client/plugins";
+import { ac, organizationOwner, organizationAdmin, organizationMember, organizationAddinUser, organizationLibraryManager } from "./utils/rbac";
 
-/**
- * Browser client for the internal ops dashboard (`/api/auth/ops`).
- */
-export function createOpsAuthClient(config: { baseURL: string }) {
-  return createReactAuthClient({
-    baseURL: config.baseURL,
-    basePath: "/api/auth/ops",
-    plugins: [emailOTPClient(), adminClient()],
-  });
+export type BearerSessionStore = {
+  getToken: () => string | null;
+  setToken: (token: string) => void;
+  clearToken: () => void;
+};
+
+export type AuthClientOptions = {
+  baseURL: string;
+  /** When provided, auth requests carry a Better Auth bearer session (Office add-in). */
+  bearer?: BearerSessionStore;
+};
+
+export function captureBearerTokenFromResponse(
+  store: BearerSessionStore,
+  response: Response,
+): void {
+  const headerToken = response.headers.get("set-auth-token");
+  if (headerToken) {
+    store.setToken(headerToken);
+  }
 }
 
 /**
- * Browser client for customer-facing apps — portal, addins, etc. (`/api/auth/app`).
+ * Browser client for all DeckPack frontends (ops, portal, add-in).
  */
-export function createAppAuthClient(config: { baseURL: string }) {
+export function createAuthClient(config: AuthClientOptions) {
+  const { baseURL, bearer: bearerStore } = config;
+
   return createReactAuthClient({
-    baseURL: config.baseURL,
-    basePath: "/api/auth/app",
+    baseURL,
+    basePath: "/api/auth",
     plugins: [
       emailOTPClient(),
+      adminClient(),
       organizationClient({
         ac,
-        roles: { organizationOwner, organizationAdmin, organizationMember },
+        roles: { organizationOwner, organizationAdmin, organizationMember, organizationAddinUser, organizationLibraryManager },
+      }),
+      inferAdditionalFields({
+        session: {
+          workspace: {
+            type: ["solo", "team"],
+          },
+        },
       }),
     ],
+    fetchOptions: bearerStore
+      ? {
+          auth: {
+            type: "Bearer",
+            token: () => bearerStore.getToken() ?? "",
+          },
+          onSuccess: (ctx) => {
+            captureBearerTokenFromResponse(bearerStore, ctx.response);
+          },
+        }
+      : undefined,
   });
 }
+
+export type AuthClient = ReturnType<typeof createAuthClient>;

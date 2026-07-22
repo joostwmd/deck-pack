@@ -1,6 +1,6 @@
 {
   "$schema": "https://ui.shadcn.com/schema.json",
-  "style": "base-lyra",
+  "style": "base-luma",
   "rsc": false,
   "tsx": true,
   "tailwind": {
@@ -10,15 +10,18 @@
     "cssVariables": true,
     "prefix": ""
   },
-  "iconLibrary": "lucide",
+  "iconLibrary": "phosphor",
+  "rtl": false,
+  "menuColor": "default",
+  "menuAccent": "subtle",
   "aliases": {
     "components": "@deck-pack/ui/components/system",
     "utils": "@deck-pack/ui/lib/utils",
-    "hooks": "@deck-pack/ui/hooks",
+    "ui": "@deck-pack/ui/components/system",
     "lib": "@deck-pack/ui/lib",
-    "ui": "@deck-pack/ui/components/system"
+    "hooks": "@deck-pack/ui/hooks"
   },
-  "menuColor": "default",
-  "menuAccent": "subtle",
-  "registries": {}
+  "registries": {
+    "@diceui": "https://diceui.com/r/{style}/{name}.json"
+  }
 }

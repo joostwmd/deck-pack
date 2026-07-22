@@ -6,15 +6,18 @@ import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import z from "zod";
 
-import { authClient } from "@/utils/auth";
+import { portalHomePath, workspaceFromSession } from "@/config/portal-nav";
+import { useServices } from "@/services/services-context";
+import { trpcClient } from "@/utils/trpc";
 
-import Loader from "./loader";
+import { Loader } from "@deck-pack/ui/components/system/loader";
 
 export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () => void }) {
   const navigate = useNavigate({
     from: "/",
   });
-  const { isPending } = authClient.useSession();
+  const { auth } = useServices();
+  const { isPending } = auth.useSession();
 
   const form = useForm({
     defaultValues: {
@@ -22,16 +25,20 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
       password: "",
     },
     onSubmit: async ({ value }) => {
-      await authClient.signIn.email(
+      await auth.signInWithEmail(
         {
           email: value.email,
           password: value.password,
         },
         {
-          onSuccess: () => {
-            void navigate({
-              to: "/account",
-            });
+          onSuccess: async () => {
+            const session = await auth.getSession();
+            let workspace = workspaceFromSession(session.data?.session);
+            if (session.data?.session?.activeOrganizationId) {
+              const profile = await trpcClient.members.getOrganizationProfile.query();
+              workspace = profile.workspace ?? workspace;
+            }
+            void navigate({ to: portalHomePath(workspace) });
             toast.success("Sign in successful");
           },
           onError: (error) => {

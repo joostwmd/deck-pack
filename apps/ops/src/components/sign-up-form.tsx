@@ -6,15 +6,16 @@ import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import z from "zod";
 
-import { authClient } from "@/utils/auth";
+import { useServices } from "@/services/services-context";
 
-import Loader from "./loader";
+import { Loader } from "@deck-pack/ui/components/system/loader";
 
 export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () => void }) {
   const navigate = useNavigate({
     from: "/",
   });
-  const { isPending } = authClient.useSession();
+  const { auth } = useServices();
+  const { isPending } = auth.useSession();
 
   const form = useForm({
     defaultValues: {
@@ -23,7 +24,7 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
       name: "",
     },
     onSubmit: async ({ value }) => {
-      await authClient.signUp.email(
+      await auth.signUpWithEmail(
         {
           email: value.email,
           password: value.password,

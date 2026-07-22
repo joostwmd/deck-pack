@@ -1,0 +1,106 @@
+import { auth } from "@deck-pack/auth/server";
+import { getSessionCookieName } from "@deck-pack/auth/session-cookie";
+import { afterAll, describe, expect, it } from "vitest";
+
+import {
+  cleanupSignedSession,
+  createSignedSessionFixture,
+} from "../test-utils/create-signed-session-fixture";
+import { createApp } from "@deck-pack/api/server";
+
+describe("bearer session transport", () => {
+  const createdUserIds: string[] = [];
+  const cookieName = getSessionCookieName(process.env.BETTER_AUTH_URL ?? "http://localhost");
+
+  afterAll(async () => {
+    for (const userId of createdUserIds) {
+      await cleanupSignedSession(userId);
+    }
+  });
+
+  it("resolves auth sessions from cookies and Authorization bearer tokens", async () => {
+    const fixture = await createSignedSessionFixture({
+      cookieName,
+      emailPrefix: "bearer",
+    });
+    createdUserIds.push(fixture.userId);
+
+    const cookieSession = await auth.api.getSession({
+      headers: new Headers({
+        Cookie: fixture.cookieHeader,
+      }),
+    });
+
+    expect(cookieSession?.user.email).toBe(fixture.email);
+
+    const app = createApp();
+    const bearerResponse = await app.request("/api/auth/get-session", {
+      headers: {
+        Authorization: `Bearer ${fixture.bearerToken}`,
+        Origin: process.env.CORS_ORIGINS!.split(",")[0]!.trim(),
+      },
+    });
+
+    expect(bearerResponse.status).toBe(200);
+    expect(bearerResponse.headers.get("Access-Control-Allow-Origin")).toBeTruthy();
+    const bearerBody = (await bearerResponse.json()) as { user?: { email?: string } } | null;
+    expect(bearerBody?.user?.email).toBe(fixture.email);
+  });
+
+  it("reaches a protected tRPC procedure with bearer auth", async () => {
+    const fixture = await createSignedSessionFixture({
+      cookieName,
+      emailPrefix: "trpc-bearer",
+    });
+    createdUserIds.push(fixture.userId);
+
+    const app = createApp();
+    const response = await app.request("/trpc/privateData", {
+      headers: {
+        Authorization: `Bearer ${fixture.bearerToken}`,
+      },
+    });
+
+    expect(response.status, await response.clone().text()).toBe(200);
+    const body = (await response.json()) as {
+      result?: {
+        data?: {
+          json?: { message?: string; user?: { id?: string; email?: string } };
+        };
+      };
+    };
+
+    expect(body.result?.data?.json?.message).toBe("This is private");
+    expect(body.result?.data?.json?.user?.email).toBe(fixture.email);
+  });
+
+  it("resolves cookie sessions through the unified auth handler", async () => {
+    const fixture = await createSignedSessionFixture({
+      cookieName,
+      emailPrefix: "cookie-session",
+    });
+    createdUserIds.push(fixture.userId);
+
+    const cookieSession = await auth.api.getSession({
+      headers: new Headers({
+        Cookie: fixture.cookieHeader,
+      }),
+    });
+
+    expect(cookieSession?.user.email).toBe(fixture.email);
+
+    const app = createApp();
+    const allowedOrigin = process.env.CORS_ORIGINS!.split(",")[0]!.trim();
+    const response = await app.request("/api/auth/get-session", {
+      headers: {
+        Cookie: fixture.cookieHeader,
+        Origin: allowedOrigin,
+      },
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("Access-Control-Allow-Origin")).toBe(allowedOrigin);
+    const body = (await response.json()) as { user?: { email?: string } } | null;
+    expect(body?.user?.email).toBe(fixture.email);
+  });
+});

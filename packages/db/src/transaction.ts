@@ -1,60 +1,72 @@
 import { AsyncLocalStorage } from "node:async_hooks";
+
+import type { ExtractTablesWithRelations } from "drizzle-orm/relations";
+import type { PgDatabase } from "drizzle-orm/pg-core";
 import type { PgTransaction } from "drizzle-orm/pg-core";
-import type { PostgresJsQueryResultHKT } from "drizzle-orm/postgres-js";
-import { db } from "./index";
+import type { NodePgDatabase } from "drizzle-orm/node-postgres";
+import type { NodePgQueryResultHKT } from "drizzle-orm/node-postgres";
 
-export type Transaction = PgTransaction<PostgresJsQueryResultHKT, typeof import("./schema"), any>;
+import * as schema from "./schema";
 
-const transactionStorage = new AsyncLocalStorage<Transaction>();
+export type Schema = typeof schema;
+export type Database = NodePgDatabase<Schema>;
+export type Transaction = PgTransaction<
+  NodePgQueryResultHKT,
+  Schema,
+  ExtractTablesWithRelations<Schema>
+>;
 
-/**
- * Transaction handle: inside `withTransaction`, delegates to the active Drizzle transaction;
- * otherwise delegates to the root `db` so fluent builders like `tx.select().from(...)` work.
- */
-export const tx = new Proxy({} as Transaction, {
-  get(_target, prop) {
-    const activeTransaction = transactionStorage.getStore();
+export type TransactionOptions = {
+  isolationLevel?: "read committed" | "repeatable read" | "serializable";
+};
 
-    if (activeTransaction) {
-      // Already in transaction, use it directly
-      return activeTransaction[prop as keyof Transaction];
-    }
+type DbLike = PgDatabase<NodePgQueryResultHKT, Schema>;
 
-    // Outside `withTransaction`, Drizzle query builders must chain synchronously
-    // (e.g. `tx.select().from(...)`). Delegate to the root client — do not return
-    // a Promise from `select()`/`insert()` or `.from` breaks.
+export class UnitOfWork {
+  private readonly transactionStorage = new AsyncLocalStorage<Transaction>();
 
-    // For transaction-specific methods, delegate to a real transaction
-    if (prop === "transaction") {
-      return db.transaction.bind(db);
-    }
+  constructor(private readonly db: DbLike) {}
 
-    // Other properties (like rollback, setTransaction) only work within transactions
-    if (prop === "rollback" || prop === "setTransaction") {
-      return () => {
-        throw new Error(`${String(prop)} can only be called within an active transaction`);
-      };
-    }
-
-    // Default fallback
-    return (db as any)[prop];
-  },
-});
-
-/**
- * Execute a function within a database transaction.
- * Nested calls will reuse the same transaction.
- */
-export async function withTransaction<T>(fn: () => Promise<T>): Promise<T> {
-  const activeTransaction = transactionStorage.getStore();
-
-  if (activeTransaction) {
-    // Already in transaction, just execute
-    return fn();
+  getActiveTransaction(): Transaction | undefined {
+    return this.transactionStorage.getStore();
   }
 
-  // Start new transaction
-  return db.transaction(async (transaction) => {
-    return transactionStorage.run(transaction, fn);
-  });
+  getDb(): Transaction | DbLike {
+    return this.transactionStorage.getStore() ?? this.db;
+  }
+
+  async withTransaction<T>(fn: () => Promise<T>, options?: TransactionOptions): Promise<T> {
+    const active = this.transactionStorage.getStore();
+
+    if (active) {
+      if (options?.isolationLevel) {
+        throw new Error("Cannot request an isolation level for a transaction already in progress");
+      }
+      return fn();
+    }
+
+    return this.db.transaction(
+      (transaction) => this.transactionStorage.run(transaction, fn),
+      options?.isolationLevel ? { isolationLevel: options.isolationLevel } : undefined,
+    );
+  }
+}
+
+let defaultUnitOfWork: UnitOfWork | undefined;
+
+/** Called once from `index.ts` to wire the production UnitOfWork instance. */
+export function bindUnitOfWork(unitOfWork: UnitOfWork): void {
+  defaultUnitOfWork = unitOfWork;
+}
+
+function requireUnitOfWork(): UnitOfWork {
+  if (!defaultUnitOfWork) {
+    throw new Error("UnitOfWork is not initialized. Import from @deck-pack/db instead.");
+  }
+  return defaultUnitOfWork;
+}
+
+/** @deprecated Prefer `unitOfWork.withTransaction`. Kept for incremental domain migration. */
+export async function withTransaction<T>(fn: () => Promise<T>): Promise<T> {
+  return requireUnitOfWork().withTransaction(fn);
 }

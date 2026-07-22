@@ -1,13 +1,9 @@
-import { env } from "@deck-pack/env/server";
-import { drizzle } from "drizzle-orm/node-postgres";
+export { createDb, db } from "./client";
+export type { Database, Schema, Transaction, TransactionOptions } from "./transaction";
+export { bindUnitOfWork, UnitOfWork, withTransaction } from "./transaction";
 
-import * as schema from "./schema";
+import { db } from "./client";
+import { bindUnitOfWork, UnitOfWork } from "./transaction";
 
-export function createDb() {
-  return drizzle(env.DATABASE_URL, { schema });
-}
-
-export const db = createDb();
-
-export { tx } from "./transaction";
-export type { Transaction } from "./transaction";
+export const unitOfWork = new UnitOfWork(db);
+bindUnitOfWork(unitOfWork);

@@ -42,8 +42,15 @@ resource "azurerm_linux_web_app" "api" {
       BETTER_AUTH_SECRET                  = "@Microsoft.KeyVault(SecretUri=${var.better_auth_secret_uri})"
       EMAIL_API_KEY                       = "@Microsoft.KeyVault(SecretUri=${var.email_api_key_secret_uri})"
       EMAIL_FROM                          = "@Microsoft.KeyVault(SecretUri=${var.email_from_secret_uri})"
+      PEXELS_API_KEY                      = "@Microsoft.KeyVault(SecretUri=${var.pexels_api_key_secret_uri})"
+      BRANDFETCH_API_KEY                  = "@Microsoft.KeyVault(SecretUri=${var.brandfetch_api_key_secret_uri})"
+      BRANDFETCH_CLIENT_ID                = "@Microsoft.KeyVault(SecretUri=${var.brandfetch_client_id_secret_uri})"
+      NOUN_PROJECT_API_KEY                = "@Microsoft.KeyVault(SecretUri=${var.noun_project_api_key_secret_uri})"
+      NOUN_PROJECT_API_SECRET             = "@Microsoft.KeyVault(SecretUri=${var.noun_project_api_secret_secret_uri})"
       BETTER_AUTH_URL                     = "https://${var.api_app_name}.azurewebsites.net"
       CORS_ORIGINS                        = join(",", var.cors_origins)
+      OPS_ORIGINS                         = join(",", var.ops_origins)
+      PORTAL_APP_URL                      = var.portal_app_url
     },
     var.storage_account_name != null && var.storage_container_name != null ? {
       AZURE_STORAGE_ACCOUNT_NAME = var.storage_account_name

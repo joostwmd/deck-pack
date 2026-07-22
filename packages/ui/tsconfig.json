@@ -4,6 +4,7 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "skipLibCheck": true,
     "paths": {
       "@deck-pack/ui/*": ["./src/*"]
     }

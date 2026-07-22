@@ -1,19 +1,35 @@
-import type { createDb } from "@deck-pack/db";
+import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import * as schema from "@deck-pack/db/schema/auth";
-import { APIError, betterAuth, type BetterAuthOptions } from "better-auth";
+import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { admin, emailOTP, type Member } from "better-auth/plugins";
+import { admin, bearer, emailOTP, testUtils, type Member } from "better-auth/plugins";
 import { organization } from "better-auth/plugins";
 import { createAuthMiddleware } from "better-auth/api";
-import { organizationOwner, organizationAdmin, organizationMember, ac } from "./utils/rbac";
+import {
+  organizationOwner,
+  organizationAdmin,
+  organizationMember,
+  organizationAddinUser,
+  organizationLibraryManager,
+  ac,
+} from "./utils/rbac";
+import { createMicrosoftIdTokenVerifier } from "./microsoft-id-token";
+import { assertOpsOtpAllowed, emailMatchesAdminDomain } from "./ops-soft-gate";
+import { workspaceFromOrganizationMetadata, type WorkspaceKind } from "./workspace";
 
-const ADMIN_EMAIL_DOMAIN = "code.berlin";
-
-export type AuthDb = ReturnType<typeof createDb>;
+/** Avoid importing `@deck-pack/db` entry (loads `@deck-pack/env` / DATABASE_URL). */
+export type AuthDb = NodePgDatabase<typeof schema>;
 
 export type OtpEmailType = "sign-in" | "email-verification" | "forget-password" | "change-email";
 
 export type SendOtp = (args: { email: string; otp: string; type: OtpEmailType }) => Promise<void>;
+
+export type SendOrganizationInvitation = (args: {
+  to: string;
+  organizationName: string;
+  inviterName: string;
+  inviteLink: string;
+}) => Promise<void>;
 
 export interface AuthDeps {
   db: AuthDb;
@@ -21,16 +37,52 @@ export interface AuthDeps {
   baseURL: string;
   trustedOrigins: string[];
   sendOtp: SendOtp;
+  sendOrganizationInvitation: SendOrganizationInvitation;
+  /** Portal origin for invite links (no trailing slash). */
+  portalAppUrl: string;
+  adminEmailDomain: string;
+  opsOrigins: string[];
+  microsoftOAuth?: {
+    clientId: string;
+    clientSecret: string;
+  };
+  /**
+   * When true, registers Better Auth `testUtils({ captureOTP: true })`.
+   * For test/auth factories only — never enable in production server configs.
+   */
+  enableTestUtils?: boolean;
+}
+
+/**
+ * Runtime DB helpers — lazy so `schema.ts` / `auth:generate` can import createAuth
+ * without loading `@deck-pack/env` (which requires DATABASE_URL etc.).
+ */
+async function loadDbRuntime() {
+  const [
+    { unitOfWork },
+    { DrizzleBillingRepository },
+    { DrizzleOrganizationRepository },
+    { activateSeatForUser, findPendingOrgIntentByEmail },
+  ] = await Promise.all([
+    import("@deck-pack/db"),
+    import("@deck-pack/billing"),
+    import("@deck-pack/organization"),
+    import("./session-db"),
+  ]);
+  const billingRepository = new DrizzleBillingRepository(unitOfWork);
+  const organizationRepository = new DrizzleOrganizationRepository(unitOfWork, billingRepository);
+  return { unitOfWork, organizationRepository, activateSeatForUser, findPendingOrgIntentByEmail };
 }
 
 function baseAuthOptions(
   deps: AuthDeps,
   overrides: Pick<
     BetterAuthOptions,
-    "basePath" | "advanced" | "plugins" | "hooks" | "databaseHooks"
+    "plugins" | "hooks" | "databaseHooks" | "socialProviders" | "account"
   >,
 ): BetterAuthOptions {
   const { db, secret, baseURL, trustedOrigins } = deps;
+  const secureCookies = baseURL.startsWith("https://");
 
   return {
     database: drizzleAdapter(db, {
@@ -40,72 +92,194 @@ function baseAuthOptions(
     trustedOrigins,
     secret,
     baseURL,
+    basePath: "/api/auth",
+    advanced: {
+      defaultCookieAttributes: {
+        sameSite: secureCookies ? "none" : "lax",
+        secure: secureCookies,
+        httpOnly: true,
+      },
+      cookiePrefix: "deckpack",
+    },
     emailAndPassword: {
       enabled: false,
+    },
+    session: {
+      additionalFields: {
+        workspace: {
+          type: ["solo", "team"],
+          required: false,
+          input: false,
+          returned: true,
+        },
+      },
     },
     ...overrides,
   } satisfies BetterAuthOptions;
 }
 
-const organizationPlugin = organization({
-  ac: ac,
-  roles: { organizationOwner, organizationAdmin, organizationMember },
-  allowUserToCreateOrganization: false,
-  organizationLimit: 1,
-  sendInvitationEmail: async (data) => {
-    console.log("sendInvitationEmail", data);
-    //await sendInvitationEmail(data);
-  },
-});
-
-/** Populates active org on session when user is a member (shared by ops + app). */
+/** Populates active org on session when user is a member; activates pending seats on login. */
 async function sessionCreateAfter(
   session: { id: string; userId: string },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Better Auth internal context
   ctx: any,
 ) {
-  const member = (await ctx!.context.adapter.findOne({
+  // `testUtils().login()` creates sessions without a request context.
+  const adapter = ctx?.context?.adapter;
+  if (!adapter) {
+    return;
+  }
+  const { unitOfWork, organizationRepository, activateSeatForUser, findPendingOrgIntentByEmail } =
+    await loadDbRuntime();
+
+  const userRecord = (await adapter.findOne({
+    model: "user",
+    where: [{ field: "id", value: session.userId }],
+  })) as { email?: string } | null;
+
+  if (userRecord?.email) {
+    await activateSeatForUser(unitOfWork, {
+      userId: session.userId,
+      email: userRecord.email,
+    }).catch(() => {
+      // Seat activation is best-effort; membership may still apply below.
+    });
+  }
+
+  let member = (await adapter.findOne({
     model: "member",
     where: [{ field: "userId", value: session.userId }],
-  })) as Member;
+  })) as Member | null;
 
-  console.log("member", member);
+  // Only bootstrap a personal org when there is no membership and no pending
+  // invite/seat (pending intent should win — user joins that org instead).
+  if (!member && userRecord?.email) {
+    const pendingIntent = await findPendingOrgIntentByEmail(unitOfWork, {
+      email: userRecord.email,
+    }).catch(() => null);
+
+    if (!pendingIntent) {
+      const bootstrap = await organizationRepository
+        .bootstrapPersonalOrganization({
+          userId: session.userId,
+          email: userRecord.email,
+          name: userRecord.email.split("@")[0],
+        })
+        .catch((error: unknown) => {
+          console.error("bootstrapPersonalOrganization on session failed", {
+            userId: session.userId,
+            error,
+          });
+          return null;
+        });
+
+      if (bootstrap?.ok) {
+        member = (await adapter.findOne({
+          model: "member",
+          where: [{ field: "userId", value: session.userId }],
+        })) as Member | null;
+      }
+    }
+  }
+
   if (member) {
-    const org = await ctx!.context.adapter.findOne({
+    const org = (await adapter.findOne({
       model: "organization",
       where: [{ field: "id", value: member.organizationId }],
-    });
-    console.log("organization", org);
-    await ctx!.context.adapter.update({
+    })) as { metadata?: string | null } | null;
+
+    const workspace: WorkspaceKind | null = workspaceFromOrganizationMetadata(org?.metadata);
+
+    await adapter.update({
       model: "session",
       where: [{ field: "id", value: session.id }],
       update: {
         activeOrganizationId: member.organizationId,
-        role: member.role,
       },
     });
+
+    if (workspace) {
+      await adapter
+        .update({
+          model: "session",
+          where: [{ field: "id", value: session.id }],
+          update: { workspace },
+        })
+        .catch((error: unknown) => {
+          console.error("Failed to set session.workspace (run migration 0009_session_workspace?)", {
+            sessionId: session.id,
+            error,
+          });
+        });
+    }
   }
 }
 
 /**
- * Internal ops / admin sign-in. Restricted to @code.berlin; users promoted to
- * platform `admin` on first sign-up.
+ * Unified Better Auth for ops, portal, and add-in.
+ * Admin promotion is domain-only; ops OTP is soft-gated by Origin.
  */
-export function createOpsAuth(deps: AuthDeps) {
-  const { sendOtp } = deps;
+export function createAuth(deps: AuthDeps) {
+  const {
+    sendOtp,
+    sendOrganizationInvitation,
+    portalAppUrl,
+    adminEmailDomain,
+    opsOrigins,
+    microsoftOAuth,
+  } = deps;
+
+  const portalOrigin = portalAppUrl.replace(/\/$/, "");
+
+  const organizationPlugin = organization({
+    ac: ac,
+    roles: {
+      organizationOwner,
+      organizationAdmin,
+      organizationMember,
+      organizationAddinUser,
+      organizationLibraryManager,
+    },
+    allowUserToCreateOrganization: false,
+    organizationLimit: 1,
+    sendInvitationEmail: async (data) => {
+      await sendOrganizationInvitation({
+        to: data.email,
+        organizationName: data.organization.name,
+        inviterName: data.inviter.user.name,
+        inviteLink: `${portalOrigin}/accept-invitation/${data.id}`,
+      });
+    },
+  });
 
   return betterAuth(
     baseAuthOptions(deps, {
-      basePath: "/api/auth/ops",
-      advanced: {
-        defaultCookieAttributes: {
-          sameSite: "none",
-          secure: true,
-          httpOnly: true,
-        },
-        cookiePrefix: "ops",
-      },
+      ...(microsoftOAuth
+        ? {
+            socialProviders: {
+              microsoft: {
+                clientId: microsoftOAuth.clientId,
+                clientSecret: microsoftOAuth.clientSecret,
+                tenantId: "common",
+                prompt: "select_account",
+                verifyIdToken: createMicrosoftIdTokenVerifier({
+                  clientId: microsoftOAuth.clientId,
+                }),
+                mapProfileToUser: (profile: { email?: string; preferred_username?: string }) => ({
+                  email: profile.email ?? profile.preferred_username,
+                }),
+              },
+            },
+            account: {
+              accountLinking: {
+                enabled: true,
+                trustedProviders: ["microsoft"],
+              },
+            },
+          }
+        : {}),
       plugins: [
+        ...(deps.enableTestUtils ? [testUtils({ captureOTP: true })] : []),
         emailOTP({
           async sendVerificationOTP({ email, otp, type }) {
             await sendOtp({ email, otp, type });
@@ -115,33 +289,27 @@ export function createOpsAuth(deps: AuthDeps) {
           impersonationSessionDuration: 1000 * 60 * 60 * 24 * 30,
         }),
         organizationPlugin,
+        bearer({ requireSignature: true }),
       ],
       hooks: {
         before: createAuthMiddleware(async (ctx) => {
-          if (ctx.path === "/email-otp/send-verification-otp") {
-            const email = ctx.body?.email as string;
-            if (!email?.endsWith(`@${ADMIN_EMAIL_DOMAIN}`)) {
-              throw new APIError("BAD_REQUEST", {
-                message: `Email must use the @${ADMIN_EMAIL_DOMAIN} domain.`,
-              });
-            }
-          }
-          if (ctx.path === "/sign-in/email-otp") {
-            const email = ctx.body?.email as string;
-            if (!email?.endsWith(`@${ADMIN_EMAIL_DOMAIN}`)) {
-              throw new APIError("BAD_REQUEST", {
-                message: `Email must use the @${ADMIN_EMAIL_DOMAIN} domain.`,
-              });
-            }
-          }
+          const email =
+            (ctx.body?.email as string | undefined) ?? (ctx.body?.identifier as string | undefined);
+
+          assertOpsOtpAllowed({
+            path: ctx.path,
+            email,
+            headers: ctx.request?.headers ?? new Headers(),
+            opsOrigins,
+            adminEmailDomain,
+          });
         }),
       },
       databaseHooks: {
         user: {
           create: {
             after: async (user, ctx) => {
-              if (user.email.endsWith(`@${ADMIN_EMAIL_DOMAIN}`)) {
-                console.log("promoting to admin", user.id);
+              if (emailMatchesAdminDomain(user.email, adminEmailDomain)) {
                 await ctx?.context.adapter.update({
                   model: "user",
                   where: [{ field: "id", value: user.id }],
@@ -150,49 +318,38 @@ export function createOpsAuth(deps: AuthDeps) {
                   },
                 });
               }
+
+              const { unitOfWork, organizationRepository, findPendingOrgIntentByEmail } =
+                await loadDbRuntime();
+
+              const pendingIntent = await findPendingOrgIntentByEmail(unitOfWork, {
+                email: user.email,
+              }).catch(() => null);
+
+              // Pending invite/seat wins — do not create a personal org that would
+              // block joining the company workspace.
+              if (pendingIntent) {
+                return;
+              }
+
+              await organizationRepository
+                .bootstrapPersonalOrganization({
+                  userId: user.id,
+                  email: user.email,
+                  name: user.name,
+                })
+                .catch((error: unknown) => {
+                  console.error("bootstrapPersonalOrganization failed", {
+                    userId: user.id,
+                    error,
+                  });
+                });
             },
           },
         },
         session: {
           create: {
-            //after: sessionCreateAfter,
-          },
-        },
-      },
-    }),
-  );
-}
-
-/**
- * Customer-facing app auth (portal, addins, etc.). No domain restriction, no
- * admin plugin.
- */
-export function createAppAuth(deps: AuthDeps) {
-  const { sendOtp } = deps;
-
-  return betterAuth(
-    baseAuthOptions(deps, {
-      basePath: "/api/auth/app",
-      advanced: {
-        defaultCookieAttributes: {
-          sameSite: "none",
-          secure: true,
-          httpOnly: true,
-        },
-        cookiePrefix: "app",
-      },
-      plugins: [
-        emailOTP({
-          async sendVerificationOTP({ email, otp, type }) {
-            await sendOtp({ email, otp, type });
-          },
-        }),
-        organizationPlugin,
-      ],
-      databaseHooks: {
-        session: {
-          create: {
-            after: sessionCreateAfter,
+            after: (session, ctx) => sessionCreateAfter(session, ctx),
           },
         },
       },

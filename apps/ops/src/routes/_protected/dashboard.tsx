@@ -1,9 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/_protected/dashboard")({
-  component: RouteComponent,
-});
+import { DashboardPage } from "@/pages/dashboard/dashboard-page";
 
-function RouteComponent() {
-  return <div>Hello "/_protected/dashbaord"!</div>;
-}
+export const Route = createFileRoute("/_protected/dashboard")({
+  component: DashboardPage,
+});

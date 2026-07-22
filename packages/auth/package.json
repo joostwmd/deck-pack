@@ -4,17 +4,32 @@
   "exports": {
     "./client": "./src/client.ts",
     "./server": "./src/server.ts",
-    "./schema": "./src/schema.ts"
+    "./schema": "./src/schema.ts",
+    "./session-cookie": "./src/session-cookie.ts",
+    "./ops-soft-gate": "./src/ops-soft-gate.ts",
+    "./microsoft-id-token": "./src/microsoft-id-token.ts",
+    "./microsoft-sign-in": "./src/microsoft-sign-in.ts",
+    "./microsoft-naa": "./src/microsoft-naa.ts",
+    "./rbac": "./src/rbac.ts",
+    "./workspace": "./src/workspace.ts",
+    "./permissions": "./src/permissions.ts",
+    "./session-db": "./src/session-db.ts",
+    "./test-auth": "./src/test-auth.ts"
   },
   "scripts": {
     "auth:generate": "npx auth@latest generate --config ./src/schema.ts --output ../db/src/schema/auth.ts --y"
   },
   "dependencies": {
+    "@azure/msal-browser": "^4.28.1",
+    "@deck-pack/billing": "workspace:*",
     "@deck-pack/db": "workspace:*",
-    "@deck-pack/email": "workspace:*",
     "@deck-pack/env": "workspace:*",
+    "@deck-pack/organization": "workspace:*",
     "better-auth": "catalog:",
     "dotenv": "catalog:",
+    "drizzle-orm": "^0.45.1",
+    "jose": "^6.2.3",
+    "resend": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

@@ -1,18 +1,19 @@
 import { Toaster } from "@deck-pack/ui/components/system/sonner";
+import { AppErrorBoundary } from "@deck-pack/observability";
 import type { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { HeadContent, Outlet, createRootRouteWithContext } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeProvider } from "@deck-pack/ui/components/system/theme-provider";
 import type { trpc } from "@/utils/trpc";
 
 import "../index.css";
-import { createOpsAuthClient } from "@deck-pack/auth/client";
+import type { AuthClient } from "@deck-pack/auth/client";
 
 export interface RouterAppContext {
   trpc: typeof trpc;
   queryClient: QueryClient;
-  authClient: ReturnType<typeof createOpsAuthClient>;
+  authClient: AuthClient;
 }
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
@@ -38,7 +39,7 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 
 function RootComponent() {
   return (
-    <>
+    <AppErrorBoundary>
       <HeadContent />
       <ThemeProvider
         attribute="class"
@@ -53,6 +54,6 @@ function RootComponent() {
       </ThemeProvider>
       <TanStackRouterDevtools position="bottom-left" />
       <ReactQueryDevtools position="bottom" buttonPosition="bottom-right" />
-    </>
+    </AppErrorBoundary>
   );
 }

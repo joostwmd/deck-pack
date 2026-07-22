@@ -1,36 +1,107 @@
 import { createAccessControl } from "better-auth/plugins/access";
 
-// ─── CUSTOM RBAC DEFINITION ─────────────────────────────
-const statement = {
+/** Better Auth organization plugin default resources/actions. */
+export const ORG_DEFAULT_STATEMENTS = {
   organization: ["update", "delete"],
   member: ["create", "update", "delete"],
   invitation: ["create", "cancel"],
-  project: ["create", "read", "update", "delete"],
-  task: ["create", "read", "update", "delete", "assign"],
+} as const;
+
+export const DECKPACK_STATEMENTS = {
   billing: ["view", "manage"],
-};
+  seat: ["view", "assign"],
+  usage: ["view", "export"],
+  asset: ["view", "insert"],
+  gallery: ["create", "update", "delete"],
+} as const;
+
+const statement = {
+  ...ORG_DEFAULT_STATEMENTS,
+  ...DECKPACK_STATEMENTS,
+} as const;
 
 export const ac = createAccessControl(statement);
+
+export const ORGANIZATION_ROLES = {
+  owner: "organizationOwner",
+  admin: "organizationAdmin",
+  member: "organizationMember",
+  addinUser: "organizationAddinUser",
+  libraryManager: "organizationLibraryManager",
+} as const;
+
+export type OrganizationRoleName = (typeof ORGANIZATION_ROLES)[keyof typeof ORGANIZATION_ROLES];
+
+/** Permission map passed to Better Auth hasPermission / checkRolePermission. */
+export type Permissions = Partial<{
+  [K in keyof typeof statement]: Array<(typeof statement)[K][number]>;
+}>;
 
 export const organizationOwner = ac.newRole({
   organization: ["update", "delete"],
   member: ["create", "update", "delete"],
   invitation: ["create", "cancel"],
-  project: ["create", "read", "update", "delete"],
-  task: ["create", "read", "update", "delete", "assign"],
   billing: ["view", "manage"],
+  seat: ["view", "assign"],
+  usage: ["view", "export"],
+  asset: ["view", "insert"],
+  gallery: ["create", "update", "delete"],
 });
 
 export const organizationAdmin = ac.newRole({
   organization: ["update"],
   member: ["create", "update", "delete"],
   invitation: ["create", "cancel"],
-  project: ["create", "read", "update"],
-  task: ["create", "read", "update", "assign"],
   billing: ["view"],
+  seat: ["view", "assign"],
+  usage: ["view"],
+  asset: ["view", "insert"],
+  gallery: ["create", "update", "delete"],
 });
 
 export const organizationMember = ac.newRole({
-  project: ["read", "create"],
-  task: ["read", "create", "update"],
+  usage: ["view"],
+  asset: ["view", "insert"],
 });
+
+export const organizationAddinUser = ac.newRole({
+  asset: ["view", "insert"],
+});
+
+export const organizationLibraryManager = ac.newRole({
+  asset: ["view", "insert"],
+  gallery: ["create", "update", "delete"],
+});
+
+export const organizationRoles = {
+  organizationOwner,
+  organizationAdmin,
+  organizationMember,
+  organizationAddinUser,
+  organizationLibraryManager,
+} as const;
+
+const organizationRoleNames = Object.values(ORGANIZATION_ROLES);
+
+export function isOrganizationRoleName(value: string): value is OrganizationRoleName {
+  return (organizationRoleNames as readonly string[]).includes(value);
+}
+
+/** Synchronous role permission check (mirrors client checkRolePermission). */
+export function checkOrganizationRolePermission(
+  roleName: OrganizationRoleName,
+  permissions: Permissions,
+): boolean {
+  switch (roleName) {
+    case ORGANIZATION_ROLES.owner:
+      return organizationOwner.authorize(permissions).success;
+    case ORGANIZATION_ROLES.admin:
+      return organizationAdmin.authorize(permissions).success;
+    case ORGANIZATION_ROLES.member:
+      return organizationMember.authorize(permissions).success;
+    case ORGANIZATION_ROLES.addinUser:
+      return organizationAddinUser.authorize(permissions).success;
+    case ORGANIZATION_ROLES.libraryManager:
+      return organizationLibraryManager.authorize(permissions).success;
+  }
+}

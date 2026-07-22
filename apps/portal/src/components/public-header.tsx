@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 
-import { ModeToggle } from "./mode-toggle";
+import { ThemeToggle } from "@deck-pack/ui/components/composite/theme-toggle";
 
 const links = [{ to: "/", label: "Home" }] as const;
 
@@ -15,7 +15,7 @@ export default function PublicHeader() {
             </Link>
           ))}
         </nav>
-        <ModeToggle />
+        <ThemeToggle variant="default" />
       </div>
       <hr />
     </div>

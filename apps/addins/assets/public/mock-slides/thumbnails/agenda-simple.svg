@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-label="Simple Agenda preview">
+  <rect width="640" height="360" fill="#0F766E"/>
+  <text x="40" y="170" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="42" font-weight="700">Simple Agenda</text>
+  <text x="40" y="215" fill="#E2E8F0" font-family="Arial, sans-serif" font-size="22">Outline your topics</text>
+</svg>
