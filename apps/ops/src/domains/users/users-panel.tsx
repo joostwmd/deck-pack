@@ -2,6 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import { env } from "@deck-pack/env/web";
 import { organizationKeys } from "@deck-pack/hooks/organization";
 import { useDeleteUser, usersKeys, useUsers } from "@deck-pack/hooks/users";
 import { createUserColumns } from "@deck-pack/ui/components/users/user-columns";
@@ -10,8 +11,6 @@ import type { PlatformUser } from "@deck-pack/ui/components/users/types";
 import { DataTable } from "@/components/data-table";
 import { OpsPageShell } from "@/components/ops-page-shell";
 import { useServices } from "@/services/services-context";
-
-const PORTAL_URL = "http://localhost:3002";
 
 function isAdminUser(user: PlatformUser): boolean {
   return user.role === "admin";
@@ -34,7 +33,7 @@ export function UsersPanel() {
           throw new Error(result.error.message ?? "Could not impersonate user");
         }
         toast.success("Now impersonating — opening portal");
-        window.location.assign(PORTAL_URL);
+        window.location.assign(env.VITE_PORTAL_URL);
       } catch (error) {
         setImpersonatingUserId(null);
         toast.error(error instanceof Error ? error.message : "Could not impersonate user");
