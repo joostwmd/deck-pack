@@ -2,14 +2,15 @@ import { createAppRouter } from "@deck-pack/api/trpc/router";
 import { AppContainer } from "@deck-pack/api/container";
 import { createApp } from "@deck-pack/api/server";
 import { createDb, unitOfWork } from "@deck-pack/db";
-import { session, user } from "@deck-pack/db/schema/auth";
 import { ensureMigrationsApplied } from "@deck-pack/db/test-utils/ensure-migrations";
 import { sql } from "drizzle-orm";
-import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { InMemoryObjectStorage } from "@deck-pack/storage";
 
-import { createSignedSessionFixture } from "../test-utils/create-signed-session-fixture";
+import {
+  cleanupSignedSession,
+  createSignedSessionFixture,
+} from "../test-utils/create-signed-session-fixture";
 import { seedReadyShape, seedReadySlide } from "../test-utils/seed-ready-gallery-fixture";
 import { trpcQuery } from "../test-utils/trpc-request";
 
@@ -46,24 +47,14 @@ describe("assets slides and shapes bearer transport", () => {
 
   afterAll(async () => {
     for (const userId of createdUserIds) {
-      await db.delete(session).where(eq(session.userId, userId));
-      await db.delete(user).where(eq(user.id, userId));
+      await cleanupSignedSession(userId);
     }
   });
 
   function createTestApp() {
+    const container = AppContainer.forIntegrationTest(db, { objectStorage: storage });
     return createApp({
-      router: createAppRouter(
-        {
-          brandfetchApiKey: "dummy-key-for-now",
-          brandfetchClientId: "dummy-client-id-for-now",
-          nounProjectApiKey: "dummy-key-for-now",
-          nounProjectApiSecret: "dummy-secret-for-now",
-          pexelsApiKey: "dummy-key-for-now",
-          storage,
-        },
-        AppContainer.forUnitTest(),
-      ),
+      router: createAppRouter(container.toRouterDeps(), container),
     });
   }
 

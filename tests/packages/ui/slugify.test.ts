@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { slugifyName } from "@deck-pack/ops/features/organizations/slugify";
+import { slugifyName } from "@deck-pack/ui/lib/slugify";
 
 describe("slugifyName", () => {
   it("lowercases and hyphenates", () => {

@@ -5,9 +5,9 @@ import {
   assetTypeSchema,
   flagExternalIdSchema,
   flagSearchQuerySchema,
-} from "@deck-pack/gallery";
-import { iconExternalIdSchema, iconSearchQuerySchema } from "@deck-pack/icons";
-import { logoExternalIdSchema, logoSearchQuerySchema } from "@deck-pack/logos";
+} from "@deck-pack/gallery/schemas";
+import { iconExternalIdSchema, iconSearchQuerySchema } from "@deck-pack/icons/schemas";
+import { logoExternalIdSchema, logoSearchQuerySchema } from "@deck-pack/logos/schemas";
 
 describe("discovery asset schemas", () => {
   it("accepts valid search queries", () => {

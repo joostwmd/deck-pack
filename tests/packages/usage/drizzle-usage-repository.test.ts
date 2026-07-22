@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 
 import { DrizzleBillingRepository } from "@deck-pack/billing/repositories/billing-repository";
@@ -151,5 +152,133 @@ describe("DrizzleUsageRepository", () => {
     expect(
       plan?.limits.some((limit) => limit.assetType === "logo" && limit.insertsPerMonth === 10),
     ).toBe(true);
+  }, 30_000);
+
+  it("persists insertion events with JSONB metadata and allows duplicates", async () => {
+    const db = await createPgliteTestDb();
+    const uow = new UnitOfWork(db);
+    const billingRepo = new DrizzleBillingRepository(uow);
+    const repo = new DrizzleUsageRepository(uow, billingRepo);
+
+    const orgId = crypto.randomUUID();
+    const userId = crypto.randomUUID();
+    const now = new Date();
+
+    await db.insert(user).values({
+      id: userId,
+      name: "Add-in User",
+      email: "addin@usage.test.local",
+      emailVerified: false,
+      createdAt: now,
+      updatedAt: now,
+    });
+    await db.insert(organization).values({
+      id: orgId,
+      name: "Add-in Org",
+      slug: "addin-usage-org",
+      createdAt: now,
+      metadata: JSON.stringify({ type: "individual" }),
+    });
+
+    const result = await repo.insertAssetInsertion({
+      organizationId: orgId,
+      userId,
+      assetType: "logo",
+      externalId: "brand-123",
+      client: "office",
+      metadata: { variantId: "0", BRAND_NAME: "Acme" },
+    });
+    expect(result?.id).toBeTruthy();
+
+    const [row] = await db.select().from(assetInsertions).where(eq(assetInsertions.id, result!.id));
+    expect(row).toMatchObject({
+      organizationId: orgId,
+      userId,
+      assetType: "logo",
+      externalId: "brand-123",
+      client: "office",
+      metadata: { variantId: "0", BRAND_NAME: "Acme" },
+    });
+    expect(row?.createdAt).toBeInstanceOf(Date);
+
+    await repo.insertAssetInsertion({
+      organizationId: orgId,
+      userId,
+      assetType: "icon",
+      externalId: "icon-1",
+      client: "web",
+    });
+    await repo.insertAssetInsertion({
+      organizationId: orgId,
+      userId,
+      assetType: "icon",
+      externalId: "icon-1",
+      client: "web",
+    });
+    const rows = await db
+      .select({ id: assetInsertions.id })
+      .from(assetInsertions)
+      .where(eq(assetInsertions.userId, userId));
+    expect(rows).toHaveLength(3);
+  }, 30_000);
+
+  it("blocks inserts when quota is exceeded via assertInsertAllowed", async () => {
+    const db = await createPgliteTestDb();
+    const uow = new UnitOfWork(db);
+    const billingRepo = new DrizzleBillingRepository(uow);
+    const repo = new DrizzleUsageRepository(uow, billingRepo);
+
+    const orgId = crypto.randomUUID();
+    const userId = crypto.randomUUID();
+    const planId = crypto.randomUUID();
+    const now = new Date();
+
+    await db.insert(user).values({
+      id: userId,
+      name: "Usage User",
+      email: "quota@usage.test.local",
+      emailVerified: false,
+      createdAt: now,
+      updatedAt: now,
+    });
+    await db.insert(organization).values({
+      id: orgId,
+      name: "Quota Org",
+      slug: "quota-usage-org",
+      createdAt: now,
+      metadata: JSON.stringify({ type: "individual" }),
+    });
+    await db.insert(plans).values({
+      id: planId,
+      name: "Limited",
+      slug: "usage-limited",
+      createdAt: now,
+      updatedAt: now,
+    });
+    await db.insert(planLimits).values({
+      planId,
+      assetType: "icon",
+      insertsPerMonth: 1,
+    });
+    const sub = await billingRepo.createOrganizationSubscription({
+      organizationId: orgId,
+      planId,
+      quantity: 1,
+    });
+    expect(sub.ok).toBe(true);
+
+    await repo.insertAssetInsertion({
+      organizationId: orgId,
+      userId,
+      assetType: "icon",
+      externalId: "icon-1",
+      client: "office",
+    });
+
+    const blocked = await repo.assertInsertAllowed({
+      organizationId: orgId,
+      assetType: "icon",
+    });
+    expect(blocked).toEqual({ ok: false, reason: "quota_exceeded", assetType: "icon" });
   }, 30_000);
 });

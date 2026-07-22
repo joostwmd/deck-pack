@@ -1,22 +1,20 @@
 import { auth } from "@deck-pack/auth/server";
 import { getSessionCookieName } from "@deck-pack/auth/session-cookie";
-import { createDb } from "@deck-pack/db";
-import { session, user } from "@deck-pack/db/schema/auth";
-import { eq } from "drizzle-orm";
 import { afterAll, describe, expect, it } from "vitest";
 
-import { createSignedSessionFixture } from "../test-utils/create-signed-session-fixture";
+import {
+  cleanupSignedSession,
+  createSignedSessionFixture,
+} from "../test-utils/create-signed-session-fixture";
 import { createApp } from "@deck-pack/api/server";
 
 describe("bearer session transport", () => {
-  const db = createDb();
   const createdUserIds: string[] = [];
   const cookieName = getSessionCookieName(process.env.BETTER_AUTH_URL ?? "http://localhost");
 
   afterAll(async () => {
     for (const userId of createdUserIds) {
-      await db.delete(session).where(eq(session.userId, userId));
-      await db.delete(user).where(eq(user.id, userId));
+      await cleanupSignedSession(userId);
     }
   });
 

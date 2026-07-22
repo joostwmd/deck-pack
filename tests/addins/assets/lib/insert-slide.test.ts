@@ -55,11 +55,11 @@ describe("insertSlide", () => {
     });
   });
 
-  it("propagates fetch failures", async () => {
+  it("propagates fetch failures after tracking intent", async () => {
     fetchFileAsBase64.mockRejectedValue(new Error("Failed to fetch file (500)"));
 
     await expect(insertSlide(slide, deps)).rejects.toThrow("Failed to fetch file (500)");
+    expect(track).toHaveBeenCalled();
     expect(insertSlidesFromBase64).not.toHaveBeenCalled();
-    expect(track).not.toHaveBeenCalled();
   });
 });

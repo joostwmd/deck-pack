@@ -2,7 +2,7 @@ import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import * as schema from "@deck-pack/db/schema/auth";
 import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { admin, bearer, emailOTP, type Member } from "better-auth/plugins";
+import { admin, bearer, emailOTP, testUtils, type Member } from "better-auth/plugins";
 import { organization } from "better-auth/plugins";
 import { createAuthMiddleware } from "better-auth/api";
 import {
@@ -46,6 +46,11 @@ export interface AuthDeps {
     clientId: string;
     clientSecret: string;
   };
+  /**
+   * When true, registers Better Auth `testUtils({ captureOTP: true })`.
+   * For test/auth factories only — never enable in production server configs.
+   */
+  enableTestUtils?: boolean;
 }
 
 /**
@@ -119,7 +124,11 @@ async function sessionCreateAfter(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Better Auth internal context
   ctx: any,
 ) {
-  const adapter = ctx!.context.adapter;
+  // `testUtils().login()` creates sessions without a request context.
+  const adapter = ctx?.context?.adapter;
+  if (!adapter) {
+    return;
+  }
   const { unitOfWork, organizationRepository, activateSeatForUser, findPendingOrgIntentByEmail } =
     await loadDbRuntime();
 
@@ -270,6 +279,7 @@ export function createAuth(deps: AuthDeps) {
           }
         : {}),
       plugins: [
+        ...(deps.enableTestUtils ? [testUtils({ captureOTP: true })] : []),
         emailOTP({
           async sendVerificationOTP({ email, otp, type }) {
             await sendOtp({ email, otp, type });

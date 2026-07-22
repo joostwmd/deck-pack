@@ -17,7 +17,7 @@ import {
   seedReadyFlag,
   seedReadyShape,
   seedReadySlide,
-} from "../test-utils/seed-ready-gallery-fixture";
+} from "../../api/test-utils/seed-ready-gallery-fixture";
 
 describe("assets discovery use-cases (integration)", () => {
   beforeAll(async () => {

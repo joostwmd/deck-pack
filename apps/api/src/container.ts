@@ -175,33 +175,39 @@ export class AppContainer {
     );
   }
 
-  static forIntegrationTest(db: Database): AppContainer {
-    const uow = new UnitOfWork(db);
-    const billing = new DrizzleBillingRepository(uow);
-    const organization = new DrizzleOrganizationRepository(uow, billing);
-    const members = new DrizzleMembersRepository(uow, billing, organization);
-    const seats = new DrizzleSeatsRepository(uow, billing, organization);
-    const usage = new DrizzleUsageRepository(uow, billing);
+  static forIntegrationTest(db: Database, overrides: AppContainerOverrides = {}): AppContainer {
+    const uow = overrides.unitOfWork ?? new UnitOfWork(db);
+    const billing = overrides.billingRepository ?? new DrizzleBillingRepository(uow);
+    const organization =
+      overrides.organizationRepository ?? new DrizzleOrganizationRepository(uow, billing);
+    const members =
+      overrides.membersRepository ?? new DrizzleMembersRepository(uow, billing, organization);
+    const seats =
+      overrides.seatsRepository ?? new DrizzleSeatsRepository(uow, billing, organization);
+    const usage = overrides.usageRepository ?? new DrizzleUsageRepository(uow, billing);
+    const brandfetchClient = overrides.brandfetchClient ?? emptyBrandfetchClient;
+    const nounProjectClient = overrides.nounProjectClient ?? emptyNounProjectClient;
+    const pexelsClient = overrides.pexelsClient ?? emptyPexelsClient;
     return new AppContainer(
       uow,
       organization,
-      new DrizzleUsersRepository(uow),
+      overrides.usersRepository ?? new DrizzleUsersRepository(uow),
       seats,
       members,
-      new InMemoryInvitationPort(),
+      overrides.invitationPort ?? new InMemoryInvitationPort(),
       billing,
       usage,
-      new DrizzleGalleryRepository(uow),
-      new DrizzleBrandProfilesRepository(uow),
-      new DrizzleAgendaServiceRepository(uow),
-      new DrizzleShortcutOverridesRepository(uow),
-      new InMemoryObjectStorage(),
-      emptyBrandfetchClient,
-      new BrandfetchLogoIntegration(emptyBrandfetchClient),
-      emptyNounProjectClient,
-      new NounProjectIconIntegration(emptyNounProjectClient),
-      emptyPexelsClient,
-      new PexelsPhotoIntegration(emptyPexelsClient),
+      overrides.galleryRepository ?? new DrizzleGalleryRepository(uow),
+      overrides.brandProfilesRepository ?? new DrizzleBrandProfilesRepository(uow),
+      overrides.agendaServiceRepository ?? new DrizzleAgendaServiceRepository(uow),
+      overrides.shortcutOverridesRepository ?? new DrizzleShortcutOverridesRepository(uow),
+      overrides.objectStorage ?? new InMemoryObjectStorage(),
+      brandfetchClient,
+      overrides.logoIntegration ?? new BrandfetchLogoIntegration(brandfetchClient),
+      nounProjectClient,
+      overrides.iconIntegration ?? new NounProjectIconIntegration(nounProjectClient),
+      pexelsClient,
+      overrides.photoIntegration ?? new PexelsPhotoIntegration(pexelsClient),
     );
   }
 

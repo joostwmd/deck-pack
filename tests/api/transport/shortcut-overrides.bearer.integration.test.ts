@@ -1,6 +1,5 @@
 import { createDb } from "@deck-pack/db";
 import { UnitOfWork } from "@deck-pack/db/transaction";
-import { session, user } from "@deck-pack/db/schema/auth";
 import { ensureMigrationsApplied } from "@deck-pack/db/test-utils/ensure-migrations";
 import {
   ListShortcutOverrides,
@@ -9,10 +8,13 @@ import {
   ShortcutConflictError,
 } from "@deck-pack/shortcut-overrides";
 import { DrizzleShortcutOverridesRepository } from "@deck-pack/shortcut-overrides/repositories/shortcut-overrides-repository";
-import { eq, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import { createSignedSessionFixture } from "../test-utils/create-signed-session-fixture";
+import {
+  cleanupSignedSession,
+  createSignedSessionFixture,
+} from "../test-utils/create-signed-session-fixture";
 import { trpcQuery } from "../test-utils/trpc-request";
 import { createApp } from "@deck-pack/api/server";
 
@@ -38,8 +40,7 @@ describe("shortcut overrides bearer transport", () => {
 
   afterAll(async () => {
     for (const userId of createdUserIds) {
-      await db.delete(session).where(eq(session.userId, userId));
-      await db.delete(user).where(eq(user.id, userId));
+      await cleanupSignedSession(userId);
     }
   });
 

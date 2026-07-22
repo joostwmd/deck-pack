@@ -9,7 +9,10 @@ import { plans } from "@deck-pack/db/schema/billing";
 import { eq, sql } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import { createSignedSessionFixture } from "../test-utils/create-signed-session-fixture";
+import {
+  cleanupSignedSession,
+  createSignedSessionFixture,
+} from "../test-utils/create-signed-session-fixture";
 import { trpcMutation, trpcQuery } from "../test-utils/trpc-request";
 import { createApp } from "@deck-pack/api/server";
 
@@ -116,8 +119,7 @@ describe("addin insertions bearer transport", () => {
 
   afterAll(async () => {
     for (const userId of createdUserIds) {
-      await db.delete(session).where(eq(session.userId, userId));
-      await db.delete(user).where(eq(user.id, userId));
+      await cleanupSignedSession(userId);
     }
   });
 
