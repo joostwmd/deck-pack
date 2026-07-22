@@ -26,7 +26,7 @@ export const Route = createFileRoute("/_protected/org")({
     workspace = profile.workspace ?? workspace;
 
     if (workspace !== "team") {
-      redirect({ to: "/solo/subscription", throw: true });
+      redirect({ to: "/solo/home", throw: true });
     }
 
     return { activeOrganizationId: orgId, workspace: "team" as const };

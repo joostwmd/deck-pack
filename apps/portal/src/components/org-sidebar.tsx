@@ -3,8 +3,6 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -12,18 +10,20 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
-  SidebarSeparator,
 } from "@deck-pack/ui/components/system/sidebar";
+import { SquaresFour } from "@phosphor-icons/react";
 import { Link, useRouterState } from "@tanstack/react-router";
 
 import {
   ORG_NAV_GROUPS,
-  ORG_SECONDARY_NAV_ITEMS,
   isPortalNavItemActive,
   type OrgNavGroup,
   type OrgNavItem,
 } from "@/config/portal-nav";
 import { useCan } from "@/auth/use-can";
+import { getAuthClient } from "@/utils/auth";
+
+import { SidebarUserMenu } from "./sidebar-user-menu";
 
 function filterGroupItems(
   group: OrgNavGroup,
@@ -50,15 +50,32 @@ function filterGroupItems(
 export function OrgSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { can, isLoading } = useCan();
+  const { data: activeOrganization } = getAuthClient().useActiveOrganization();
 
   const visibleGroups = ORG_NAV_GROUPS.map((group) => ({
     ...group,
     items: filterGroupItems(group, can, isLoading),
   })).filter((group) => group.items.length > 0);
 
+  const orgName = activeOrganization?.name?.trim() || "Team";
+
   return (
     <Sidebar>
-      <SidebarHeader className="p-3 text-sm font-semibold">Team workspace</SidebarHeader>
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton size="lg" render={<Link to="/org/dashboard" />}>
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                <SquaresFour className="size-4" />
+              </div>
+              <div className="flex flex-col gap-0.5 leading-none">
+                <span className="font-medium">{orgName}</span>
+                <span className="text-muted-foreground text-xs">Team workspace</span>
+              </div>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarMenu>
@@ -83,26 +100,10 @@ export function OrgSidebar() {
             ))}
           </SidebarMenu>
         </SidebarGroup>
-        <SidebarSeparator className="mx-2" />
-        <SidebarGroup>
-          <SidebarGroupLabel>Also</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {ORG_SECONDARY_NAV_ITEMS.map((item) => (
-                <SidebarMenuItem key={item.to}>
-                  <SidebarMenuButton
-                    isActive={isPortalNavItemActive(pathname, item.to)}
-                    render={<Link to={item.to} />}
-                  >
-                    <span>{item.title}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="p-2 text-xs text-muted-foreground">Team workspace</SidebarFooter>
+      <SidebarFooter>
+        <SidebarUserMenu />
+      </SidebarFooter>
     </Sidebar>
   );
 }

@@ -1,10 +1,10 @@
 import { z } from "zod";
 
-import { DeleteUser, ListUsers } from "@deck-pack/users";
+import { DeleteOwnAccount, DeleteUser, ListUsers } from "@deck-pack/users";
 import { userListItemSchema } from "@deck-pack/users/schemas";
 
 import type { AppContainer } from "../container";
-import { platformAdminProcedure } from "../trpc/procedures";
+import { platformAdminProcedure, protectedProcedure } from "../trpc/procedures";
 import { router } from "../trpc/init";
 
 export function usersRouter(container: AppContainer) {
@@ -21,6 +21,14 @@ export function usersRouter(container: AppContainer) {
           userId: input.userId,
           actorUserId: ctx.user!.id,
         }),
+      ),
+
+    deleteOwnAccount: protectedProcedure
+      .output(z.object({ userId: z.string() }))
+      .mutation(({ ctx }) =>
+        new DeleteOwnAccount(container.usersRepository, (organizationId) =>
+          container.organizationRepository.delete(organizationId),
+        ).execute({ userId: ctx.user!.id }),
       ),
   });
 }

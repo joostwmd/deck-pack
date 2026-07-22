@@ -22,8 +22,6 @@ import {
 import { ThemeToggle } from "@deck-pack/ui/components/composite/theme-toggle";
 import { portalBreadcrumbs } from "@/config/portal-nav";
 
-import UserMenu from "./user-menu";
-
 type PortalAppShellProps = {
   children: React.ReactNode;
   sidebar: React.ReactNode;
@@ -72,7 +70,6 @@ export function PortalAppShell({ children, sidebar }: PortalAppShellProps) {
             </div>
             <div className="flex shrink-0 items-center gap-2 pr-2">
               <ThemeToggle variant="default" />
-              <UserMenu />
             </div>
           </header>
           <div className="w-full min-w-0 p-4">{children}</div>

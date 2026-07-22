@@ -8,7 +8,7 @@ import {
 } from "./helpers/auth";
 
 const PORTAL_SOLO_ROUTES: Array<{ path: string; heading?: string | RegExp }> = [
-  { path: "/solo/subscription", heading: "Subscription" },
+  { path: "/solo/home", heading: "Home" },
   { path: "/solo/account", heading: "Account" },
 ];
 
@@ -16,6 +16,7 @@ const PORTAL_TEAM_ROUTES: Array<{ path: string; heading?: string | RegExp }> = [
   { path: "/org/dashboard", heading: "Dashboard" },
   { path: "/org/members", heading: "Members" },
   { path: "/org/seats", heading: "Seats" },
+  { path: "/org/billing", heading: "Billing" },
   { path: "/org/gallery/shapes", heading: "Shapes" },
   { path: "/org/gallery/shapes/new", heading: /New shape/i },
   { path: "/org/gallery/flags", heading: "Flags" },

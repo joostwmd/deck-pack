@@ -7,6 +7,7 @@ import type { KeyToken, ShortcutDef } from "@/utils/shortcuts";
 
 import { FiltersPopover } from "@/components/asset-browser/filters-popover";
 import { InternalOnlyFilterField } from "@/components/asset-browser/internal-only-filter-field";
+import { EmptyState } from "./empty-state";
 import { ErrorState } from "./error-state";
 import { InsertSection } from "./insert-section";
 import { ScreenHeader } from "./screen-header";
