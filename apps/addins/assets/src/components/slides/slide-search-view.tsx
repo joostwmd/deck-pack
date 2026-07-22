@@ -4,7 +4,6 @@ import { AssetBrowserShell } from "@/components/asset-browser/asset-browser-shel
 import { EmptyState } from "@/components/asset-browser/empty-state";
 import { ErrorState } from "@/components/asset-browser/error-state";
 import { InsertSection } from "@/components/asset-browser/insert-section";
-import { ScreenHeader } from "@/components/asset-browser/screen-header";
 import { SearchBar } from "@/components/asset-browser/search-bar";
 import { ShortcutKeys } from "@/components/shortcuts/shortcut-hint";
 import type { SlideSearchController } from "@/hooks/slides/use-slide-search-controller";
@@ -39,12 +38,6 @@ export function SlideSearchView({ controller }: SlideSearchViewProps) {
   return (
     <AssetBrowserShell
       liveMessage={liveMessage}
-      header={
-        <ScreenHeader
-          title="Slides"
-          text="Browse and insert slide templates into your presentation."
-        />
-      }
       toolbar={
         <section className="flex flex-col gap-3">
           <SearchBar

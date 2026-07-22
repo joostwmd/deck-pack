@@ -3,6 +3,7 @@ import { createTrpcGalleryStore } from "@deck-pack/hooks/gallery";
 import { createTrpcMembersStore } from "@deck-pack/hooks/members";
 import { createTrpcSeatsStore } from "@deck-pack/hooks/seats";
 import { createTrpcUsageStore } from "@deck-pack/hooks/usage";
+import { createTrpcUsersStore } from "@deck-pack/hooks/users";
 
 import { getAuthClient } from "@/utils/auth";
 import { trpcClient } from "@/utils/trpc";
@@ -32,5 +33,6 @@ export function createAppServices(): PortalAppServices {
     seats: createTrpcSeatsStore(trpcClient.seats as never),
     billing: createTrpcOrganizationProfileStore(trpcClient.members as never),
     usage: createTrpcUsageStore(trpcClient.usage as never),
+    users: createTrpcUsersStore(trpcClient.users as never),
   };
 }

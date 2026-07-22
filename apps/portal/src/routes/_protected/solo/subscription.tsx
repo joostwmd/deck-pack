@@ -1,7 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-
-import { SubscriptionPanel } from "@/domains/billing/subscription-panel";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_protected/solo/subscription")({
-  component: SubscriptionPanel,
+  beforeLoad: () => {
+    throw redirect({ to: "/solo/home" });
+  },
 });

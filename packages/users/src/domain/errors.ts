@@ -13,3 +13,15 @@ export class CannotDeleteSelfError extends AppError {
     this.name = "CannotDeleteSelfError";
   }
 }
+
+export class CannotDeleteTeamOwnerError extends AppError {
+  constructor(options?: { cause?: unknown }) {
+    super(
+      "CANNOT_DELETE_TEAM_OWNER",
+      "Transfer ownership or leave your team organization before deleting your account",
+      400,
+      options,
+    );
+    this.name = "CannotDeleteTeamOwnerError";
+  }
+}

@@ -1,6 +1,13 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import { CannotDeleteSelfError, DeleteUser, ListUsers, UserNotFoundError } from "@deck-pack/users";
+import {
+  CannotDeleteSelfError,
+  CannotDeleteTeamOwnerError,
+  DeleteOwnAccount,
+  DeleteUser,
+  ListUsers,
+  UserNotFoundError,
+} from "@deck-pack/users";
 import { InMemoryUsersRepository } from "@deck-pack/users/repositories/in-memory-users-repository";
 
 function createSeededRepo() {
@@ -77,5 +84,74 @@ describe("DeleteUser", () => {
         actorUserId: "user-1",
       }),
     ).rejects.toBeInstanceOf(UserNotFoundError);
+  });
+});
+
+describe("DeleteOwnAccount", () => {
+  it("deletes solo-owned orgs then the user", async () => {
+    const repo = new InMemoryUsersRepository();
+    repo.seed([
+      {
+        id: "solo-user",
+        name: "Solo",
+        email: "solo@example.com",
+        role: null,
+        emailVerified: true,
+        banned: false,
+        createdAt: new Date("2024-01-01"),
+        organizationId: "solo-org",
+        organizationName: "Solo workspace",
+        organizationSlug: "solo",
+        organizationType: "individual",
+        memberRole: "organizationOwner",
+      },
+    ]);
+    const deleteOrganization = vi.fn(async () => ({ organizationId: "solo-org" }));
+
+    const result = await new DeleteOwnAccount(repo, deleteOrganization).execute({
+      userId: "solo-user",
+    });
+
+    expect(result.userId).toBe("solo-user");
+    expect(deleteOrganization).toHaveBeenCalledWith("solo-org");
+    expect(await repo.list()).toHaveLength(0);
+  });
+
+  it("blocks team organization owners", async () => {
+    const repo = createSeededRepo();
+    const deleteOrganization = vi.fn();
+
+    await expect(
+      new DeleteOwnAccount(repo, deleteOrganization).execute({ userId: "user-1" }),
+    ).rejects.toBeInstanceOf(CannotDeleteTeamOwnerError);
+    expect(deleteOrganization).not.toHaveBeenCalled();
+  });
+
+  it("allows team non-owners to delete without deleting the team org", async () => {
+    const repo = new InMemoryUsersRepository();
+    repo.seed([
+      {
+        id: "member-user",
+        name: "Member",
+        email: "member@example.com",
+        role: null,
+        emailVerified: true,
+        banned: false,
+        createdAt: new Date("2024-01-01"),
+        organizationId: "team-org",
+        organizationName: "Team",
+        organizationSlug: "team",
+        organizationType: "team",
+        memberRole: "organizationMember",
+      },
+    ]);
+    const deleteOrganization = vi.fn();
+
+    const result = await new DeleteOwnAccount(repo, deleteOrganization).execute({
+      userId: "member-user",
+    });
+
+    expect(result.userId).toBe("member-user");
+    expect(deleteOrganization).not.toHaveBeenCalled();
   });
 });

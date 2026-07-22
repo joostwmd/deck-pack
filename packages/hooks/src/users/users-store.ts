@@ -16,17 +16,20 @@ export type PlatformUser = {
 export interface UsersStore {
   listUsers: () => Promise<PlatformUser[]>;
   deleteUser: (userId: string) => Promise<{ userId: string }>;
+  deleteOwnAccount: () => Promise<{ userId: string }>;
 }
 
 /** Duck-typed surface of `trpc.users`. */
 export type UsersTrpcApi = {
   listUsers: { query: () => Promise<PlatformUser[]> };
   deleteUser: { mutate: (input: unknown) => Promise<{ userId: string }> };
+  deleteOwnAccount: { mutate: (input?: unknown) => Promise<{ userId: string }> };
 };
 
 export function createTrpcUsersStore(api: UsersTrpcApi): UsersStore {
   return {
     listUsers: () => api.listUsers.query(),
     deleteUser: (userId) => api.deleteUser.mutate({ userId }),
+    deleteOwnAccount: () => api.deleteOwnAccount.mutate(),
   };
 }

@@ -8,6 +8,7 @@ function canSeeNavItem(
   permissions?: {
     member?: ("create" | "update" | "delete")[];
     seat?: ("view" | "assign")[];
+    billing?: ("view" | "manage")[];
   },
 ) {
   if (!permissions) {
@@ -38,5 +39,14 @@ describe("portal org nav permissions", () => {
     expect(canSeeNavItem(ORGANIZATION_ROLES.admin, seatsItem?.permissions)).toBe(true);
     expect(canSeeNavItem(ORGANIZATION_ROLES.member, seatsItem?.permissions)).toBe(false);
     expect(canSeeNavItem(ORGANIZATION_ROLES.addinUser, seatsItem?.permissions)).toBe(false);
+  });
+
+  it("shows Billing for owner only", () => {
+    const billingItem = ORG_NAV_ITEMS.find((item) => item.to === "/org/billing");
+    expect(billingItem?.permissions).toEqual({ billing: ["manage"] });
+
+    expect(canSeeNavItem(ORGANIZATION_ROLES.owner, billingItem?.permissions)).toBe(true);
+    expect(canSeeNavItem(ORGANIZATION_ROLES.admin, billingItem?.permissions)).toBe(false);
+    expect(canSeeNavItem(ORGANIZATION_ROLES.member, billingItem?.permissions)).toBe(false);
   });
 });

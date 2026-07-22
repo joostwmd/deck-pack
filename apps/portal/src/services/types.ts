@@ -4,6 +4,7 @@ import type { GalleryStore } from "@deck-pack/hooks/gallery";
 import type { MembersStore } from "@deck-pack/hooks/members";
 import type { SeatsStore } from "@deck-pack/hooks/seats";
 import type { UsageStore } from "@deck-pack/hooks/usage";
+import type { UsersStore } from "@deck-pack/hooks/users";
 
 export interface AuthService {
   getSession: AuthClient["getSession"];
@@ -36,4 +37,5 @@ export interface PortalAppServices {
   seats: SeatsStore;
   billing: OrganizationProfileStore;
   usage: UsageStore;
+  users: UsersStore;
 }
