@@ -6,8 +6,15 @@ import type { UnitOfWork } from "@deck-pack/db";
 import { UserNotFoundError } from "../domain/errors";
 import type { OrganizationType, UserWithMembership } from "../domain/user";
 
+export type UserMembership = {
+  organizationId: string;
+  organizationType: OrganizationType | null;
+  memberRole: string;
+};
+
 export interface UsersRepository {
   list(): Promise<UserWithMembership[]>;
+  listMemberships(userId: string): Promise<UserMembership[]>;
   delete(userId: string): Promise<{ userId: string }>;
   isPlatformAdmin(userId: string): Promise<boolean>;
 }
@@ -48,6 +55,25 @@ export class DrizzleUsersRepository implements UsersRepository {
       organizationId: row.organizationId,
       organizationName: row.organizationName,
       organizationSlug: row.organizationSlug,
+      organizationType: getOrganizationType(row.organizationMetadata) as OrganizationType | null,
+      memberRole: row.memberRole,
+    }));
+  }
+
+  async listMemberships(userId: string): Promise<UserMembership[]> {
+    const db = this.uow.getDb();
+    const rows = await db
+      .select({
+        organizationId: organization.id,
+        organizationMetadata: organization.metadata,
+        memberRole: member.role,
+      })
+      .from(member)
+      .innerJoin(organization, eq(organization.id, member.organizationId))
+      .where(eq(member.userId, userId));
+
+    return rows.map((row) => ({
+      organizationId: row.organizationId,
       organizationType: getOrganizationType(row.organizationMetadata) as OrganizationType | null,
       memberRole: row.memberRole,
     }));

@@ -1,12 +1,13 @@
 import type { Permissions } from "@deck-pack/auth/rbac";
 import type { WorkspaceKind } from "@deck-pack/auth/workspace";
 
-export type SoloNavRoute = "/solo/subscription" | "/solo/account";
+export type SoloNavRoute = "/solo/home" | "/solo/account";
 
 export type OrgNavRoute =
   | "/org/dashboard"
   | "/org/members"
   | "/org/seats"
+  | "/org/billing"
   | "/org/gallery/shapes"
   | "/org/gallery/flags"
   | "/org/gallery/slides";
@@ -30,7 +31,7 @@ export type OrgNavGroup = {
   items: OrgNavItem[];
 };
 
-export const SOLO_NAV_ITEMS: SoloNavItem[] = [{ title: "Subscription", to: "/solo/subscription" }];
+export const SOLO_NAV_ITEMS: SoloNavItem[] = [{ title: "Home", to: "/solo/home" }];
 
 /** Flat list kept for breadcrumbs / active checks; sidebar uses ORG_NAV_GROUPS. */
 export const ORG_NAV_ITEMS: OrgNavItem[] = [
@@ -60,6 +61,11 @@ export const ORG_NAV_ITEMS: OrgNavItem[] = [
     to: "/org/seats",
     permissions: { seat: ["view"] },
   },
+  {
+    title: "Billing",
+    to: "/org/billing",
+    permissions: { billing: ["manage"] },
+  },
 ];
 
 export const ORG_NAV_GROUPS: OrgNavGroup[] = [
@@ -81,13 +87,9 @@ export const ORG_NAV_GROUPS: OrgNavGroup[] = [
     items: [
       { title: "Members", to: "/org/members", permissions: { member: ["create"] } },
       { title: "Seats", to: "/org/seats", permissions: { seat: ["view"] } },
+      { title: "Billing", to: "/org/billing", permissions: { billing: ["manage"] } },
     ],
   },
-];
-
-/** Cross-workspace link shown in the org sidebar. */
-export const ORG_SECONDARY_NAV_ITEMS: SoloNavItem[] = [
-  { title: "Personal account", to: "/solo/account" },
 ];
 
 export type PortalBreadcrumb = {
@@ -105,8 +107,8 @@ export function portalBreadcrumbs(
 ): PortalBreadcrumb[] {
   const { dynamicLabels = {} } = options;
 
-  if (pathname === "/solo/subscription") {
-    return [{ label: "Subscription" }];
+  if (pathname === "/solo/home" || pathname === "/solo/subscription" || pathname === "/solo") {
+    return [{ label: "Home" }];
   }
 
   if (pathname === "/solo/account" || pathname === "/account") {
@@ -123,6 +125,10 @@ export function portalBreadcrumbs(
 
   if (pathname === "/org/seats") {
     return [{ label: "Seats" }];
+  }
+
+  if (pathname === "/org/billing") {
+    return [{ label: "Billing" }];
   }
 
   if (pathname === "/org/gallery/shapes") {
@@ -177,14 +183,14 @@ export function isPortalNavItemActive(pathname: string, to: PortalNavRoute): boo
   if (to === "/org/dashboard") {
     return pathname === to || pathname === "/org";
   }
-  if (to === "/solo/subscription") {
-    return pathname === to || pathname === "/solo";
+  if (to === "/solo/home") {
+    return pathname === to || pathname === "/solo" || pathname === "/solo/subscription";
   }
   return pathname === to || pathname.startsWith(`${to}/`);
 }
 
 export function portalHomePath(workspace: WorkspaceKind | null | undefined): PortalNavRoute {
-  return workspace === "team" ? "/org/dashboard" : "/solo/subscription";
+  return workspace === "team" ? "/org/dashboard" : "/solo/home";
 }
 
 export function workspaceFromSession(

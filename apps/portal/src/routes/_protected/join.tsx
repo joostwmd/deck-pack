@@ -11,7 +11,7 @@ export const Route = createFileRoute("/_protected/join")({
   beforeLoad: async () => {
     const pending = await trpcClient.members.getPendingJoin.query();
     if (!pending) {
-      throw redirect({ to: "/solo/subscription" });
+      throw redirect({ to: "/solo/home" });
     }
     if (pending.kind === "invitation" && pending.invitationId) {
       throw redirect({
